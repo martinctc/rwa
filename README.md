@@ -9,6 +9,18 @@ The `rwa()` function in this package is compatible with dplyr / tidyverse style 
 
 ---
 
+### Installation
+
+surveytoolbox is not release on CRAN (yet). 
+You can install the latest development version from GitHub with:
+
+```
+install.packages("devtools")
+devtools::install_github("martinctc/rwa")
+```
+
+---
+
 ## Method / Technical details
 RWA decomposes the total variance predicted in a regression model (R2) into weights that accurately reﬂect the proportional contribution of the various predictor variables. 
 
