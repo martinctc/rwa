@@ -41,3 +41,5 @@ The main `rwa()` function is ready-to-use, but the intent is to develop addition
 ### Contact me
 ---
 Please feel free to submit suggestions and report bugs: <https://github.com/martinctc/rwa/issues>
+
+Also check out my [website](https://martinctc.github.io) for my other work and packages.
