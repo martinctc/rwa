@@ -45,3 +45,21 @@ The main `rwa()` function is ready-to-use, but the intent is to develop addition
 Please feel free to submit suggestions and report bugs: <https://github.com/martinctc/rwa/issues>
 
 Also check out my [website](https://martinctc.github.io) for my other work and packages.
+
+### References / Bibliography
+
+Azen, R., & Budescu, D. V. (2003). The dominance analysis approach for comparing predictors in multiple regression. *Psychological methods*, 8(2), 129.
+
+Budescu, D. V. (1993). Dominance analysis: a new approach to the problem of relative importance of predictors in multiple regression. *Psychological bulletin*, 114(3), 542.
+
+Grömping, U. (2006). Relative importance for linear regression in R: the package relaimpo. *Journal of statistical software*, 17(1), 1-27.
+
+Johnson, J. W., & LeBreton, J. M. (2004). History and use of relative importance indices in organizational research. *Organizational research methods*, 7(3), 238-257.
+
+Lindeman RH, Merenda PF, Gold RZ (1980). *Introduction to Bivariate and Multivariate
+Analysis*. Scott, Foresman, Glenview, IL.
+
+Tonidandel, S., & LeBreton, J. M. (2011). Relative importance analysis: A useful supplement to regression analysis. *Journal of Business and Psychology*, 26(1), 1-9.
+
+Wang, X., Duverger, P., Bansal, H. S. (2013). Bayesian Inference of Predictors Relative Importance in Linear Regression Model using Dominance Hierarchies. *International Journal of Pure and Applied Mathematics*, Vol. 88, No. 3, 321-339.
+
