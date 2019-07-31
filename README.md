@@ -54,6 +54,8 @@ Budescu, D. V. (1993). Dominance analysis: a new approach to the problem of rela
 
 Grömping, U. (2006). Relative importance for linear regression in R: the package relaimpo. *Journal of statistical software*, 17(1), 1-27.
 
+Grömping, U. (2009). Variable importance assessment in regression: linear regression versus random forest. *The American Statistician*, 63(4), 308-319.
+
 Johnson, J. W., & LeBreton, J. M. (2004). History and use of relative importance indices in organizational research. *Organizational research methods*, 7(3), 238-257.
 
 Lindeman RH, Merenda PF, Gold RZ (1980). *Introduction to Bivariate and Multivariate
