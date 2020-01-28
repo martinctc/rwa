@@ -3,7 +3,7 @@ Package for running Relative Weights Analysis in R
 
 
 ### Background
-Relative Weights Analysis (RWA) is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Toniandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), *A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression*. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella 'Relative Importance Analysis', where other members include the 'Shapley method' and 'dominance analysis'. This is often referred to as 'Key Drivers Analysis' within market research.
+**Relative Weights Analysis (RWA)** is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Toniandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), *A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression*. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella 'Relative Importance Analysis', where other members include the 'Shapley method' and 'dominance analysis'. This is often referred to as 'Key Drivers Analysis' within market research.
 
 This package is built around the main function `rwa()`, which takes in a data frame as an argument and allows you to specify the names of the input variables and the outcome variable as arguments.
 
@@ -26,7 +26,7 @@ devtools::install_github("martinctc/rwa")
 ### Method / Technical details
 RWA decomposes the total variance predicted in a regression model (R2) into weights that accurately reﬂect the proportional contribution of the various predictor variables. 
 
-RWA is a useful technique to calculate the relative importance of predictors (independent variables) when independent variables are correlated to each other. It is an alternative to multiple regression technique and it addresses multicollinearity proble,m and also helps to calculate the importance rank of variables. It helps to answer "which variable is the most important and rank variables based on their contribution to R-Square".
+RWA is a useful technique to calculate the relative importance of predictors (independent variables) when independent variables are correlated to each other. It is an alternative to multiple regression technique and it addresses the _multicollinearity_ problem, and also helps to calculate the importance rank of variables. It helps to answer "which variable is the most important and rank variables based on their contribution to R-Square".
 
 See https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf. 
 
