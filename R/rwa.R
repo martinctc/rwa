@@ -4,6 +4,7 @@
 #' @param df Data frame or tibble to be passed through
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
+#' @param applysigns A logical vector specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyr drop_na
@@ -13,7 +14,7 @@
 #' rwa(diamonds,"price",c("depth","carat"))
 #'
 #' @export
-rwa <- function(df,outcome,predictors){
+rwa <- function(df, outcome, predictors, applysigns = FALSE){
   df %>%
     dplyr::select(outcome,predictors) %>%
     tidyr::drop_na(outcome)-> thedata # Gets data frame in right order and form
@@ -66,6 +67,13 @@ rwa <- function(df,outcome,predictors){
                        Sign = sign) # Output - results
 
   nrow(drop_na(thedata)) -> complete_cases
+
+  if(applysigns == TRUE){
+    result %>%
+      mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
+                                              Rescaled.RelWeight * -1,
+                                              Rescaled.RelWeight)) -> result
+  }
 
   list("predictors"=Variables,
        "rsquare"=rsquare,
