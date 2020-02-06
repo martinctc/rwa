@@ -33,6 +33,9 @@ See https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf.
 ### Multicollinearity
 When independent variables are correlated, it is difficult to determine the correct prediction power of each variable. Hence, it is difficult to rank them as we are unable to estimate coefficients correctly. Statistically, multicollinearity can increase the standard error of the coefficient estimates and make the estimates very sensitive to minor changes in the model. It means the coefficients are biased and difficult to interpret.
 
+### Signs
+Key Drivers Analysis methods do not conventionally include a score sign, which can make it difficult to interpret whether a variable is _positively_ or _negatively_ driving the outcome. The `applysigns` argument in `rwa::rwa()`, when set to `TRUE`, allows the application of positive or negative signs to the driver scores to match the signs of the corresponding linear regression coefficients from the model. This feature mimics the solution used in the [Q research software](https://wiki.q-researchsoftware.com/wiki/Driver_(Importance)_Analysis). The resulting column is labelled `Sign.Rescaled.RelWeight` to distinguish from the unsigned column.
+
 ---
 
 ### Latest Status
