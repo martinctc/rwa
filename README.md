@@ -37,6 +37,7 @@ When independent variables are correlated, it is difficult to determine the corr
 Key Drivers Analysis methods do not conventionally include a score sign, which can make it difficult to interpret whether a variable is _positively_ or _negatively_ driving the outcome. The `applysigns` argument in `rwa::rwa()`, when set to `TRUE`, allows the application of positive or negative signs to the driver scores to match the signs of the corresponding linear regression coefficients from the model. This feature mimics the solution used in the [Q research software](https://wiki.q-researchsoftware.com/wiki/Driver_(Importance)_Analysis). The resulting column is labelled `Sign.Rescaled.RelWeight` to distinguish from the unsigned column.
 
 ### Basic example
+Code:
 ```
 library(rwa)
 library(tidyverse)
@@ -45,7 +46,9 @@ mtcars %>%
   rwa(outcome = "mpg",
       predictors = c("cyl", "disp", "hp", "gear"),
       applysigns = TRUE)
-      
+```
+Results:
+```
 $predictors
 [1] "cyl"  "disp" "hp"   "gear"
 
