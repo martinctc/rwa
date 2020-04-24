@@ -5,7 +5,7 @@
 \title{Relative Weights Analysis
 Optimised for dplyr pipes and shows positive / negative signs for weights.}
 \usage{
-rwa(df, outcome, predictors)
+rwa(df, outcome, predictors, applysigns = FALSE)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through}
@@ -13,6 +13,8 @@ rwa(df, outcome, predictors)
 \item{outcome}{Outcome variable, to be specified as a string or bare input. Must be a numeric variable.}
 
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
+
+\item{applysigns}{A logical vector specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.}
 }
 \description{
 Relative Weights Analysis
