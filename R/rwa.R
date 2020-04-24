@@ -7,6 +7,7 @@
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyr drop_na
+#' @importFrom stats cor
 #' @import dplyr
 #' @examples
 #' library(ggplot2)

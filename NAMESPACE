@@ -3,4 +3,5 @@
 export(rwa)
 import(dplyr)
 importFrom(magrittr,"%>%")
+importFrom(stats,cor)
 importFrom(tidyr,drop_na)
