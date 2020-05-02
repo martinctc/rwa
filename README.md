@@ -36,6 +36,13 @@ When independent variables are correlated, it is difficult to determine the corr
 ### Signs
 Key Drivers Analysis methods do not conventionally include a score sign, which can make it difficult to interpret whether a variable is _positively_ or _negatively_ driving the outcome. The `applysigns` argument in `rwa::rwa()`, when set to `TRUE`, allows the application of positive or negative signs to the driver scores to match the signs of the corresponding linear regression coefficients from the model. This feature mimics the solution used in the [Q research software](https://wiki.q-researchsoftware.com/wiki/Driver_(Importance)_Analysis). The resulting column is labelled `Sign.Rescaled.RelWeight` to distinguish from the unsigned column.
 
+### Estimating the statistical significance of relative weights
+As Tonidandel et al. (2009) noted, there is no default procedure for determining the statistical significance of individual relative weights: 
+
+> The difficulty in determining the statistical significance of relative weights stems from the fact that the exact (or small sample) sampling distribution of relative weights is unknown.
+
+The paper itself suggests a Monte Carlo method for estimating the statistical significance, but this is currently not available or provided in the package, but the plan is to implement this in the near future.
+
 ### Basic example
 Code:
 ```
@@ -95,6 +102,8 @@ Lindeman RH, Merenda PF, Gold RZ (1980). *Introduction to Bivariate and Multivar
 Analysis*. Scott, Foresman, Glenview, IL.
 
 Tonidandel, S., & LeBreton, J. M. (2011). Relative importance analysis: A useful supplement to regression analysis. *Journal of Business and Psychology*, 26(1), 1-9.
+
+Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the statistical significance of relative weights. *Psychological methods*, *14*(4), 387.
 
 Wang, X., Duverger, P., Bansal, H. S. (2013). Bayesian Inference of Predictors Relative Importance in Linear Regression Model using Dominance Hierarchies. *International Journal of Pure and Applied Mathematics*, Vol. 88, No. 3, 321-339.
 
