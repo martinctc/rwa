@@ -71,7 +71,7 @@ rwa <- function(df, outcome, predictors, applysigns = FALSE){
 
   if(applysigns == TRUE){
     result %>%
-      mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
+      dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
                                               Rescaled.RelWeight * -1,
                                               Rescaled.RelWeight)) -> result
   }
