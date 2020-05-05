@@ -1,4 +1,7 @@
 # rwa
+
+[![R build status](https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg)](https://github.com/martinctc/rwa/actions)
+
 Package for running Relative Weights Analysis in R
 
 
