@@ -16,7 +16,7 @@ The `rwa()` function in this package is compatible with dplyr / tidyverse style 
 
 ### Installation
 
-surveytoolbox is not release on CRAN (yet). 
+{rwa} is not release on CRAN (yet). 
 You can install the latest development version from GitHub with:
 
 ```
