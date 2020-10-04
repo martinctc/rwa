@@ -8,7 +8,8 @@
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
-#' @param applysigns A logical vector specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @param applysigns A logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @param plot A logical value specifying whether to plot the rescaled importance metrics.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -30,7 +31,11 @@
 #' rwa(diamonds,"price",c("depth","carat"))
 #'
 #' @export
-rwa <- function(df, outcome, predictors, applysigns = FALSE){
+rwa <- function(df,
+                outcome,
+                predictors,
+                applysigns = FALSE,
+                plot = TRUE){
 
   # Gets data frame in right order and form
   thedata <-
@@ -89,6 +94,19 @@ rwa <- function(df, outcome, predictors, applysigns = FALSE){
 
   nrow(drop_na(thedata)) -> complete_cases
 
+  if(plot == TRUE){
+    output_plot <- result %>%
+      dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
+                                                     Rescaled.RelWeight * -1,
+                                                     Rescaled.RelWeight)) %>%
+      ggplot(aes(x = reorder(Variables, -Sign.Rescaled.RelWeight), y = Sign.Rescaled.RelWeight)) +
+      geom_col() +
+      coord_flip()
+
+    output_plot
+  }
+
+
   if(applysigns == TRUE){
     result %>%
       dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
@@ -103,4 +121,5 @@ rwa <- function(df, outcome, predictors, applysigns = FALSE){
        "lambda" = lambda,
        "RXX" = RXX,
        "RXY" = RXY)
+
 }

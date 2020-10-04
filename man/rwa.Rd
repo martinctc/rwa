@@ -4,7 +4,7 @@
 \alias{rwa}
 \title{Create a Relative Weight Analysis (RWA)}
 \usage{
-rwa(df, outcome, predictors, applysigns = FALSE)
+rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
@@ -13,7 +13,9 @@ rwa(df, outcome, predictors, applysigns = FALSE)
 
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{A logical vector specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+\item{applysigns}{A logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+
+\item{plot}{A logical value specifying whether to plot the rescaled importance metrics.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
@@ -26,6 +28,9 @@ rwa(df, outcome, predictors, applysigns = FALSE)
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
+\item \code{lambda}:
+\item \code{RXX}: Correlation matrix of all the predictor variables against each other.
+\item \code{RXY}: Correlation values of the predictor variables against the outcome variable.
 }
 }
 \description{
