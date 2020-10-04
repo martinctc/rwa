@@ -2,23 +2,37 @@
 % Please edit documentation in R/rwa.R
 \name{rwa}
 \alias{rwa}
-\title{Relative Weights Analysis
-Optimised for dplyr pipes and shows positive / negative signs for weights.}
+\title{Create a Relative Weight Analysis (RWA)}
 \usage{
 rwa(df, outcome, predictors, applysigns = FALSE)
 }
 \arguments{
-\item{df}{Data frame or tibble to be passed through}
+\item{df}{Data frame or tibble to be passed through.}
 
 \item{outcome}{Outcome variable, to be specified as a string or bare input. Must be a numeric variable.}
 
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{A logical vector specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.}
+\item{applysigns}{A logical vector specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+}
+\value{
+\code{rwa()} returns a list of outputs, as follows:
+\itemize{
+\item \code{predictors}: character vector of names of the predictor variables used.
+\item \code{rsquare}: the rsquare value of the regression model.
+\item \code{result}: the final output of the importance metrics.
+\itemize{
+\item The \code{Rescaled.RelWeight} column sums up to 100.
+\item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
+}
+\item \code{n}: indicates the number of observations used in the analysis.
+}
 }
 \description{
-Relative Weights Analysis
-Optimised for dplyr pipes and shows positive / negative signs for weights.
+This function creates a Relative Weight Analysis (RWA) and returns a list of outputs.
+RWA involves creating a linear regression model based on a set of transformed predictors, which are orthogonal to each other but
+maximally proximate to the original set of predictors.
+\code{rwa()} is optimised for dplyr pipes and shows positive / negative signs for weights.
 }
 \examples{
 library(ggplot2)

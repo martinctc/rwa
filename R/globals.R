@@ -5,6 +5,8 @@
 
 utils::globalVariables(
   c(
-    "."
+    ".",
+    "Sign",
+    "Rescaled.RelWeight"
   )
 )
