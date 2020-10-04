@@ -1,10 +1,16 @@
-#' Relative Weights Analysis
-#' Optimised for dplyr pipes and shows positive / negative signs for weights.
+#' @title Create a Relative Weight Analysis (RWA)
 #'
-#' @param df Data frame or tibble to be passed through
+#' @description This function creates a Relative Weight Analysis by creating a regression
+#' model based on a set of transformed predictors which are orthogonal to each other but
+#' maximally proximate to the original set of predictors. `rwa()` is optimised for dplyr
+#' pipes and shows positive / negative signs for weights.
+#'
+#' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns A logical vector specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#'
+#' @return `rwa()` returns a list of outputs, as follows:
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyr drop_na
@@ -27,7 +33,8 @@ rwa <- function(df, outcome, predictors, applysigns = FALSE){
   }
 
   cor(thedata, use = "pairwise.complete.obs") %>%
-    dplyr::as_tibble() %>%
+    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
+    # dplyr::as_tibble(.name_repair = c("check_unique", "unique", "universal", "minimal")) %>%
     na_remover() %>%
     tidyr::drop_na() %>%
     as.matrix() -> matrix_data
@@ -36,7 +43,8 @@ rwa <- function(df, outcome, predictors, applysigns = FALSE){
   RXY <- matrix_data[2:ncol(matrix_data), 1] # Take the correlations of each of the predictors with the outcome variable
 
   cor(thedata, use = "pairwise.complete.obs") %>%
-    dplyr::as_tibble() %>%
+    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
+    # dplyr::as_tibble(.name_repair = c("check_unique", "unique", "universal", "minimal")) %>%
     na_remover() %>%
     tidyr::drop_na() %>%
     names() %>%
@@ -55,7 +63,8 @@ rwa <- function(df, outcome, predictors, applysigns = FALSE){
   import <- (RawWgt / rsquare) * 100 # Rescaled Relative Weight
 
   beta %>% # Get signs from coefficients
-    dplyr::as_tibble() %>%
+    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
+    # dplyr::as_tibble(c("check_unique", "unique", "universal", "minimal")) %>%
     dplyr::mutate_all(~(dplyr::case_when(.>0~"+",
                                          .<0~"-",
                                          .==0~"0",
