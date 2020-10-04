@@ -1,11 +1,13 @@
 Package: rwa
 Type: Package
-Title: Perform a Relative Weights Analysis in R
+Title: Perform a Relative Weight Analysis
 Version: 0.1.0
-Author: Martin Chan
+Author: Martin Chan <martinchan53@gmail.com>
 Maintainer: Martin Chan <martinchan53@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Perform a Relative Weight Analysis (RWA) as per the method specified 
+    in Tonidandel & LeBreton. In essence, RWA decomposes the total variance predicted
+    in a regression model into weights that accurately reflect the proportional contribution
+    of the predictor variables, which addresses the issue of multi-collinearity.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
