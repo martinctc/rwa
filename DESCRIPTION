@@ -1,15 +1,21 @@
 Package: rwa
 Type: Package
-Title: Perform a Relative Weights Analysis in R
-Version: 0.1.0
-Author: Martin Chan
+Title: Perform a Relative Weights Analysis
+Version: 0.0.1
+Author: Martin Chan <martinchan53@gmail.com>
 Maintainer: Martin Chan <martinchan53@gmail.com>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described 
+    in Tonidandel & LeBreton (2015), with its original roots in Johnson (2000). In essence, RWA decomposes
+    the total variance predicted in a regression model into weights that accurately reflect the proportional 
+    contribution of the predictor variables, which addresses the issue of multi-collinearity. In typical scenarios,
+    RWA returns similar results to Shapley regression, but with a significant advantage on computational performance.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.0.2
+URL: https://github.com/martinctc/rwa
+BugReport: https://github.com/martinctc/rwa/issues
+RoxygenNote: 7.1.1
+Roxygen: list(markdown = TRUE)
 Imports:
 	dplyr,
 	magrittr,
