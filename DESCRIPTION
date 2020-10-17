@@ -4,10 +4,11 @@ Title: Perform a Relative Weights Analysis
 Version: 0.0.1
 Author: Martin Chan <martinchan53@gmail.com>
 Maintainer: Martin Chan <martinchan53@gmail.com>
-Description: Perform a Relative Weights Analysis (RWA) as per the method described 
-    in Tonidandel & LeBreton (2015), and can be traced back to Johnson (2000). In essence, RWA decomposes
+Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described 
+    in Tonidandel & LeBreton (2015), with its original roots in Johnson (2000). In essence, RWA decomposes
     the total variance predicted in a regression model into weights that accurately reflect the proportional 
-    contribution of the predictor variables, which addresses the issue of multi-collinearity.
+    contribution of the predictor variables, which addresses the issue of multi-collinearity. In typical scenarios,
+    RWA returns similar results to Shapley regression, but with a significant advantage on computational performance.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
