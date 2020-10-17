@@ -1,15 +1,22 @@
-#' @title Create a Relative Weight Analysis (RWA)
+#' @title Create a Relative Weights Analysis (RWA)
 #'
-#' @description This function creates a Relative Weight Analysis (RWA) and returns a list of outputs.
-#' RWA involves creating a linear regression model based on a set of transformed predictors, which are orthogonal to each other but
-#' maximally proximate to the original set of predictors.
+#' @description This function creates a Relative Weights Analysis (RWA) and returns a list of outputs.
+#' RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
+#' creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
+#' maximally related to the original set of predictors.
 #' `rwa()` is optimised for dplyr pipes and shows positive / negative signs for weights.
+#'
+#' @details
+#' `rwa()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
+#' for every predictor in the model.
+#' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
+#' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
 #'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
-#' @param applysigns A logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
-#' @param plot A logical value specifying whether to plot the rescaled importance metrics.
+#' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @param plot Logical value specifying whether to plot the rescaled importance metrics.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -48,7 +55,7 @@ rwa <- function(df,
   cor_matrix <-
     cor(thedata, use = "pairwise.complete.obs") %>%
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
-    remove_all_nas() %>%
+    remove_all_na_cols() %>%
     tidyr::drop_na()
 
   matrix_data <-
@@ -94,19 +101,6 @@ rwa <- function(df,
 
   nrow(drop_na(thedata)) -> complete_cases
 
-  if(plot == TRUE){
-    output_plot <- result %>%
-      dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
-                                                     Rescaled.RelWeight * -1,
-                                                     Rescaled.RelWeight)) %>%
-      ggplot(aes(x = reorder(Variables, -Sign.Rescaled.RelWeight), y = Sign.Rescaled.RelWeight)) +
-      geom_col() +
-      coord_flip()
-
-    output_plot
-  }
-
-
   if(applysigns == TRUE){
     result %>%
       dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
@@ -121,5 +115,4 @@ rwa <- function(df,
        "lambda" = lambda,
        "RXX" = RXX,
        "RXY" = RXY)
-
 }

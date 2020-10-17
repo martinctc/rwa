@@ -2,7 +2,7 @@
 % Please edit documentation in R/rwa.R
 \name{rwa}
 \alias{rwa}
-\title{Create a Relative Weight Analysis (RWA)}
+\title{Create a Relative Weights Analysis (RWA)}
 \usage{
 rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 }
@@ -13,9 +13,9 @@ rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{A logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+\item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
 
-\item{plot}{A logical value specifying whether to plot the rescaled importance metrics.}
+\item{plot}{Logical value specifying whether to plot the rescaled importance metrics.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
@@ -34,10 +34,17 @@ rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 }
 }
 \description{
-This function creates a Relative Weight Analysis (RWA) and returns a list of outputs.
-RWA involves creating a linear regression model based on a set of transformed predictors, which are orthogonal to each other but
-maximally proximate to the original set of predictors.
+This function creates a Relative Weights Analysis (RWA) and returns a list of outputs.
+RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
+creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
+maximally related to the original set of predictors.
 \code{rwa()} is optimised for dplyr pipes and shows positive / negative signs for weights.
+}
+\details{
+\code{rwa()} produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
+for every predictor in the model.
+Signs are added to the weights when the \code{applysigns} argument is set to \code{TRUE}.
+See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
 }
 \examples{
 library(ggplot2)
