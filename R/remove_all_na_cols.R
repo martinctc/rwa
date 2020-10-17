@@ -6,8 +6,10 @@
 #' @details
 #' This is used within `rwa()`.
 #'
+#' @param df Data frame to be passed through.
+#'
 #'
 #' @export
-remove_all_nas <- function(df){
+remove_all_na_cols <- function(df){
   Filter(function(x)!all(is.na(x)),df)
 }
