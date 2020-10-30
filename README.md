@@ -47,6 +47,9 @@ As Tonidandel et al. (2009) noted, there is no default procedure for determining
 The paper itself suggests a Monte Carlo method for estimating the statistical significance, but this is currently not available or provided in the package, but the plan is to implement this in the near future.
 
 ### Basic example
+
+You can pass the raw data directly into `rwa()`, without having to first compute a correlation matrix. The below example is with `mtcars`.
+
 Code:
 ```
 library(rwa)
