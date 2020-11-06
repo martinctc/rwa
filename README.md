@@ -1,6 +1,7 @@
 # rwa
 
 [![R build status](https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg)](https://github.com/martinctc/rwa/actions)
+[![CodeFactor](https://www.codefactor.io/repository/github/martinctc/rwa/badge)](https://www.codefactor.io/repository/github/martinctc/rwa)
 
 Perform a Relative Weights Analysis in R
 
