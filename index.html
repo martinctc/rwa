@@ -35,7 +35,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">rwa</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.2</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3</span>
       </span>
     </div>
 
@@ -90,8 +90,9 @@
 <h3 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h3>
 <p>{rwa} is not release on CRAN (yet). You can install the latest development version from GitHub with:</p>
-<pre><code><a href="https://rdrr.io/r/utils/install.packages.html">install.packages("devtools")
-devtools::install_github("martinctc/rwa")</a></code></pre>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
+<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"martinctc/rwa"</span><span class="op">)</span></code></pre></div>
 <hr>
 </div>
 <div id="method--technical-details" class="section level3">
@@ -125,41 +126,44 @@ devtools::install_github("martinctc/rwa")</a></code></pre>
 <a href="#basic-example" class="anchor"></a>Basic example</h3>
 <p>You can pass the raw data directly into <code><a href="reference/rwa.html">rwa()</a></code>, without having to first compute a correlation matrix. The below example is with <code>mtcars</code>.</p>
 <p>Code:</p>
-<pre><code><a href="https://github.com/martinctc/rwa">library(rwa)
-library(tidyverse)
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/martinctc/rwa">rwa</a></span><span class="op">)</span>
+<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tidyverse</span><span class="op">)</span>
 
-mtcars %&gt;%
-  rwa(outcome = "mpg",
-      predictors = c("cyl", "disp", "hp", "gear"),
-      applysigns = TRUE)</a></code></pre>
+<span class="va">mtcars</span> <span class="op">%&gt;%</span>
+  <span class="fu"><a href="reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,
+      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span><span class="op">)</span>,
+      applysigns <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <p>Results:</p>
-<pre><code>$predictors
-[1] "cyl"  "disp" "hp"   "gear"
-
-$rsquare
-[1] 0.7791896
-
-$result
-  Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight
-1       cyl     0.2284797           29.32274    -               -29.32274
-2      disp     0.2221469           28.50999    -               -28.50999
-3        hp     0.2321744           29.79691    -               -29.79691
-4      gear     0.0963886           12.37037    +                12.37037
-
-$n
-[1] 32      </code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">$</span>predictors</span>
+<span id="cb3-2"><a href="#cb3-2"></a>[<span class="dv">1</span>] <span class="st">"cyl"</span>  <span class="st">"disp"</span> <span class="st">"hp"</span>   <span class="st">"gear"</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="op">$</span>rsquare</span>
+<span id="cb3-5"><a href="#cb3-5"></a>[<span class="dv">1</span>] <span class="fl">0.7791896</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="op">$</span>result</span>
+<span id="cb3-8"><a href="#cb3-8"></a>  Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="dv">1</span>       cyl     <span class="fl">0.2284797</span>           <span class="fl">29.32274</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.32274</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="dv">2</span>      disp     <span class="fl">0.2221469</span>           <span class="fl">28.50999</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-28.50999</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="dv">3</span>        hp     <span class="fl">0.2321744</span>           <span class="fl">29.79691</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.79691</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="dv">4</span>      gear     <span class="fl">0.0963886</span>           <span class="fl">12.37037</span>    <span class="op">+</span><span class="st">                </span><span class="fl">12.37037</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a></span>
+<span id="cb3-14"><a href="#cb3-14"></a><span class="op">$</span>n</span>
+<span id="cb3-15"><a href="#cb3-15"></a>[<span class="dv">1</span>] <span class="dv">32</span>      </span></code></pre></div>
 <hr>
 </div>
 <div id="latest-status" class="section level3">
 <h3 class="hasAnchor">
 <a href="#latest-status" class="anchor"></a>Latest Status</h3>
 <p>The main <code><a href="reference/rwa.html">rwa()</a></code> function is ready-to-use, but the intent is to develop additional functions for this package which supplement the use of this function, such as tidying outputs and visualisations.</p>
+<hr>
 </div>
-<div id="-contact-me" class="section level2">
-<h2 class="hasAnchor">
-<a href="#-contact-me" class="anchor"></a>### Contact me</h2>
+<div id="contact-me" class="section level3">
+<h3 class="hasAnchor">
+<a href="#contact-me" class="anchor"></a>Contact me</h3>
 <p>Please feel free to submit suggestions and report bugs: <a href="https://github.com/martinctc/rwa/issues" class="uri">https://github.com/martinctc/rwa/issues</a></p>
 <p>Also check out my <a href="https://martinctc.github.io">website</a> for my other work and packages.</p>
+</div>
 <div id="references--bibliography" class="section level3">
 <h3 class="hasAnchor">
 <a href="#references--bibliography" class="anchor"></a>References / Bibliography</h3>
@@ -173,7 +177,6 @@ $n
 <p>Tonidandel, S., LeBreton, J. M., &amp; Johnson, J. W. (2009). Determining the statistical significance of relative weights. <em>Psychological methods</em>, <em>14</em>(4), 387.</p>
 <p>Wang, X., Duverger, P., Bansal, H. S. (2013). Bayesian Inference of Predictors Relative Importance in Linear Regression Model using Dominance Hierarchies. <em>International Journal of Pure and Applied Mathematics</em>, Vol. 88, No. 3, 321-339.</p>
 <p>Also see <a href="https://medium.com/analytics-vidhya/johnsons-relative-weights-analysis-implementation-with-javascript-d85393c0bbb4">Kovalyshyn</a> for a similar implementation but in Javascript.</p>
-</div>
 </div>
 </div>
   </div>
