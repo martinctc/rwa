@@ -9,14 +9,14 @@
 #' @param rwa Direct list output from `rwa()`.
 #'
 #' @examples
-#' \dontrun{
+#'
 #' library(ggplot2)
 #' diamonds %>%
 #'   rwa(outcome = "price",
 #'       predictors = c("depth","carat", "x", "y", "z"),
 #'       applysigns = TRUE) %>%
 #'   plot_rwa()
-#' }
+#'
 #'
 #' @export
 plot_rwa <- function(rwa){
