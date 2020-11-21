@@ -20,7 +20,7 @@ The `rwa()` function in this package is compatible with dplyr / tidyverse style 
 {rwa} is not release on CRAN (yet). 
 You can install the latest development version from GitHub with:
 
-```
+```R
 install.packages("devtools")
 devtools::install_github("martinctc/rwa")
 ```
@@ -52,7 +52,7 @@ The paper itself suggests a Monte Carlo method for estimating the statistical si
 You can pass the raw data directly into `rwa()`, without having to first compute a correlation matrix. The below example is with `mtcars`.
 
 Code:
-```
+```R
 library(rwa)
 library(tidyverse)
 
@@ -62,7 +62,7 @@ mtcars %>%
       applysigns = TRUE)
 ```
 Results:
-```
+```R
 $predictors
 [1] "cyl"  "disp" "hp"   "gear"
 
@@ -86,9 +86,10 @@ $n
 
 The main `rwa()` function is ready-to-use, but the intent is to develop additional functions for this package which supplement the use of this function, such as tidying outputs and visualisations.
 
+---
 
 ### Contact me
----
+
 Please feel free to submit suggestions and report bugs: <https://github.com/martinctc/rwa/issues>
 
 Also check out my [website](https://martinctc.github.io) for my other work and packages.
