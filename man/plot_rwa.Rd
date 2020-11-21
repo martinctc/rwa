@@ -15,13 +15,13 @@ Signs are always calculated and taken into account, which is equivalent to setti
 argument to \code{TRUE} in \code{rwa()}.
 }
 \examples{
-\dontrun{
+
 library(ggplot2)
 diamonds \%>\%
   rwa(outcome = "price",
       predictors = c("depth","carat", "x", "y", "z"),
       applysigns = TRUE) \%>\%
   plot_rwa()
-}
+
 
 }
