@@ -17,8 +17,13 @@ The `rwa()` function in this package is compatible with dplyr / tidyverse style 
 
 ### Installation
 
-{rwa} is not release on CRAN (yet). 
-You can install the latest development version from GitHub with:
+You can install the stable CRAN version of **rwa** with:
+
+```R
+install.packages("rwa")
+```
+
+Alternatively, you can install the latest development version from GitHub with:
 
 ```R
 install.packages("devtools")
