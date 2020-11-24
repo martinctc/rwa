@@ -95,8 +95,11 @@
 <div id="installation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#installation" class="anchor"></a>Installation</h3>
-<p>{rwa} is not release on CRAN (yet). You can install the latest development version from GitHub with:</p>
+<p>You can install the stable CRAN version of <strong>rwa</strong> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"rwa"</span><span class="op">)</span></code></pre></div>
+<p>Alternatively, you can install the latest development version from GitHub with:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
 <span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"martinctc/rwa"</span><span class="op">)</span></code></pre></div>
 <hr>
@@ -132,7 +135,7 @@
 <a href="#basic-example" class="anchor"></a>Basic example</h3>
 <p>You can pass the raw data directly into <code><a href="reference/rwa.html">rwa()</a></code>, without having to first compute a correlation matrix. The below example is with <code>mtcars</code>.</p>
 <p>Code:</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/martinctc/rwa">rwa</a></span><span class="op">)</span>
 <span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tidyverse</span><span class="op">)</span>
 
@@ -141,21 +144,21 @@
       predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span><span class="op">)</span>,
       applysigns <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
 <p>Results:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="op">$</span>predictors</span>
-<span id="cb3-2"><a href="#cb3-2"></a>[<span class="dv">1</span>] <span class="st">"cyl"</span>  <span class="st">"disp"</span> <span class="st">"hp"</span>   <span class="st">"gear"</span></span>
-<span id="cb3-3"><a href="#cb3-3"></a></span>
-<span id="cb3-4"><a href="#cb3-4"></a><span class="op">$</span>rsquare</span>
-<span id="cb3-5"><a href="#cb3-5"></a>[<span class="dv">1</span>] <span class="fl">0.7791896</span></span>
-<span id="cb3-6"><a href="#cb3-6"></a></span>
-<span id="cb3-7"><a href="#cb3-7"></a><span class="op">$</span>result</span>
-<span id="cb3-8"><a href="#cb3-8"></a>  Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span>
-<span id="cb3-9"><a href="#cb3-9"></a><span class="dv">1</span>       cyl     <span class="fl">0.2284797</span>           <span class="fl">29.32274</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.32274</span></span>
-<span id="cb3-10"><a href="#cb3-10"></a><span class="dv">2</span>      disp     <span class="fl">0.2221469</span>           <span class="fl">28.50999</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-28.50999</span></span>
-<span id="cb3-11"><a href="#cb3-11"></a><span class="dv">3</span>        hp     <span class="fl">0.2321744</span>           <span class="fl">29.79691</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.79691</span></span>
-<span id="cb3-12"><a href="#cb3-12"></a><span class="dv">4</span>      gear     <span class="fl">0.0963886</span>           <span class="fl">12.37037</span>    <span class="op">+</span><span class="st">                </span><span class="fl">12.37037</span></span>
-<span id="cb3-13"><a href="#cb3-13"></a></span>
-<span id="cb3-14"><a href="#cb3-14"></a><span class="op">$</span>n</span>
-<span id="cb3-15"><a href="#cb3-15"></a>[<span class="dv">1</span>] <span class="dv">32</span>      </span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="op">$</span>predictors</span>
+<span id="cb4-2"><a href="#cb4-2"></a>[<span class="dv">1</span>] <span class="st">"cyl"</span>  <span class="st">"disp"</span> <span class="st">"hp"</span>   <span class="st">"gear"</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="op">$</span>rsquare</span>
+<span id="cb4-5"><a href="#cb4-5"></a>[<span class="dv">1</span>] <span class="fl">0.7791896</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a></span>
+<span id="cb4-7"><a href="#cb4-7"></a><span class="op">$</span>result</span>
+<span id="cb4-8"><a href="#cb4-8"></a>  Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="dv">1</span>       cyl     <span class="fl">0.2284797</span>           <span class="fl">29.32274</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.32274</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="dv">2</span>      disp     <span class="fl">0.2221469</span>           <span class="fl">28.50999</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-28.50999</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a><span class="dv">3</span>        hp     <span class="fl">0.2321744</span>           <span class="fl">29.79691</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.79691</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a><span class="dv">4</span>      gear     <span class="fl">0.0963886</span>           <span class="fl">12.37037</span>    <span class="op">+</span><span class="st">                </span><span class="fl">12.37037</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a></span>
+<span id="cb4-14"><a href="#cb4-14"></a><span class="op">$</span>n</span>
+<span id="cb4-15"><a href="#cb4-15"></a>[<span class="dv">1</span>] <span class="dv">32</span>      </span></code></pre></div>
 <hr>
 </div>
 <div id="latest-status" class="section level3">
@@ -191,6 +194,8 @@
     <div class="links">
 <h2>Links</h2>
 <ul class="list-unstyled">
+<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=rwa">https://​cloud.r-project.org/​package=rwa</a>
+</li>
 <li>Browse source code at <br><a href="https://github.com/martinctc/rwa/">https://​github.com/​martinctc/​rwa/​</a>
 </li>
 <li>Report a bug at <br><a href="https://github.com/martinctc/rwa/issues">https://​github.com/​martinctc/​rwa/​issues</a>
