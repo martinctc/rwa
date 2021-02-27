@@ -108,7 +108,7 @@ rwa_logit <- function(df,
                                               Rescaled.RelWeight))
   }
 
-  list("predictors" = Variables,
+  list("predictors" = predictors,
        # "rsquare" = rsquare,
        "result" = result,
        "n" = complete_cases,
