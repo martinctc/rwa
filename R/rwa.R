@@ -44,75 +44,33 @@ rwa <- function(df,
                 applysigns = FALSE,
                 plot = TRUE){
 
-  # Gets data frame in right order and form
-  thedata <-
-    df %>%
-    dplyr::select(outcome,predictors) %>%
-    tidyr::drop_na(outcome)
+  # Check if outcome variable is a binary variable
+  outcome_var <- unique(df[[outcome]])
+  outcome_var_unique <- outcome_var[!is.na(outcome_var)]
 
-  numVar <- NCOL(thedata) # Output - number of variables
+  if(outcome_var_unique == 2){
 
-  cor_matrix <-
-    cor(thedata, use = "pairwise.complete.obs") %>%
-    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
-    remove_all_na_cols() %>%
-    tidyr::drop_na()
+    message(
+      paste0("Parsing `", outcome, "`", " as a binary variable."),
+      "\nApplying logistic regression to calculate relative weights..."
+    )
 
-  matrix_data <-
-    cor_matrix %>%
-    as.matrix()
+    rwa_logit(
+      df = df,
+      outcome = outcome,
+      predictors = predictors,
+      applysigns = applysigns,
+      plot = plot
+    )
 
-  RXX <- matrix_data[2:ncol(matrix_data), 2:ncol(matrix_data)] # Only take the correlations with the predictor variables
-  RXY <- matrix_data[2:ncol(matrix_data), 1] # Take the correlations of each of the predictors with the outcome variable
+  } else {
 
-  # Get all the 'genuine' predictor variables
-  Variables <-
-    cor_matrix %>%
-    names() %>%
-    .[.!=outcome]
-
-  RXX.eigen <- eigen(RXX) # Compute eigenvalues and eigenvectors of matrix
-  D <- diag(RXX.eigen$val) # Run diag() on the values of eigen - construct diagonal matrix
-  delta <- sqrt(D) # Take square root of the created diagonal matrix
-
-  lambda <- RXX.eigen$vec %*% delta %*% t(RXX.eigen$vec) # Matrix multiplication
-  lambdasq <- lambda ^ 2 # Square the result
-
-  # To get partial effect of each independent variable on the dependent variable
-  # We multiply the inverse matrix (RXY) on the correlation matrix between dependent and independent variables
-  beta <- solve(lambda) %*% RXY # Solve numeric matrix containing coefficients of equation (Ax=B)
-  rsquare <- sum(beta ^ 2) # Output - R Square, sum of squared values
-
-  RawWgt <- lambdasq %*% beta ^ 2 # Raw Relative Weight
-  import <- (RawWgt / rsquare) * 100 # Rescaled Relative Weight
-
-  beta %>% # Get signs from coefficients
-    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
-    dplyr::mutate_all(~(dplyr::case_when(.>0~"+",
-                                         .<0~"-",
-                                         .==0~"0",
-                           TRUE~NA_character_))) %>%
-    dplyr::rename(Sign="V1")-> sign
-
-  result <- data.frame(Variables,
-                       Raw.RelWeight = RawWgt,
-                       Rescaled.RelWeight = import,
-                       Sign = sign) # Output - results
-
-  nrow(drop_na(thedata)) -> complete_cases
-
-  if(applysigns == TRUE){
-    result %>%
-      dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
-                                              Rescaled.RelWeight * -1,
-                                              Rescaled.RelWeight)) -> result
+    rwa_multiregress(
+      df = df,
+      outcome = outcome,
+      predictors = predictors,
+      applysigns = applysigns,
+      plot = plot
+    )
   }
-
-  list("predictors" = Variables,
-       "rsquare" = rsquare,
-       "result" = result,
-       "n" = complete_cases,
-       "lambda" = lambda,
-       "RXX" = RXX,
-       "RXY" = RXY)
 }
