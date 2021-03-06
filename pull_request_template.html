@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>NA • rwa</title>
+<title>Summary • rwa</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,7 @@
 
 
 
-<meta property="og:title" content="NA" />
+<meta property="og:title" content="Summary" />
 
 
 
@@ -89,7 +89,7 @@
       <ul class="nav navbar-nav">
         <li>
   <a href="index.html">
-    <span class="fas fa fas fa-home fa-lg"></span>
+    <span class="fas fa-home fa-lg"></span>
      
   </a>
 </li>
@@ -103,7 +103,7 @@
       <ul class="nav navbar-nav navbar-right">
         <li>
   <a href="https://github.com/martinctc/rwa/">
-    <span class="fab fa fab fa-github fa-lg"></span>
+    <span class="fab fa-github fa-lg"></span>
      
   </a>
 </li>
@@ -120,31 +120,43 @@
 <div class="row">
   <div class="contents col-md-9">
     <div class="page-header">
-      <h1>NA</h1>
+      <h1>Summary</h1>
     </div>
 
-<pre><code># Summary
-This branch *&lt;succinct summary of the purpose&gt;*.
 
-# Changes
-The changes made in this PR are:
-1. Change 1
-1. Change 2
+<div id="summary" class="section level1">
 
-***
+<p>This branch <em><succinct summary of the purpose></succinct></em>.</p>
+</div>
+<div id="changes" class="section level1">
+<h1 class="hasAnchor">
+<a href="#changes" class="anchor"></a>Changes</h1>
+<p>The changes made in this PR are:</p>
+<ol>
+<li>Change 1</li>
+<li>Change 2</li>
+</ol>
+<hr>
+</div>
+<div id="check" class="section level1">
+<h1 class="hasAnchor">
+<a href="#check" class="anchor"></a>Check</h1>
+<ul>
+<li>
+<input type="checkbox" disabled><code>roxygen2::roxygenise()</code> has been run prior to merging to ensure that <code>.Rd</code> and <code>NAMESPACE</code> files are up to date.</li>
+<li>
+<input type="checkbox" disabled>
+The R CMD checks pass (at least one or more of <code>devtools::check()</code> or <code>rhub::check_for_cran()</code>)</li>
+</ul>
+<hr>
+<div id="optional-note" class="section level2">
+<h2 class="hasAnchor">
+<a href="#optional-note" class="anchor"></a>(OPTIONAL) Note</h2>
+<p>This “fixes #<issue_number>”</issue_number></p>
+<p><em>&lt;other things, such as how to incorporate new changes&gt;</em> <em><brief summary of the purpose this pull request></brief></em></p>
+</div>
+</div>
 
-# Check
-- [ ] Check 1
-- [ ] Check 2
-- [ ] The travis.ci and R CMD checks pass.
-
-***
-
-## (OPTIONAL) Note
-This "fixes #&lt;issue_number&gt;"
-
-*&lt;other things, such as how to incorporate new changes&gt;*
-*&lt;brief summary of the purpose of this pull request&gt;*</code></pre>
 
   </div>
 
