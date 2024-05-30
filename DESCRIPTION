@@ -1,7 +1,7 @@
 Package: rwa
 Type: Package
 Title: Perform a Relative Weights Analysis
-Version: 0.0.3
+Version: 0.1.0
 Author: Martin Chan <martinchan53@gmail.com>
 Maintainer: Martin Chan <martinchan53@gmail.com>
 Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described 
@@ -21,4 +21,5 @@ Imports:
 	magrittr,
 	stats,
 	tidyr,
-	ggplot2
+	ggplot2,
+	boot
