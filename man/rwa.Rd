@@ -4,18 +4,31 @@
 \alias{rwa}
 \title{Create a Relative Weights Analysis (RWA)}
 \usage{
-rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
+rwa(df, outcome, predictors, applysigns = FALSE, method = "auto", plot = TRUE)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
 
-\item{outcome}{Outcome variable, to be specified as a string or bare input. Must be a numeric variable.}
+\item{outcome}{Outcome variable, to be specified as a string or bare input.
+Must be a numeric variable.}
 
-\item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
+\item{predictors}{Predictor variable(s), to be specified as a vector of
+string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+\item{applysigns}{Logical value specifying whether to show an estimate that
+applies the sign. Defaults to \code{FALSE}.}
 
-\item{plot}{Logical value specifying whether to plot the rescaled importance metrics.}
+\item{method}{String to specify the method of regression to apply. Valid
+values include:
+\itemize{
+\item \code{"auto"}: automatically detect whether to use multiple regression or
+logistic regression based on the outcome variable provided.
+\item \code{"multiple"}: use multiple regression.
+\item \code{"logistic"}: use logistic regression.
+}}
+
+\item{plot}{Logical value specifying whether to plot the rescaled importance
+metrics.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
@@ -25,29 +38,42 @@ rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 \item \code{result}: the final output of the importance metrics.
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
-\item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
+\item The \code{Sign} column indicates whether a predictor is positively or
+negatively correlated with the outcome.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
 \item \code{lambda}:
-\item \code{RXX}: Correlation matrix of all the predictor variables against each other.
-\item \code{RXY}: Correlation values of the predictor variables against the outcome variable.
+\item \code{RXX}: Correlation matrix of all the predictor variables against each
+other. Not available for logistic regression.
+\item \code{RXY}: Correlation values of the predictor variables against the outcome
+variable. Not available for logistic regression.
 }
 }
 \description{
-This function creates a Relative Weights Analysis (RWA) and returns a list of outputs.
-RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
-creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
-maximally related to the original set of predictors.
-\code{rwa()} is optimised for dplyr pipes and shows positive / negative signs for weights.
+This function creates a Relative Weights Analysis (RWA) and
+returns a list of outputs. RWA provides a heuristic method for estimating
+the relative weight of predictor variables in multiple regression, which
+involves creating a multiple regression with on a set of transformed
+predictors which are orthogonal to each other but maximally related to the
+original set of predictors. \code{rwa()} is optimised for dplyr pipes and shows
+positive / negative signs for weights.
 }
 \details{
-\code{rwa()} produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
-for every predictor in the model.
-Signs are added to the weights when the \code{applysigns} argument is set to \code{TRUE}.
-See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+\code{rwa()} produces raw relative weight values (epsilons) as well as rescaled
+weights (scaled as a percentage of predictable variance) for every predictor
+in the model. Signs are added to the weights when the \code{applysigns} argument
+is set to \code{TRUE}. See
+https://relativeimportance.davidson.edu/multipleregression.html for the
+original implementation that inspired this package.
 }
 \examples{
 library(ggplot2)
+
+# Based on multiple regression
 rwa(diamonds,"price",c("depth","carat"))
+
+# Based on logistic regression
+diamonds$IsIdeal <- as.numeric(diamonds$cut == "Ideal")
+rwa(diamonds,"IsIdeal",c("depth","carat"))
 
 }
