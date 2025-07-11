@@ -14,14 +14,25 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  error = FALSE,
+  warning = FALSE,
+  message = FALSE
 )
 ```
 
 ```{r setup}
 library(rwa)
 library(dplyr)
-library(ggplot2)
+
+# Load ggplot2 if available, otherwise skip plotting examples
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  library(ggplot2)
+  has_ggplot2 <- TRUE
+} else {
+  has_ggplot2 <- FALSE
+  message("ggplot2 not available - skipping plotting examples")
+}
 ```
 
 ## Introduction
@@ -133,15 +144,19 @@ result_signs$result
 
 The package automatically generates a visualization of the relative importance:
 
-```{r visualization, fig.width=8, fig.height=5}
+```{r visualization, fig.width=8, fig.height=5, eval = has_ggplot2}
 # Generate plot (returned invisibly by default)
-plot_result <- mtcars %>%
-  rwa(outcome = "mpg",
-      predictors = c("cyl", "disp", "hp", "gear", "wt"),
-      plot = TRUE)
+if (has_ggplot2) {
+  plot_result <- mtcars %>%
+    rwa(outcome = "mpg",
+        predictors = c("cyl", "disp", "hp", "gear", "wt"),
+        plot = TRUE)
 
-# The plot shows rescaled relative weights
-plot_result$result
+  # The plot shows rescaled relative weights
+  plot_result$result
+} else {
+  cat("Note: Visualization requires ggplot2 package.")
+}
 ```
 
 ## Bootstrap Confidence Intervals
@@ -230,34 +245,40 @@ result_rescaled_ci$result
 
 Let's explore a more complex example using the `diamonds` dataset to understand what drives diamond prices:
 
-```{r diamonds-example}
-# Analyze diamond price drivers
-diamonds_subset <- diamonds %>%
-  select(price, carat, depth, table, x, y, z) %>%
-  sample_n(1000)  # Sample for faster computation
+```{r diamonds-example, eval = has_ggplot2}
+# Analyze diamond price drivers (only if ggplot2 is available)
+if (has_ggplot2) {
+  diamonds_subset <- diamonds %>%
+    select(price, carat, depth, table, x, y, z) %>%
+    sample_n(1000)  # Sample for faster computation
 
-diamond_rwa <- diamonds_subset %>%
-  rwa(outcome = "price",
-      predictors = c("carat", "depth", "table", "x", "y", "z"),
-      bootstrap = TRUE,
-      applysigns = TRUE,
-      n_bootstrap = 500)
+  diamond_rwa <- diamonds_subset %>%
+    rwa(outcome = "price",
+        predictors = c("carat", "depth", "table", "x", "y", "z"),
+        bootstrap = TRUE,
+        applysigns = TRUE,
+        n_bootstrap = 500)
 
-diamond_rwa$result
+  diamond_rwa$result
+} else {
+  cat("Note: Diamond example requires ggplot2 package for the diamonds dataset.")
+}
 ```
 
 ### Interpreting Diamond Price Drivers
 
-```{r diamonds-interpretation}
-# Rank predictors by importance
-diamond_importance <- diamond_rwa$result %>%
-  arrange(desc(Rescaled.RelWeight)) %>%
-  select(Variables, Rescaled.RelWeight, Sign.Rescaled.RelWeight, Raw.Significant)
+```{r diamonds-interpretation, eval = has_ggplot2}
+if (has_ggplot2) {
+  # Rank predictors by importance
+  diamond_importance <- diamond_rwa$result %>%
+    arrange(desc(Rescaled.RelWeight)) %>%
+    select(Variables, Rescaled.RelWeight, Sign.Rescaled.RelWeight, Raw.Significant)
 
-print(diamond_importance)
+  print(diamond_importance)
 
-# Model explains this much variance:
-cat("R-squared:", round(diamond_rwa$rsquare, 3))
+  # Model explains this much variance:
+  cat("R-squared:", round(diamond_rwa$rsquare, 3))
+}
 ```
 
 ## Comparison with Traditional Regression
