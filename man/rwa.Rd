@@ -4,7 +4,18 @@
 \alias{rwa}
 \title{Create a Relative Weights Analysis (RWA)}
 \usage{
-rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
+rwa(
+  df,
+  outcome,
+  predictors,
+  applysigns = FALSE,
+  plot = TRUE,
+  bootstrap = FALSE,
+  n_bootstrap = 1000,
+  conf_level = 0.95,
+  focal = NULL,
+  comprehensive = FALSE
+)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
@@ -16,6 +27,16 @@ rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 \item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
 
 \item{plot}{Logical value specifying whether to plot the rescaled importance metrics.}
+
+\item{bootstrap}{Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to \code{FALSE}.}
+
+\item{n_bootstrap}{Number of bootstrap samples to use when bootstrap = TRUE. Defaults to 1000.}
+
+\item{conf_level}{Confidence level for bootstrap intervals. Defaults to 0.95.}
+
+\item{focal}{Focal variable for bootstrap comparisons (optional).}
+
+\item{comprehensive}{Whether to run comprehensive bootstrap analysis including random variable and focal comparisons.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
@@ -26,8 +47,15 @@ rwa(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
+\item When bootstrap = TRUE, includes confidence interval columns.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
+\item \code{bootstrap}: bootstrap results (only present when bootstrap = TRUE), containing:
+\itemize{
+\item \code{ci_results}: confidence intervals for weights
+\item \code{boot_object}: raw bootstrap object for advanced analysis
+\item \code{n_bootstrap}: number of bootstrap samples used
+}
 \item \code{lambda}:
 \item \code{RXX}: Correlation matrix of all the predictor variables against each other.
 \item \code{RXY}: Correlation values of the predictor variables against the outcome variable.
@@ -48,6 +76,16 @@ See https://relativeimportance.davidson.edu/multipleregression.html for the orig
 }
 \examples{
 library(ggplot2)
+# Basic RWA
 rwa(diamonds,"price",c("depth","carat"))
+
+# RWA with bootstrap confidence intervals
+rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
+
+# Comprehensive bootstrap analysis with focal variable
+result <- rwa(diamonds,"price",c("depth","carat","table"), 
+              bootstrap = TRUE, comprehensive = TRUE, focal = "carat")
+# View confidence intervals
+result$bootstrap$ci_results
 
 }

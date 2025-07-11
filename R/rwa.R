@@ -17,6 +17,12 @@
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
 #' @param plot Logical value specifying whether to plot the rescaled importance metrics.
+#' @param bootstrap Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to `FALSE`.
+#' @param n_bootstrap Number of bootstrap samples to use when bootstrap = TRUE. Defaults to 1000.
+#' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
+#' @param focal Focal variable for bootstrap comparisons (optional).
+#' @param comprehensive Whether to run comprehensive bootstrap analysis including random variable and focal comparisons.
+#' @param include_rescaled_ci Logical value specifying whether to include confidence intervals for rescaled weights. Defaults to `FALSE` due to compositional data constraints. Use with caution.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -24,7 +30,13 @@
 #' - `result`: the final output of the importance metrics.
 #'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively correlated with the outcome.
+#'   - When bootstrap = TRUE, includes confidence interval columns for raw weights.
+#'   - Rescaled weight CIs are available via include_rescaled_ci = TRUE but not recommended for inference.
 #' - `n`: indicates the number of observations used in the analysis.
+#' - `bootstrap`: bootstrap results (only present when bootstrap = TRUE), containing:
+#'   - `ci_results`: confidence intervals for weights
+#'   - `boot_object`: raw bootstrap object for advanced analysis
+#'   - `n_bootstrap`: number of bootstrap samples used
 #' - `lambda`:
 #' - `RXX`: Correlation matrix of all the predictor variables against each other.
 #' - `RXY`: Correlation values of the predictor variables against the outcome variable.
@@ -35,14 +47,33 @@
 #' @import dplyr
 #' @examples
 #' library(ggplot2)
+#' # Basic RWA
 #' rwa(diamonds,"price",c("depth","carat"))
+#' 
+#' # RWA with bootstrap confidence intervals (raw weights only)
+#' rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
+#' 
+#' # Include rescaled weight CIs (use with caution for inference)
+#' rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, include_rescaled_ci = TRUE)
+#' 
+#' # Comprehensive bootstrap analysis with focal variable
+#' result <- rwa(diamonds,"price",c("depth","carat","table"), 
+#'               bootstrap = TRUE, comprehensive = TRUE, focal = "carat")
+#' # View confidence intervals
+#' result$bootstrap$ci_results
 #'
 #' @export
 rwa <- function(df,
                 outcome,
                 predictors,
                 applysigns = FALSE,
-                plot = TRUE){
+                plot = TRUE,
+                bootstrap = FALSE,
+                n_bootstrap = 1000,
+                conf_level = 0.95,
+                focal = NULL,
+                comprehensive = FALSE,
+                include_rescaled_ci = FALSE){
 
   # Gets data frame in right order and form
   thedata <-
@@ -108,113 +139,62 @@ rwa <- function(df,
                                               Rescaled.RelWeight)) -> result
   }
 
-  list("predictors" = Variables,
-       "rsquare" = rsquare,
-       "result" = result,
-       "n" = complete_cases,
-       "lambda" = lambda,
-       "RXX" = RXX,
-       "RXY" = RXY)
+  # Run bootstrap analysis if requested
+  if(bootstrap == TRUE) {
+    message("Running bootstrap analysis with ", n_bootstrap, " samples...")
+    
+    bootstrap_results <- run_rwa_bootstrap(
+      data = df,
+      outcome = outcome,
+      predictors = predictors,
+      n_bootstrap = n_bootstrap,
+      conf_level = conf_level,
+      focal = focal,
+      comprehensive = comprehensive,
+      include_rescaled = include_rescaled_ci  # Only include if explicitly requested
+    )
+    
+    # Add confidence intervals to result dataframe
+    if(!is.null(bootstrap_results$ci_results$raw_weights)) {
+      ci_data <- bootstrap_results$ci_results$raw_weights
+      
+      # Add CI columns for raw weights
+      result$Raw.RelWeight.CI.Lower <- ci_data$ci_lower[match(result$Variables, ci_data$variable)]
+      result$Raw.RelWeight.CI.Upper <- ci_data$ci_upper[match(result$Variables, ci_data$variable)]
+      
+      # Add significance indicator for raw weights (if CI doesn't include 0)
+      result$Raw.Significant <- !(result$Raw.RelWeight.CI.Lower <= 0 & result$Raw.RelWeight.CI.Upper >= 0)
+    }
+    
+    # Add rescaled weight CIs only if explicitly requested and warn user
+    if(include_rescaled_ci && !is.null(bootstrap_results$ci_results$rescaled_weights)) {
+      warning("Rescaled weight confidence intervals should be interpreted with caution due to compositional data constraints. Use for descriptive purposes only, not formal statistical inference.")
+      
+      rescaled_ci <- bootstrap_results$ci_results$rescaled_weights
+      
+      result$Rescaled.RelWeight.CI.Lower <- rescaled_ci$ci_lower[match(result$Variables, rescaled_ci$variable)]
+      result$Rescaled.RelWeight.CI.Upper <- rescaled_ci$ci_upper[match(result$Variables, rescaled_ci$variable)]
+      
+      # Note: Not adding significance indicator for rescaled weights due to interpretation issues
+    }
+    
+    return_list <- list("predictors" = Variables,
+                       "rsquare" = rsquare,
+                       "result" = result,
+                       "n" = complete_cases,
+                       "bootstrap" = bootstrap_results,
+                       "lambda" = lambda,
+                       "RXX" = RXX,
+                       "RXY" = RXY)
+  } else {
+    return_list <- list("predictors" = Variables,
+                       "rsquare" = rsquare,
+                       "result" = result,
+                       "n" = complete_cases,
+                       "lambda" = lambda,
+                       "RXX" = RXX,
+                       "RXY" = RXY)
+  }
 
-  # ## Bootstrap results TBD
-  # #Bootstrapped Confidence interval around the individual relative weights
-  # #Please be patient -- This can take a few minutes to run
-  # multBoot<-boot(thedata, multBootstrap, 10000)
-  # multci<-boot.ci(multBoot,conf=0.95, type="bca")
-  # runBoot(length(thedata[,2:numVar]))
-  # CI.Results<-CIresult
-  #
-  # #Bootstrapped Confidence interval tests of Significance
-  # #Please be patient -- This can take a few minutes to run
-  # randVar<-rnorm(length(thedata[,1]),0,1)
-  # randData<-cbind(thedata,randVar)
-  # multRBoot<-boot(randData,multBootrand, 10000)
-  # multRci<-boot.ci(multRBoot,conf=0.95, type="bca")
-  # runRBoot(length(randData[,2:(numVar-1)]))
-  # CI.Significance<-CIresult
-  #
-  #
-  # #R-squared For the Model
-  # RSQ.Results
-  #
-  #
-  # #The Raw and Rescaled Weights
-  # RW.Results
-  # #BCa Confidence Intervals around the raw weights
-  # CI.Results
-  # #BCa Confidence Interval Tests of significance
-  # #If Zero is not included, Weight is Significant
-  # CI.Significance
-}
-
-#' @title Multiple Regression Bootstrap
-#'
-#' @description Internal function for multiple regression rwa
-
-multBootstrap <-function(mydata, indices){
-  mydata <- mydata[indices,]
-  multWeights <- multRegress(mydata)
-  multWeights$Raw.RelWeight
-}
-
-multBootrand<-function(mydata, indices){
-  mydata <- mydata[indices,]
-  multRWeights <- multRegress(mydata)
-  multReps <- multRWeights$Raw.RelWeight
-  randWeight <- multReps[length(multReps)]
-  randStat <- multReps[-(length(multReps))] - randWeight
-  randStat
-}
-
-#' @title Bootstrap CI
-mybootci <- function(x){
-  boot::boot.ci(multBoot,
-                conf=0.95,
-                type="bca",
-                index=x)
-}
-
-runBoot <- function(num){
-  INDEX <- 1:num
-  test <- lapply(INDEX, FUN=mybootci)
-  test2 <- t(sapply(test,'[[',i=4)) # Extracts confidence interval
-  CIresult <<- data.frame(Variables,
-                          CI.Lower.Bound=test2[,4],
-                          CI.Upper.Bound=test2[,5])
-}
-
-myRbootci <- function(x){
-  boot::boot.ci(multRBoot,
-                conf=0.95,
-                type="bca",
-                index=x)
-}
-
-runRBoot<-function(num){
-  INDEX<-1:num
-  test<-lapply(INDEX,FUN=myRbootci)
-  test2<-t(sapply(test,'[[',i=4))
-  CIresult<<-data.frame(Labels,CI.Lower.Bound=test2[,4],CI.Upper.Bound=test2[,5])
-}
-
-myCbootci<-function(x){
-  boot.ci(multC2Boot,conf=0.95,type="bca",index=x)
-}
-
-runCBoot<-function(num){
-  INDEX<-1:num
-  test<-lapply(INDEX,FUN=myCbootci)
-  test2<-t(sapply(test,'[[',i=4))
-  CIresult<<-data.frame(Labels2,CI.Lower.Bound=test2[,4],CI.Upper.Bound=test2[,5])
-}
-
-myGbootci<-function(x){
-  boot.ci(groupBoot,conf=0.95,type="bca",index=x)
-}
-
-runGBoot<-function(num){
-  INDEX<-1:num
-  test<-lapply(INDEX,FUN=myGbootci)
-  test2<-t(sapply(test,'[[',i=4))
-  CIresult<<-data.frame(Labels,CI.Lower.Bound=test2[,4],CI.Upper.Bound=test2[,5])
+  return(return_list)
 }
