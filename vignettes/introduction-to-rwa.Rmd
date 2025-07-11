@@ -332,14 +332,18 @@ RWA works best with:
 
 ```{r ci-interpretation}
 # Focus on raw weight confidence intervals for inference
-result_bootstrap$bootstrap$ci_results$raw_weights %>%
+ci_data <- result_bootstrap$bootstrap$ci_results$raw_weights
+print(head(ci_data))
+
+# Add interpretation based on available columns
+ci_data %>%
   mutate(
     significant = ci_lower > 0 | ci_upper < 0,
-    effect_size = case_when(
-      estimate > 0.1 ~ "Large",
-      estimate > 0.05 ~ "Medium", 
-      estimate > 0.01 ~ "Small",
-      TRUE ~ "Negligible"
+    ci_width = ci_upper - ci_lower,
+    precision = case_when(
+      ci_width < 0.05 ~ "High precision",
+      ci_width < 0.15 ~ "Medium precision", 
+      TRUE ~ "Low precision"
     )
   )
 ```
