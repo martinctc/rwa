@@ -2,7 +2,10 @@ Package: rwa
 Type: Package
 Title: Perform a Relative Weights Analysis
 Version: 0.1.0
-Author: Martin Chan <martinchan53@gmail.com>
+Authors@R: person(given = "Martin",
+                  family = "Chan",
+                  role = c("aut", "cre"),
+                  email = "martinchan53@gmail.com")
 Maintainer: Martin Chan <martinchan53@gmail.com>
 Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described 
     in Tonidandel & LeBreton (2015) <DOI:10.1007/s10869-014-9351-z>, with its original roots in Johnson (2000) <DOI:10.1207/S15327906MBR3501_1>. In essence, RWA decomposes
