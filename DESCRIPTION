@@ -25,3 +25,7 @@ Imports:
 	boot,
 	purrr,
 	utils
+Suggests:
+	knitr,
+	rmarkdown
+VignetteBuilder: knitr
