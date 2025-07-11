@@ -11,7 +11,8 @@ run_rwa_bootstrap(
   n_bootstrap = 1000,
   conf_level = 0.95,
   focal = NULL,
-  comprehensive = FALSE
+  comprehensive = FALSE,
+  include_rescaled = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ run_rwa_bootstrap(
 \item{focal}{Focal variable for comparisons (optional)}
 
 \item{comprehensive}{Whether to run comprehensive analysis}
+
+\item{include_rescaled}{Whether to bootstrap rescaled weights}
 }
 \value{
 List with bootstrap results and confidence intervals
@@ -35,3 +38,4 @@ List with bootstrap results and confidence intervals
 \description{
 Run bootstrap analysis for RWA
 }
+\keyword{internal}

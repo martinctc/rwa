@@ -22,4 +22,6 @@ Imports:
 	stats,
 	tidyr,
 	ggplot2,
-	boot
+	boot,
+	purrr,
+	utils

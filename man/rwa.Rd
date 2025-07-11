@@ -14,7 +14,8 @@ rwa(
   n_bootstrap = 1000,
   conf_level = 0.95,
   focal = NULL,
-  comprehensive = FALSE
+  comprehensive = FALSE,
+  include_rescaled_ci = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ rwa(
 \item{focal}{Focal variable for bootstrap comparisons (optional).}
 
 \item{comprehensive}{Whether to run comprehensive bootstrap analysis including random variable and focal comparisons.}
+
+\item{include_rescaled_ci}{Logical value specifying whether to include confidence intervals for rescaled weights. Defaults to \code{FALSE} due to compositional data constraints. Use with caution.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
@@ -47,7 +50,8 @@ rwa(
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
-\item When bootstrap = TRUE, includes confidence interval columns.
+\item When bootstrap = TRUE, includes confidence interval columns for raw weights.
+\item Rescaled weight CIs are available via include_rescaled_ci = TRUE but not recommended for inference.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
 \item \code{bootstrap}: bootstrap results (only present when bootstrap = TRUE), containing:
@@ -79,8 +83,11 @@ library(ggplot2)
 # Basic RWA
 rwa(diamonds,"price",c("depth","carat"))
 
-# RWA with bootstrap confidence intervals
+# RWA with bootstrap confidence intervals (raw weights only)
 rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
+
+# Include rescaled weight CIs (use with caution for inference)
+rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, include_rescaled_ci = TRUE)
 
 # Comprehensive bootstrap analysis with focal variable
 result <- rwa(diamonds,"price",c("depth","carat","table"), 

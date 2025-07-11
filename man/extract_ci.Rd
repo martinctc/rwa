@@ -26,3 +26,4 @@ Data frame with confidence intervals
 \description{
 Extract confidence intervals from bootstrap object
 }
+\keyword{internal}
