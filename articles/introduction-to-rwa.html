@@ -302,6 +302,9 @@ importance:</p>
 <span>        predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span>, <span class="st">"wt"</span><span class="op">)</span>,</span>
 <span>        plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
+<span>  <span class="co"># Print the plot</span></span>
+<span>  <span class="va">plot_result</span></span>
+<span></span>
 <span>  <span class="co"># The plot shows rescaled relative weights</span></span>
 <span>  <span class="va">plot_result</span><span class="op">$</span><span class="va">result</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
@@ -626,11 +629,17 @@ ratios</strong></p>
 <div class="section level3">
 <h3 id="reporting-results">4. Reporting Results<a class="anchor" aria-label="anchor" href="#reporting-results"></a>
 </h3>
-<p>When reporting RWA results, include: - <strong>Sample size</strong>
-and missing data handling - <strong>Bootstrap parameters</strong> (if
-used) - <strong>Raw and rescaled weights</strong> - <strong>Confidence
-intervals</strong> for key predictors - <strong>Model
-R-squared</strong></p>
+<p>When reporting RWA results, include:</p>
+<ul>
+<li>
+<strong>Sample size</strong> and missing data handling</li>
+<li>
+<strong>Bootstrap parameters</strong> (if used)</li>
+<li><strong>Raw and rescaled weights</strong></li>
+<li>
+<strong>Confidence intervals</strong> for key predictors</li>
+<li><strong>Model R-squared</strong></li>
+</ul>
 </div>
 </div>
 <div class="section level2">
@@ -673,26 +682,29 @@ R-squared</strong></p>
 </h2>
 <p>This package and methodology are based on the following key
 references:</p>
-<p><strong>Primary Sources:</strong> - <strong>Johnson, J. W.
-(2000)</strong>. A heuristic method for estimating the relative weight
-of predictor variables in multiple regression. <em>Multivariate
-Behavioral Research</em>, 35(1), 1-19. DOI:
-10.1207/S15327906MBR3501_1</p>
+<p><strong>Primary Sources:</strong></p>
+<ul>
+<li><p><strong>Johnson, J. W. (2000)</strong>. A heuristic method for
+estimating the relative weight of predictor variables in multiple
+regression. <em>Multivariate Behavioral Research</em>, 35(1), 1-19. DOI:
+10.1207/S15327906MBR3501_1</p></li>
+<li><p><strong>Tonidandel, S., &amp; LeBreton, J. M. (2015)</strong>.
+RWA Web: A free, comprehensive, web-based, and user-friendly tool for
+relative weight analyses. <em>Journal of Business and Psychology</em>,
+30(2), 207-216. DOI: 10.1007/s10869-014-9351-z</p></li>
+</ul>
+<p><strong>Bootstrap Methods:</strong></p>
 <ul>
 <li>
-<strong>Tonidandel, S., &amp; LeBreton, J. M. (2015)</strong>. RWA
-Web: A free, comprehensive, web-based, and user-friendly tool for
-relative weight analyses. <em>Journal of Business and Psychology</em>,
-30(2), 207-216. DOI: 10.1007/s10869-014-9351-z</li>
+<strong>Tonidandel, S., LeBreton, J. M., &amp; Johnson, J. W.
+(2009)</strong>. Determining the statistical significance of relative
+weights. <em>Psychological Methods</em>, 14(4), 387-399.</li>
 </ul>
-<p><strong>Bootstrap Methods:</strong> - <strong>Tonidandel, S.,
-LeBreton, J. M., &amp; Johnson, J. W. (2009)</strong>. Determining the
-statistical significance of relative weights. <em>Psychological
-Methods</em>, 14(4), 387-399.</p>
-<p><strong>Additional Reading:</strong> - Azen, R., &amp; Budescu, D. V.
-(2003). The dominance analysis approach for comparing predictors in
-multiple regression. <em>Psychological Methods</em>, 8(2), 129-148.</p>
+<p><strong>Additional Reading:</strong></p>
 <ul>
+<li><p>Azen, R., &amp; Budescu, D. V. (2003). The dominance analysis
+approach for comparing predictors in multiple regression.
+<em>Psychological Methods</em>, 8(2), 129-148.</p></li>
 <li><p>Grömping, U. (2006). Relative importance for linear regression in
 R: The package relaimpo. <em>Journal of Statistical Software</em>,
 17(1), 1-27.</p></li>
