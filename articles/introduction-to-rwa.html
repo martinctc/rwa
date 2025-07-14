@@ -289,17 +289,21 @@ outcome:</p>
 <div class="section level3">
 <h3 id="visualization">Visualization<a class="anchor" aria-label="anchor" href="#visualization"></a>
 </h3>
-<p>The package automatically generates a visualization of the relative
-importance:</p>
+<p>The package allows you to visualize the relative importance by piping
+the results to <code><a href="../reference/plot_rwa.html">plot_rwa()</a></code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Generate and display plot</span></span>
-<span><span class="va">plot_result</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<code class="sourceCode R"><span><span class="co"># Generate RWA results </span></span>
+<span><span class="va">rwa_result</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
-<span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span>, <span class="st">"wt"</span><span class="op">)</span>,</span>
-<span>      plot <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span>, <span class="st">"wt"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># The plot shows rescaled relative weights</span></span>
-<span><span class="va">plot_result</span><span class="op">$</span><span class="va">result</span></span>
+<span><span class="co"># Create plot</span></span>
+<span><span class="va">rwa_result</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/plot_rwa.html">plot_rwa</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-visualization-1.png" width="100%"></p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># The rescaled relative weights</span></span>
+<span><span class="va">rwa_result</span><span class="op">$</span><span class="va">result</span></span>
 <span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign</span></span>
 <span><span class="co">#&gt; 1       cyl    0.18833374          22.128264    -</span></span>
 <span><span class="co">#&gt; 2      disp    0.16479802          19.362936    -</span></span>
@@ -315,12 +319,12 @@ importance:</p>
 functionality for determining the statistical significance of relative
 weights. For detailed coverage of bootstrap methods, see the dedicated
 vignette:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="quick-bootstrap-example">Quick Bootstrap Example<a class="anchor" aria-label="anchor" href="#quick-bootstrap-example"></a>
 </h3>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Basic bootstrap analysis</span></span>
 <span><span class="va">bootstrap_result</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
@@ -345,7 +349,7 @@ and best practices, consult the bootstrap vignette.</p>
 </h2>
 <p>Let’s explore a more complex example using the <code>diamonds</code>
 dataset:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Analyze diamond price drivers</span></span>
 <span><span class="va">diamonds_subset</span> <span class="op">&lt;-</span> <span class="va">diamonds</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">price</span>, <span class="va">carat</span>, <span class="va">depth</span>, <span class="va">table</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">z</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -366,7 +370,7 @@ dataset:</p>
 <span><span class="co">#&gt; 6         z   0.201572915         23.5282402    +              23.5282402</span></span></code></pre></div>
 <p>For bootstrap analysis of this example with confidence intervals,
 see:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -374,7 +378,7 @@ see:</p>
 </h2>
 <p>Let’s compare RWA results with traditional multiple regression to
 highlight the differences:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Traditional regression</span></span>
 <span><span class="va">lm_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">disp</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">gear</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span>
 <span><span class="va">lm_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">lm_model</span><span class="op">)</span></span>
@@ -427,7 +431,7 @@ highlight the differences:</p>
 <div class="section level3">
 <h3 id="sample-size-considerations">1. Sample Size Considerations<a class="anchor" aria-label="anchor" href="#sample-size-considerations"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check your sample size</span></span>
 <span><span class="va">n_obs</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
@@ -456,7 +460,7 @@ and missing data handling - <strong>Raw and rescaled weights</strong> -
 <strong>Model R-squared</strong></p>
 <p>For bootstrap confidence intervals and advanced statistical
 considerations, see:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <ul>
 <li><strong>Raw and rescaled weights</strong></li>
@@ -473,7 +477,7 @@ considerations, see:</p>
 <h3 id="multicollinearity-warnings">Multicollinearity Warnings<a class="anchor" aria-label="anchor" href="#multicollinearity-warnings"></a>
 </h3>
 <p>If you encounter extreme multicollinearity:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check correlation matrix</span></span>
 <span><span class="va">cor_matrix</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -490,7 +494,7 @@ considerations, see:</p>
 <h3 id="missing-data">Missing Data<a class="anchor" aria-label="anchor" href="#missing-data"></a>
 </h3>
 <p>RWA handles missing data through listwise deletion:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check for missing data patterns</span></span>
 <span><span class="va">missing_summary</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -506,22 +510,22 @@ considerations, see:</p>
 </h2>
 <p>This package and methodology are based on the following key
 references:</p>
-<p><strong>Primary Sources:</strong> - <strong>Johnson, J. W.
-(2000)</strong>. A heuristic method for estimating the relative weight
-of predictor variables in multiple regression. <em>Multivariate
-Behavioral Research</em>, 35(1), 1-19. DOI:
-10.1207/S15327906MBR3501_1</p>
+<p><strong>Primary Sources:</strong></p>
 <ul>
-<li>
-<strong>Tonidandel, S., &amp; LeBreton, J. M. (2015)</strong>. RWA
-Web: A free, comprehensive, web-based, and user-friendly tool for
+<li><p><strong>Johnson, J. W. (2000)</strong>. A heuristic method for
+estimating the relative weight of predictor variables in multiple
+regression. <em>Multivariate Behavioral Research</em>, 35(1), 1-19. DOI:
+10.1207/S15327906MBR3501_1</p></li>
+<li><p><strong>Tonidandel, S., &amp; LeBreton, J. M. (2015)</strong>.
+RWA Web: A free, comprehensive, web-based, and user-friendly tool for
 relative weight analyses. <em>Journal of Business and Psychology</em>,
-30(2), 207-216. DOI: 10.1007/s10869-014-9351-z</li>
+30(2), 207-216. DOI: 10.1007/s10869-014-9351-z</p></li>
 </ul>
-<p><strong>Additional Reading:</strong> - Azen, R., &amp; Budescu, D. V.
-(2003). The dominance analysis approach for comparing predictors in
-multiple regression. <em>Psychological Methods</em>, 8(2), 129-148.</p>
+<p><strong>Additional Reading:</strong></p>
 <ul>
+<li><p>Azen, R., &amp; Budescu, D. V. (2003). The dominance analysis
+approach for comparing predictors in multiple regression.
+<em>Psychological Methods</em>, 8(2), 129-148.</p></li>
 <li><p>Grömping, U. (2006). Relative importance for linear regression in
 R: The package relaimpo. <em>Journal of Statistical Software</em>,
 17(1), 1-27.</p></li>
@@ -542,7 +546,7 @@ This introductory vignette covered the basic methodology and usage
 patterns.</p>
 <p>For advanced features including bootstrap confidence intervals and
 statistical significance testing, see:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <p>Whether you’re conducting key drivers analysis in market research,
 exploring variable importance in predictive modeling, or addressing
