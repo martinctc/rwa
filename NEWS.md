@@ -25,8 +25,6 @@ Re-submission to CRAN
 
 - Unwrap `\donttest{}` in examples where unnecessary
 
-
-
 ## Version 0.0.2
 
 Re-submission to CRAN
