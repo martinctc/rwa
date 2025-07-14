@@ -16,7 +16,6 @@
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
-#' @param plot Logical value specifying whether to plot the rescaled importance metrics.
 #' @param bootstrap Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to `FALSE`.
 #' @param n_bootstrap Number of bootstrap samples to use when bootstrap = TRUE. Defaults to 1000.
 #' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
@@ -67,7 +66,6 @@ rwa <- function(df,
                 outcome,
                 predictors,
                 applysigns = FALSE,
-                plot = TRUE,
                 bootstrap = FALSE,
                 n_bootstrap = 1000,
                 conf_level = 0.95,

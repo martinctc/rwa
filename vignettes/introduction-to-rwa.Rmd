@@ -134,17 +134,19 @@ result_signs$result
 
 ### Visualization
 
-The package automatically generates a visualization of the relative importance:
+The package allows you to visualize the relative importance by piping the results to `plot_rwa()`:
 
 ```{r visualization, fig.width=8, fig.height=5}
-# Generate and display plot
-plot_result <- mtcars %>%
+# Generate RWA results 
+rwa_result <- mtcars %>%
   rwa(outcome = "mpg",
-      predictors = c("cyl", "disp", "hp", "gear", "wt"),
-      plot = TRUE)
+      predictors = c("cyl", "disp", "hp", "gear", "wt"))
 
-# Display plot
-plot_rwa(plot_result)
+# Create plot
+rwa_result %>% plot_rwa()
+
+# The rescaled relative weights
+rwa_result$result
 ```
 
 ## Bootstrap Confidence Intervals
