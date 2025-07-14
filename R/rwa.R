@@ -205,5 +205,5 @@ rwa <- function(df,
                        "RXY" = RXY)
   }
 
-  return(return_list)
+  return_list
 }

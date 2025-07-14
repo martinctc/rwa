@@ -45,7 +45,7 @@ rwa_boot_statistic <- function(data, indices, outcome, predictors) {
   beta <- solve(lambda) %*% RXY
 
   RawWgt <- lambdasq %*% beta^2
-  return(as.vector(RawWgt))
+  as.vector(RawWgt)
 }
 
 #' @keywords internal
@@ -78,7 +78,7 @@ rwa_boot_statistic_rescaled <- function(data, indices, outcome, predictors) {
   RawWgt <- lambdasq %*% beta^2
   # Calculate rescaled weights properly for each bootstrap sample
   RescaledWgt <- (RawWgt / rsquare) * 100
-  return(as.vector(RescaledWgt))
+  as.vector(RescaledWgt)
 }
 
 #' @keywords internal
@@ -88,7 +88,7 @@ rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = N
   sample_data <- data[indices, ]
 
   # Get raw weights using simplified calculation
-  raw_weights <- rwa_boot_statistic(sample_data, 1:nrow(sample_data), outcome, predictors)
+  raw_weights <- rwa_boot_statistic(sample_data, seq_len(nrow(sample_data)), outcome, predictors)
 
   # Get random variable comparison (difference from random variable)
   rand_diff <- rwa_rand_internal(sample_data, outcome, predictors)
@@ -96,9 +96,9 @@ rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = N
   # Get focal variable comparison if focal is specified
   if (!is.null(focal)) {
     focal_diff <- rwa_comp_internal(sample_data, outcome, predictors, focal)
-    return(c(raw_weights, rand_diff, focal_diff))
+    c(raw_weights, rand_diff, focal_diff)
   } else {
-    return(c(raw_weights, rand_diff))
+    c(raw_weights, rand_diff)
   }
 }
 
@@ -227,7 +227,7 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
     })
   })
 
-  return(ci_results)
+  ci_results
 }
 
 #' Run bootstrap analysis for RWA
@@ -321,7 +321,7 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
       end_idx <- start_idx + length(focal_others) - 1
       if (nrow(focal_ci) >= end_idx) {
         focal_ci <- focal_ci[start_idx:end_idx, ]
-        focal_ci$weight_index <- 1:length(focal_others)
+        focal_ci$weight_index <- seq_along(focal_others)
       }
       ci_results$focal_comparison <- focal_ci
     }
@@ -329,11 +329,11 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
     return_objects$boot_object_comprehensive <- boot_result_comp
   }
 
-  return(c(return_objects, list(
+  c(return_objects, list(
     ci_results = ci_results,
     n_bootstrap = n_bootstrap,
     conf_level = conf_level,
     comprehensive = comprehensive,
     focal = focal
-  )))
+  ))
 }
