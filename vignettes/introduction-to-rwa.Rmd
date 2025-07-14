@@ -24,15 +24,7 @@ knitr::opts_chunk$set(
 ```{r setup}
 library(rwa)
 library(dplyr)
-
-# Load ggplot2 if available, otherwise skip plotting examples
-if (requireNamespace("ggplot2", quietly = TRUE)) {
-  library(ggplot2)
-  has_ggplot2 <- TRUE
-} else {
-  has_ggplot2 <- FALSE
-  message("ggplot2 not available - skipping plotting examples")
-}
+library(ggplot2)
 ```
 
 ## Introduction
@@ -144,22 +136,15 @@ result_signs$result
 
 The package automatically generates a visualization of the relative importance:
 
-```{r visualization, fig.width=8, fig.height=5, eval = has_ggplot2}
-# Generate plot (returned invisibly by default)
-if (has_ggplot2) {
-  plot_result <- mtcars %>%
-    rwa(outcome = "mpg",
-        predictors = c("cyl", "disp", "hp", "gear", "wt"),
-        plot = TRUE)
+```{r visualization, fig.width=8, fig.height=5}
+# Generate and display plot
+plot_result <- mtcars %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp", "gear", "wt"),
+      plot = TRUE)
 
-  # Print the plot
-  plot_result
-
-  # The plot shows rescaled relative weights
-  plot_result$result
-} else {
-  cat("Note: Visualization requires ggplot2 package.")
-}
+# The plot shows rescaled relative weights
+plot_result$result
 ```
 
 ## Bootstrap Confidence Intervals
@@ -192,22 +177,18 @@ For comprehensive coverage of bootstrap methods, advanced features, and best pra
 
 Let's explore a more complex example using the `diamonds` dataset:
 
-```{r diamonds-example, eval = has_ggplot2}
-# Analyze diamond price drivers (only if ggplot2 is available)
-if (has_ggplot2) {
-  diamonds_subset <- diamonds %>%
-    select(price, carat, depth, table, x, y, z) %>%
-    sample_n(1000)  # Sample for faster computation
+```{r diamonds-example}
+# Analyze diamond price drivers
+diamonds_subset <- diamonds %>%
+  select(price, carat, depth, table, x, y, z) %>%
+  sample_n(1000)  # Sample for faster computation
 
-  diamond_rwa <- diamonds_subset %>%
-    rwa(outcome = "price",
-        predictors = c("carat", "depth", "table", "x", "y", "z"),
-        applysigns = TRUE)
+diamond_rwa <- diamonds_subset %>%
+  rwa(outcome = "price",
+      predictors = c("carat", "depth", "table", "x", "y", "z"),
+      applysigns = TRUE)
 
-  diamond_rwa$result
-} else {
-  cat("Note: Diamond example requires ggplot2 package for the diamonds dataset.")
-}
+diamond_rwa$result
 ```
 
 For bootstrap analysis of this example with confidence intervals, see:
@@ -223,6 +204,9 @@ Let's compare RWA results with traditional multiple regression to highlight the 
 # Traditional regression
 lm_model <- lm(mpg ~ cyl + disp + hp + gear, data = mtcars)
 lm_summary <- summary(lm_model)
+
+# Display regression summary
+print(lm_summary)
 
 # RWA results
 rwa_model <- mtcars %>%
