@@ -177,13 +177,12 @@ print(diamond_rwa$result)
 ### Interpreting Results
 
 ```{r diamonds-interpretation}
-# Focus on significant predictors
+# Focus on significant predictors (results are already sorted by importance)
 significant_drivers <- diamond_rwa$result %>%
   filter(Raw.Significant == TRUE) %>%
-  arrange(desc(Rescaled.RelWeight)) %>%
   select(Variables, Rescaled.RelWeight, Sign.Rescaled.RelWeight)
 
-cat("Significant diamond price drivers:\n")
+cat("Significant diamond price drivers (sorted by importance):\n")
 print(significant_drivers)
 
 cat("\nModel R-squared:", round(diamond_rwa$rsquare, 3))

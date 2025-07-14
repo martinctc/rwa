@@ -104,10 +104,11 @@ The main results table contains:
 - **Rescaled.RelWeight**: Rescaled weights as percentages (sum to 100%)
 - **Sign**: Direction of relationship with outcome (+/-)
 
+By default, results are automatically sorted by rescaled relative weights in descending order, making it easy to identify the most important predictors:
+
 ```{r interpret-results}
-# The rescaled weights show relative importance
-result_basic$result %>%
-  arrange(desc(Rescaled.RelWeight))
+# Results are sorted by default (most important first)
+result_basic$result
 
 # Raw weights sum to R-squared
 sum(result_basic$result$Raw.RelWeight)
@@ -115,6 +116,24 @@ result_basic$rsquare
 
 # Rescaled weights sum to 100%
 sum(result_basic$result$Rescaled.RelWeight)
+```
+
+### Controlling Output Sorting
+
+You can control whether results are sorted using the `sort` parameter:
+
+```{r sorting-example}
+# Default behavior: sorted by importance (descending)
+result_sorted <- mtcars %>%
+  rwa(outcome = "mpg", predictors = c("cyl", "disp", "hp", "gear"))
+
+result_sorted$result
+
+# Preserve original predictor order
+result_unsorted <- mtcars %>%
+  rwa(outcome = "mpg", predictors = c("cyl", "disp", "hp", "gear"), sort = FALSE)
+
+result_unsorted$result
 ```
 
 ## Advanced Features

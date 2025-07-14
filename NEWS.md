@@ -3,6 +3,7 @@
 ## New Features
 
 - **Bootstrap confidence intervals**: Added `bootstrap = TRUE` parameter to `rwa()` for statistical significance testing of relative weights
+- **Result sorting**: Added `sort = TRUE` parameter to automatically sort results by importance (descending order). Set `sort = FALSE` to preserve original predictor order
 - **Comprehensive vignette**: New detailed documentation covering methodology, examples, and best practices
 - **Enhanced documentation**: Updated README and function documentation
 
