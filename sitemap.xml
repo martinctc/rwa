@@ -1,0 +1,16 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/articles/introduction-to-rwa.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/extract_ci.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/pipe.html</loc></url>
+<url><loc>/reference/plot_rwa.html</loc></url>
+<url><loc>/reference/remove_all_na_cols.html</loc></url>
+<url><loc>/reference/run_rwa_bootstrap.html</loc></url>
+<url><loc>/reference/rwa.html</loc></url>
+</urlset>
+

@@ -6,17 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Perform a Relative Weights Analysis • rwa</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/cosmo/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="pkgdown.css" rel="stylesheet">
 <script src="pkgdown.js"></script><meta property="og:title" content="Perform a Relative Weights Analysis">
-<meta property="og:description" content="Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described 
-    in Tonidandel &amp; LeBreton (2015) &lt;DOI:10.1007/s10869-014-9351-z&gt;, with its original roots in Johnson (2000) &lt;DOI:10.1207/S15327906MBR3501_1&gt;. In essence, RWA decomposes
-    the total variance predicted in a regression model into weights that accurately reflect the proportional 
-    contribution of the predictor variables, which addresses the issue of multi-collinearity. In typical scenarios,
-    RWA returns similar results to Shapley regression, but with a significant advantage on computational performance.">
+<meta property="og:description" content="Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described in Tonidandel &amp; LeBreton (2015) &lt;DOI:10.1007/s10869-014-9351-z&gt;, with its original roots in Johnson (2000) &lt;DOI:10.1207/S15327906MBR3501_1&gt;. In essence, RWA decomposes the total variance predicted in a regression model into weights that accurately reflect the proportional contribution of the predictor variables, which addresses the issue of multi-collinearity. In typical scenarios, RWA returns similar results to Shapley regression, but with a significant advantage on computational performance.">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -29,6 +25,8 @@
 </script>
 </head>
 <body data-spy="scroll" data-target="#toc">
+
+
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -41,20 +39,26 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">rwa</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">0.1.0</span>
       </span>
     </div>
 
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
 <li>
-  <a href="index.html">
-    <span class="fas fa-home fa-lg"></span>
-     
-  </a>
-</li>
-<li>
   <a href="reference/index.html">Reference</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Articles
+
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+<li>
+      <a href="articles/introduction-to-rwa.html">Introduction to Relative Weights Analysis with the rwa Package</a>
+    </li>
+  </ul>
 </li>
 <li>
   <a href="news/index.html">Changelog</a>
@@ -62,9 +66,9 @@
       </ul>
 <ul class="nav navbar-nav navbar-right">
 <li>
-  <a href="https://github.com/martinctc/rwa/">
+  <a href="https://github.com/martinctc/rwa/" class="external-link">
     <span class="fab fa-github fa-lg"></span>
-     
+
   </a>
 </li>
       </ul>
@@ -75,107 +79,117 @@
 </div>
 <!--/.navbar -->
 
-      
+
 
       </header><div class="row">
   <div class="contents col-md-9">
-<div id="rwa" class="section level1">
-<div class="page-header"><h1 class="hasAnchor">
-<a href="#rwa" class="anchor"></a>rwa</h1></div>
-
+<div class="section level1">
+<div class="page-header"><h1 id="rwa">rwa<a class="anchor" aria-label="anchor" href="#rwa"></a>
+</h1></div>
+<p><a href="https://github.com/martinctc/rwa/actions" class="external-link"><img src="https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg" alt="R build status"></a> <a href="https://www.codefactor.io/repository/github/martinctc/rwa" class="external-link"><img src="https://www.codefactor.io/repository/github/martinctc/rwa/badge" alt="CodeFactor"></a></p>
 <p>Perform a Relative Weights Analysis in R</p>
-<div id="background" class="section level3">
-<h3 class="hasAnchor">
-<a href="#background" class="anchor"></a>Background</h3>
+<div class="section level3">
+<h3 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
+</h3>
 <p><strong>Relative Weights Analysis (RWA)</strong> is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Toniandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), <em>A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression</em>. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella ‘Relative Importance Analysis’, where other members include the ‘Shapley method’ and ‘dominance analysis’. This is often referred to as ‘Key Drivers Analysis’ within market research.</p>
 <p>This package is built around the main function <code><a href="reference/rwa.html">rwa()</a></code>, which takes in a data frame as an argument and allows you to specify the names of the input variables and the outcome variable as arguments.</p>
 <p>The <code><a href="reference/rwa.html">rwa()</a></code> function in this package is compatible with dplyr / tidyverse style of piping operations to enable cleaner and more readable code.</p>
 <hr>
 </div>
-<div id="installation" class="section level3">
-<h3 class="hasAnchor">
-<a href="#installation" class="anchor"></a>Installation</h3>
+<div class="section level3">
+<h3 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h3>
 <p>You can install the stable CRAN version of <strong>rwa</strong> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"rwa"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <p>Alternatively, you can install the latest development version from GitHub with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span>
-<span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"martinctc/rwa"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"devtools"</span><span class="op">)</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"martinctc/rwa"</span><span class="op">)</span></span></code></pre></div>
 <hr>
 </div>
-<div id="method--technical-details" class="section level3">
-<h3 class="hasAnchor">
-<a href="#method--technical-details" class="anchor"></a>Method / Technical details</h3>
+<div class="section level3">
+<h3 id="method--technical-details">Method / Technical details<a class="anchor" aria-label="anchor" href="#method--technical-details"></a>
+</h3>
 <p>RWA decomposes the total variance predicted in a regression model (R2) into weights that accurately reﬂect the proportional contribution of the various predictor variables.</p>
 <p>RWA is a useful technique to calculate the relative importance of predictors (independent variables) when independent variables are correlated to each other. It is an alternative to multiple regression technique and it addresses the <em>multicollinearity</em> problem, and also helps to calculate the importance rank of variables. It helps to answer “which variable is the most important and rank variables based on their contribution to R-Square”.</p>
-<p>See <a href="https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf" class="uri">https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf</a>.</p>
+<p>See <a href="https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf" class="external-link uri">https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf</a>.</p>
 </div>
-<div id="multicollinearity" class="section level3">
-<h3 class="hasAnchor">
-<a href="#multicollinearity" class="anchor"></a>Multicollinearity</h3>
+<div class="section level3">
+<h3 id="multicollinearity">Multicollinearity<a class="anchor" aria-label="anchor" href="#multicollinearity"></a>
+</h3>
 <p>When independent variables are correlated, it is difficult to determine the correct prediction power of each variable. Hence, it is difficult to rank them as we are unable to estimate coefficients correctly. Statistically, multicollinearity can increase the standard error of the coefficient estimates and make the estimates very sensitive to minor changes in the model. It means the coefficients are biased and difficult to interpret.</p>
 </div>
-<div id="signs" class="section level3">
-<h3 class="hasAnchor">
-<a href="#signs" class="anchor"></a>Signs</h3>
-<p>Key Drivers Analysis methods do not conventionally include a score sign, which can make it difficult to interpret whether a variable is <em>positively</em> or <em>negatively</em> driving the outcome. The <code>applysigns</code> argument in <code><a href="reference/rwa.html">rwa::rwa()</a></code>, when set to <code>TRUE</code>, allows the application of positive or negative signs to the driver scores to match the signs of the corresponding linear regression coefficients from the model. This feature mimics the solution used in the <a href="https://wiki.q-researchsoftware.com/wiki/Driver_(Importance)_Analysis">Q research software</a>. The resulting column is labelled <code>Sign.Rescaled.RelWeight</code> to distinguish from the unsigned column.</p>
+<div class="section level3">
+<h3 id="signs">Signs<a class="anchor" aria-label="anchor" href="#signs"></a>
+</h3>
+<p>Key Drivers Analysis methods do not conventionally include a score sign, which can make it difficult to interpret whether a variable is <em>positively</em> or <em>negatively</em> driving the outcome. The <code>applysigns</code> argument in <code><a href="reference/rwa.html">rwa::rwa()</a></code>, when set to <code>TRUE</code>, allows the application of positive or negative signs to the driver scores to match the signs of the corresponding linear regression coefficients from the model. This feature mimics the solution used in the <a href="https://wiki.q-researchsoftware.com/wiki/Driver_(Importance)_Analysis" class="external-link">Q research software</a>. The resulting column is labelled <code>Sign.Rescaled.RelWeight</code> to distinguish from the unsigned column.</p>
 </div>
-<div id="estimating-the-statistical-significance-of-relative-weights" class="section level3">
-<h3 class="hasAnchor">
-<a href="#estimating-the-statistical-significance-of-relative-weights" class="anchor"></a>Estimating the statistical significance of relative weights</h3>
+<div class="section level3">
+<h3 id="estimating-the-statistical-significance-of-relative-weights">Estimating the statistical significance of relative weights<a class="anchor" aria-label="anchor" href="#estimating-the-statistical-significance-of-relative-weights"></a>
+</h3>
 <p>As Tonidandel et al. (2009) noted, there is no default procedure for determining the statistical significance of individual relative weights:</p>
 <blockquote>
 <p>The difficulty in determining the statistical significance of relative weights stems from the fact that the exact (or small sample) sampling distribution of relative weights is unknown.</p>
 </blockquote>
 <p>The paper itself suggests a Monte Carlo method for estimating the statistical significance, but this is currently not available or provided in the package, but the plan is to implement this in the near future.</p>
 </div>
-<div id="basic-example" class="section level3">
-<h3 class="hasAnchor">
-<a href="#basic-example" class="anchor"></a>Basic example</h3>
+<div class="section level3">
+<h3 id="basic-example">Basic example<a class="anchor" aria-label="anchor" href="#basic-example"></a>
+</h3>
 <p>You can pass the raw data directly into <code><a href="reference/rwa.html">rwa()</a></code>, without having to first compute a correlation matrix. The below example is with <code>mtcars</code>.</p>
 <p>Code:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/martinctc/rwa">rwa</a></span><span class="op">)</span>
-<span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">tidyverse</span><span class="op">)</span>
-
-<span class="va">mtcars</span> <span class="op">%&gt;%</span>
-  <span class="fu"><a href="reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,
-      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span><span class="op">)</span>,
-      applysigns <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/martinctc/rwa" class="external-link">rwa</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyverse.tidyverse.org" class="external-link">tidyverse</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">mtcars</span> <span class="op"><a href="reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
+<span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span><span class="op">)</span>,</span>
+<span>      applysigns <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p>Results:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a><span class="op">$</span>predictors</span>
-<span id="cb4-2"><a href="#cb4-2"></a>[<span class="dv">1</span>] <span class="st">"cyl"</span>  <span class="st">"disp"</span> <span class="st">"hp"</span>   <span class="st">"gear"</span></span>
-<span id="cb4-3"><a href="#cb4-3"></a></span>
-<span id="cb4-4"><a href="#cb4-4"></a><span class="op">$</span>rsquare</span>
-<span id="cb4-5"><a href="#cb4-5"></a>[<span class="dv">1</span>] <span class="fl">0.7791896</span></span>
-<span id="cb4-6"><a href="#cb4-6"></a></span>
-<span id="cb4-7"><a href="#cb4-7"></a><span class="op">$</span>result</span>
-<span id="cb4-8"><a href="#cb4-8"></a>  Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span>
-<span id="cb4-9"><a href="#cb4-9"></a><span class="dv">1</span>       cyl     <span class="fl">0.2284797</span>           <span class="fl">29.32274</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.32274</span></span>
-<span id="cb4-10"><a href="#cb4-10"></a><span class="dv">2</span>      disp     <span class="fl">0.2221469</span>           <span class="fl">28.50999</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-28.50999</span></span>
-<span id="cb4-11"><a href="#cb4-11"></a><span class="dv">3</span>        hp     <span class="fl">0.2321744</span>           <span class="fl">29.79691</span>    <span class="op">-</span><span class="st">               </span><span class="fl">-29.79691</span></span>
-<span id="cb4-12"><a href="#cb4-12"></a><span class="dv">4</span>      gear     <span class="fl">0.0963886</span>           <span class="fl">12.37037</span>    <span class="op">+</span><span class="st">                </span><span class="fl">12.37037</span></span>
-<span id="cb4-13"><a href="#cb4-13"></a></span>
-<span id="cb4-14"><a href="#cb4-14"></a><span class="op">$</span>n</span>
-<span id="cb4-15"><a href="#cb4-15"></a>[<span class="dv">1</span>] <span class="dv">32</span>      </span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="sc">$</span>predictors</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>[<span class="dv">1</span>] <span class="st">"cyl"</span>  <span class="st">"disp"</span> <span class="st">"hp"</span>   <span class="st">"gear"</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="sc">$</span>rsquare</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.7791896</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="sc">$</span>result</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="dv">1</span>       cyl     <span class="fl">0.2284797</span>           <span class="fl">29.32274</span>    <span class="sc">-</span>               <span class="sc">-</span><span class="fl">29.32274</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="dv">2</span>      disp     <span class="fl">0.2221469</span>           <span class="fl">28.50999</span>    <span class="sc">-</span>               <span class="sc">-</span><span class="fl">28.50999</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="dv">3</span>        hp     <span class="fl">0.2321744</span>           <span class="fl">29.79691</span>    <span class="sc">-</span>               <span class="sc">-</span><span class="fl">29.79691</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="dv">4</span>      gear     <span class="fl">0.0963886</span>           <span class="fl">12.37037</span>    <span class="sc">+</span>                <span class="fl">12.37037</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="sc">$</span>n</span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">32</span>      </span></code></pre></div>
 <hr>
 </div>
-<div id="latest-status" class="section level3">
-<h3 class="hasAnchor">
-<a href="#latest-status" class="anchor"></a>Latest Status</h3>
-<p>The main <code><a href="reference/rwa.html">rwa()</a></code> function is ready-to-use, but the intent is to develop additional functions for this package which supplement the use of this function, such as tidying outputs and visualisations.</p>
+<div class="section level3">
+<h3 id="documentation">Documentation<a class="anchor" aria-label="anchor" href="#documentation"></a>
+</h3>
+<p>For comprehensive examples and methodology explanations, see the package vignette:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># After installation, view the vignette</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"introduction-to-rwa"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
+<p>The vignette covers: - Detailed methodology and when to use RWA - Step-by-step examples with interpretation - Bootstrap confidence intervals for statistical significance - Real-world applications and best practices - Troubleshooting and advanced features</p>
 <hr>
 </div>
-<div id="contact-me" class="section level3">
-<h3 class="hasAnchor">
-<a href="#contact-me" class="anchor"></a>Contact me</h3>
-<p>Please feel free to submit suggestions and report bugs: <a href="https://github.com/martinctc/rwa/issues" class="uri">https://github.com/martinctc/rwa/issues</a></p>
-<p>Also check out my <a href="https://martinctc.github.io">website</a> for my other work and packages.</p>
+<div class="section level3">
+<h3 id="latest-status">Latest Status<a class="anchor" aria-label="anchor" href="#latest-status"></a>
+</h3>
+<p>The main <code><a href="reference/rwa.html">rwa()</a></code> function is ready-to-use and now includes bootstrap confidence intervals for determining the statistical significance of relative weights. The package includes comprehensive documentation through vignettes and is designed to integrate seamlessly with tidyverse workflows.</p>
+<hr>
 </div>
-<div id="references--bibliography" class="section level3">
-<h3 class="hasAnchor">
-<a href="#references--bibliography" class="anchor"></a>References / Bibliography</h3>
+<div class="section level3">
+<h3 id="contact-me">Contact me<a class="anchor" aria-label="anchor" href="#contact-me"></a>
+</h3>
+<p>Please feel free to submit suggestions and report bugs: <a href="https://github.com/martinctc/rwa/issues" class="external-link uri">https://github.com/martinctc/rwa/issues</a></p>
+<p>Also check out my <a href="https://martinctc.github.io" class="external-link">website</a> for my other work and packages.</p>
+</div>
+<div class="section level3">
+<h3 id="references--bibliography">References / Bibliography<a class="anchor" aria-label="anchor" href="#references--bibliography"></a>
+</h3>
 <p>Azen, R., &amp; Budescu, D. V. (2003). The dominance analysis approach for comparing predictors in multiple regression. <em>Psychological methods</em>, 8(2), 129.</p>
 <p>Budescu, D. V. (1993). Dominance analysis: a new approach to the problem of relative importance of predictors in multiple regression. <em>Psychological bulletin</em>, 114(3), 542.</p>
 <p>Grömping, U. (2006). Relative importance for linear regression in R: the package relaimpo. <em>Journal of statistical software</em>, 17(1), 1-27.</p>
@@ -185,59 +199,65 @@
 <p>Tonidandel, S., &amp; LeBreton, J. M. (2011). Relative importance analysis: A useful supplement to regression analysis. <em>Journal of Business and Psychology</em>, 26(1), 1-9.</p>
 <p>Tonidandel, S., LeBreton, J. M., &amp; Johnson, J. W. (2009). Determining the statistical significance of relative weights. <em>Psychological methods</em>, <em>14</em>(4), 387.</p>
 <p>Wang, X., Duverger, P., Bansal, H. S. (2013). Bayesian Inference of Predictors Relative Importance in Linear Regression Model using Dominance Hierarchies. <em>International Journal of Pure and Applied Mathematics</em>, Vol. 88, No. 3, 321-339.</p>
-<p>Also see <a href="https://medium.com/analytics-vidhya/johnsons-relative-weights-analysis-implementation-with-javascript-d85393c0bbb4">Kovalyshyn</a> for a similar implementation but in Javascript.</p>
+<p>Also see <a href="https://medium.com/analytics-vidhya/johnsons-relative-weights-analysis-implementation-with-javascript-d85393c0bbb4" class="external-link">Kovalyshyn</a> for a similar implementation but in Javascript.</p>
 </div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <div class="links">
-<h2>Links</h2>
+<h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li>Download from CRAN at <br><a href="https://cloud.r-project.org/package=rwa">https://​cloud.r-project.org/​package=rwa</a>
-</li>
-<li>Browse source code at <br><a href="https://github.com/martinctc/rwa/">https://​github.com/​martinctc/​rwa/​</a>
-</li>
-<li>Report a bug at <br><a href="https://github.com/martinctc/rwa/issues">https://​github.com/​martinctc/​rwa/​issues</a>
-</li>
-</ul>
-</div>
-<div class="license">
-<h2>License</h2>
-<ul class="list-unstyled">
-<li><a href="https://www.r-project.org/Licenses/GPL-3">GPL-3</a></li>
-</ul>
-</div>
-<div class="developers">
-<h2>Developers</h2>
-<ul class="list-unstyled">
-<li>Martin Chan <br><small class="roles"> Maintainer </small>  </li>
+<li><a href="https://cloud.r-project.org/package=rwa" class="external-link">View on CRAN</a></li>
+<li><a href="https://github.com/martinctc/rwa/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/martinctc/rwa/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
-  <div class="dev-status">
-<h2>Dev status</h2>
+<div class="license">
+<h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/martinctc/rwa/actions"><img src="https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
-<li><a href="https://www.codefactor.io/repository/github/martinctc/rwa"><img src="https://www.codefactor.io/repository/github/martinctc/rwa/badge" alt="CodeFactor"></a></li>
+<li><a href="https://www.r-project.org/Licenses/GPL-3" class="external-link">GPL-3</a></li>
 </ul>
 </div>
+
+
+<div class="citation">
+<h2 data-toc-skip>Citation</h2>
+<ul class="list-unstyled">
+<li><a href="authors.html#citation">Citing rwa</a></li>
+</ul>
 </div>
+
+<div class="developers">
+<h2 data-toc-skip>Developers</h2>
+<ul class="list-unstyled">
+<li>Martin Chan <br><small class="roles"> Author, maintainer </small>   </li>
+</ul>
+</div>
+
+
+
+  </div>
 </div>
 
 
       <footer><div class="copyright">
-  <p>Developed by Martin Chan.</p>
+  <p></p>
+<p>Developed by Martin Chan.</p>
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
+  <p></p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
       </footer>
 </div>
 
-  
+
+
+
 
 
   </body>
