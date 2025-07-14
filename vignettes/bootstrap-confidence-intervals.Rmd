@@ -338,12 +338,15 @@ print(report_data)
 ## References
 
 **Bootstrap Methods in RWA:**
+
 - Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the statistical significance of relative weights. *Psychological Methods*, 14(4), 387-399.
 
 **General Bootstrap Theory:**
+
 - Efron, B., & Tibshirani, R. J. (1993). *An introduction to the bootstrap*. Chapman & Hall/CRC.
 
 **Compositional Data Analysis:**
+
 - Aitchison, J. (1986). *The statistical analysis of compositional data*. Chapman & Hall.
 
 ## Conclusion
