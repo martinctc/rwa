@@ -143,8 +143,8 @@ plot_result <- mtcars %>%
       predictors = c("cyl", "disp", "hp", "gear", "wt"),
       plot = TRUE)
 
-# The plot shows rescaled relative weights
-plot_result$result
+# Display plot
+plot_rwa(plot_result)
 ```
 
 ## Bootstrap Confidence Intervals
@@ -296,11 +296,13 @@ print(missing_summary)
 This package and methodology are based on the following key references:
 
 **Primary Sources:**
+
 - **Johnson, J. W. (2000)**. A heuristic method for estimating the relative weight of predictor variables in multiple regression. *Multivariate Behavioral Research*, 35(1), 1-19. DOI: 10.1207/S15327906MBR3501_1
 
 - **Tonidandel, S., & LeBreton, J. M. (2015)**. RWA Web: A free, comprehensive, web-based, and user-friendly tool for relative weight analyses. *Journal of Business and Psychology*, 30(2), 207-216. DOI: 10.1007/s10869-014-9351-z
 
 **Additional Reading:**
+
 - Azen, R., & Budescu, D. V. (2003). The dominance analysis approach for comparing predictors in multiple regression. *Psychological Methods*, 8(2), 129-148.
 
 - Grömping, U. (2006). Relative importance for linear regression in R: The package relaimpo. *Journal of Statistical Software*, 17(1), 1-27.
