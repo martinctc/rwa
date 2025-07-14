@@ -57,6 +57,11 @@
 <li>
       <a href="../articles/introduction-to-rwa.html">Introduction to Relative Weights Analysis with the rwa Package</a>
     </li>
+    <li class="divider">
+    </li>
+<li>
+      <a href="../articles/index.html">More articles...</a>
+    </li>
   </ul>
 </li>
 <li>
@@ -321,164 +326,41 @@ importance:</p>
 <div class="section level2">
 <h2 id="bootstrap-confidence-intervals">Bootstrap Confidence Intervals<a class="anchor" aria-label="anchor" href="#bootstrap-confidence-intervals"></a>
 </h2>
-<p>One of the most powerful features of the <code>rwa</code> package is
-the ability to calculate bootstrap confidence intervals for relative
-weights, addressing the long-standing issue of statistical significance
-testing in RWA.</p>
-<div class="section level3">
-<h3 id="why-bootstrap-for-rwa">Why Bootstrap for RWA?<a class="anchor" aria-label="anchor" href="#why-bootstrap-for-rwa"></a>
-</h3>
-<p>As noted by Tonidandel et al. (2009):</p>
-<blockquote>
-<p>“The difficulty in determining the statistical significance of
-relative weights stems from the fact that the exact (or small sample)
-sampling distribution of relative weights is unknown.”</p>
-</blockquote>
-<p>Bootstrap methods provide a solution by empirically estimating the
-sampling distribution of relative weights.</p>
-</div>
-<div class="section level3">
-<h3 id="basic-bootstrap-analysis">Basic Bootstrap Analysis<a class="anchor" aria-label="anchor" href="#basic-bootstrap-analysis"></a>
-</h3>
+<p>The <code>rwa</code> package includes powerful bootstrap
+functionality for determining the statistical significance of relative
+weights. For detailed coverage of bootstrap methods, see the dedicated
+vignette:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Bootstrap analysis with 1000 samples</span></span>
-<span><span class="va">result_bootstrap</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
-<span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span><span class="op">)</span>,</span>
-<span>      bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      n_bootstrap <span class="op">=</span> <span class="fl">1000</span>,</span>
-<span>      conf_level <span class="op">=</span> <span class="fl">0.95</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View results with confidence intervals</span></span>
-<span><span class="va">result_bootstrap</span><span class="op">$</span><span class="va">result</span></span>
-<span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span></span>
-<span><span class="co">#&gt; 1       cyl     0.2284797           29.32274    -             0.17336836</span></span>
-<span><span class="co">#&gt; 2      disp     0.2221469           28.50999    -             0.15772412</span></span>
-<span><span class="co">#&gt; 3        hp     0.2321744           29.79691    -             0.18864625</span></span>
-<span><span class="co">#&gt; 4      gear     0.0963886           12.37037    +             0.04155014</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Raw.Significant</span></span>
-<span><span class="co">#&gt; 1              0.2788206            TRUE</span></span>
-<span><span class="co">#&gt; 2              0.2804741            TRUE</span></span>
-<span><span class="co">#&gt; 3              0.2811493            TRUE</span></span>
-<span><span class="co">#&gt; 4              0.1843592            TRUE</span></span></code></pre></div>
-</div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="understanding-bootstrap-results">Understanding Bootstrap Results<a class="anchor" aria-label="anchor" href="#understanding-bootstrap-results"></a>
+<h3 id="quick-bootstrap-example">Quick Bootstrap Example<a class="anchor" aria-label="anchor" href="#quick-bootstrap-example"></a>
 </h3>
-<p>The bootstrap analysis adds several columns to the results:</p>
-<ul>
-<li>
-<strong>Raw.RelWeight.CI.Lower/Upper</strong>: 95% confidence
-intervals for raw weights</li>
-<li>
-<strong>Raw.Significant</strong>: Whether the weight is
-significantly different from zero</li>
-</ul>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Bootstrap-specific information</span></span>
-<span><span class="va">result_bootstrap</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">n_bootstrap</span></span>
-<span><span class="co">#&gt; [1] 1000</span></span>
-<span><span class="va">result_bootstrap</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span><span class="op">$</span><span class="va">raw_weights</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> cyl                 1   0.173     0.279 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> disp                2   0.158     0.280 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> hp                  3   0.189     0.281 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> gear                4   0.041<span style="text-decoration: underline;">6</span>    0.184 bca       raw</span></span>
-<span></span>
-<span><span class="co"># Identify significant predictors</span></span>
-<span><span class="va">significant_vars</span> <span class="op">&lt;-</span> <span class="va">result_bootstrap</span><span class="op">$</span><span class="va">result</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Raw.Significant</span> <span class="op">==</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">Variables</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Significant predictors:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="va">significant_vars</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Significant predictors: cyl, disp, hp, gear</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="comprehensive-bootstrap-analysis">Comprehensive Bootstrap Analysis<a class="anchor" aria-label="anchor" href="#comprehensive-bootstrap-analysis"></a>
-</h3>
-<p>For more detailed analysis, you can request comprehensive bootstrap
-results:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Comprehensive bootstrap with focal variable comparison</span></span>
-<span><span class="va">result_comprehensive</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
-<span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span>, <span class="st">"wt"</span><span class="op">)</span>,</span>
-<span>      bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      comprehensive <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      focal <span class="op">=</span> <span class="st">"wt"</span>,  <span class="co"># Compare other variables to weight</span></span>
-<span>      n_bootstrap <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>  <span class="co"># Fewer samples for speed</span></span>
-<span></span>
-<span><span class="co"># Access detailed bootstrap results</span></span>
-<span><span class="va">result_comprehensive</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span></span>
-<span><span class="co">#&gt; $raw_weights</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 6</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> cyl                 1   0.147     0.238 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> disp                2   0.119     0.195 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> hp                  3   0.145     0.229 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> gear                4   0.035<span style="text-decoration: underline;">7</span>    0.142 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> wt                  5   0.182     0.302 bca       raw    </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $random_comparison</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 6</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type  </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Var6                1   0.147     0.271 bca       rand_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Var7                2   0.125     0.217 bca       rand_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Var8                3   0.152     0.285 bca       rand_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Var9                4   0.024<span style="text-decoration: underline;">6</span>    0.157 bca       rand_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> Var10               5   0.172     0.325 bca       rand_diff</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $focal_comparison</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower  ci_upper ci_method ci_type   </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> Var11               1   -<span style="color: #BB0000;">0.130</span>  0.059<span style="text-decoration: underline;">7</span>   bca       focal_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> Var12               2   -<span style="color: #BB0000;">0.159</span> -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">925</span> bca       focal_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> Var13               3   -<span style="color: #BB0000;">0.130</span>  0.048<span style="text-decoration: underline;">1</span>   bca       focal_diff</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> Var14               4   -<span style="color: #BB0000;">0.255</span> -<span style="color: #BB0000;">0.069</span><span style="color: #BB0000; text-decoration: underline;">7</span>   bca       focal_diff</span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="working-with-rescaled-weight-confidence-intervals">Working with Rescaled Weight Confidence Intervals<a class="anchor" aria-label="anchor" href="#working-with-rescaled-weight-confidence-intervals"></a>
-</h3>
-<p><strong>Important Note</strong>: Rescaled weight confidence intervals
-should be interpreted with caution due to compositional data
-constraints. They are not recommended for formal statistical
-inference.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Rescaled CIs (use with caution)</span></span>
-<span><span class="va">result_rescaled_ci</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<code class="sourceCode R"><span><span class="co"># Basic bootstrap analysis</span></span>
+<span><span class="va">bootstrap_result</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
 <span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span><span class="op">)</span>,</span>
 <span>      bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      include_rescaled_ci <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>      n_bootstrap <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<span>      n_bootstrap <span class="op">=</span> <span class="fl">500</span><span class="op">)</span>  <span class="co"># Reduced for speed</span></span>
 <span></span>
-<span><span class="co"># Note the warning message about interpretation</span></span>
-<span><span class="va">result_rescaled_ci</span><span class="op">$</span><span class="va">result</span></span>
-<span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span></span>
-<span><span class="co">#&gt; 1       cyl     0.2723144           35.46279    -              0.2074584</span></span>
-<span><span class="co">#&gt; 2      disp     0.2793550           36.37966    -              0.2068513</span></span>
-<span><span class="co">#&gt; 3        hp     0.2162184           28.15755    -              0.1564269</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower</span></span>
-<span><span class="co">#&gt; 1              0.3189092            TRUE                    29.93453</span></span>
-<span><span class="co">#&gt; 2              0.3493965            TRUE                    29.69187</span></span>
-<span><span class="co">#&gt; 3              0.2645444            TRUE                    20.35935</span></span>
-<span><span class="co">#&gt;   Rescaled.RelWeight.CI.Upper</span></span>
-<span><span class="co">#&gt; 1                    41.99686</span></span>
-<span><span class="co">#&gt; 2                    43.42938</span></span>
-<span><span class="co">#&gt; 3                    35.90525</span></span></code></pre></div>
+<span><span class="co"># View significant predictors</span></span>
+<span><span class="va">bootstrap_result</span><span class="op">$</span><span class="va">result</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Raw.Significant</span> <span class="op">==</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Variables</span>, <span class="va">Rescaled.RelWeight</span>, <span class="va">Raw.RelWeight.CI.Lower</span>, <span class="va">Raw.RelWeight.CI.Upper</span><span class="op">)</span></span>
+<span><span class="co">#&gt;   Variables Rescaled.RelWeight Raw.RelWeight.CI.Lower Raw.RelWeight.CI.Upper</span></span>
+<span><span class="co">#&gt; 1       cyl           35.46279              0.2102031              0.3271968</span></span>
+<span><span class="co">#&gt; 2      disp           36.37966              0.1974787              0.3450084</span></span>
+<span><span class="co">#&gt; 3        hp           28.15755              0.1525683              0.2681596</span></span></code></pre></div>
+<p>For comprehensive coverage of bootstrap methods, advanced features,
+and best practices, consult the bootstrap vignette.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="real-world-example-diamond-price-analysis">Real-World Example: Diamond Price Analysis<a class="anchor" aria-label="anchor" href="#real-world-example-diamond-price-analysis"></a>
 </h2>
 <p>Let’s explore a more complex example using the <code>diamonds</code>
-dataset to understand what drives diamond prices:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+dataset:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Analyze diamond price drivers (only if ggplot2 is available)</span></span>
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">has_ggplot2</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">diamonds_subset</span> <span class="op">&lt;-</span> <span class="va">diamonds</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -488,59 +370,30 @@ dataset to understand what drives diamond prices:</p>
 <span>  <span class="va">diamond_rwa</span> <span class="op">&lt;-</span> <span class="va">diamonds_subset</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"price"</span>,</span>
 <span>        predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"carat"</span>, <span class="st">"depth"</span>, <span class="st">"table"</span>, <span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"z"</span><span class="op">)</span>,</span>
-<span>        bootstrap <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>        applysigns <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>        n_bootstrap <span class="op">=</span> <span class="fl">500</span><span class="op">)</span></span>
+<span>        applysigns <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span>  <span class="va">diamond_rwa</span><span class="op">$</span><span class="va">result</span></span>
 <span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Note: Diamond example requires ggplot2 package for the diamonds dataset."</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
 <span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span></span>
-<span><span class="co">#&gt; 1     carat   0.251423940          28.980434    +               28.980434</span></span>
-<span><span class="co">#&gt; 2     depth   0.002063606           0.237862    -               -0.237862</span></span>
-<span><span class="co">#&gt; 3     table   0.003365265           0.387898    +                0.387898</span></span>
-<span><span class="co">#&gt; 4         x   0.203836776          23.495289    +               23.495289</span></span>
-<span><span class="co">#&gt; 5         y   0.204268515          23.545054    +               23.545054</span></span>
-<span><span class="co">#&gt; 6         z   0.202606351          23.353464    +               23.353464</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Lower Raw.RelWeight.CI.Upper Raw.Significant</span></span>
-<span><span class="co">#&gt; 1           0.2400255147            0.262375640            TRUE</span></span>
-<span><span class="co">#&gt; 2           0.0001279062            0.002494479            TRUE</span></span>
-<span><span class="co">#&gt; 3          -0.0007742313            0.005219223           FALSE</span></span>
-<span><span class="co">#&gt; 4           0.1985014610            0.208487031            TRUE</span></span>
-<span><span class="co">#&gt; 5           0.1991547218            0.208987528            TRUE</span></span>
-<span><span class="co">#&gt; 6           0.1971501193            0.207597652            TRUE</span></span></code></pre></div>
-<div class="section level3">
-<h3 id="interpreting-diamond-price-drivers">Interpreting Diamond Price Drivers<a class="anchor" aria-label="anchor" href="#interpreting-diamond-price-drivers"></a>
-</h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="va">has_ggplot2</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="co"># Rank predictors by importance</span></span>
-<span>  <span class="va">diamond_importance</span> <span class="op">&lt;-</span> <span class="va">diamond_rwa</span><span class="op">$</span><span class="va">result</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">Rescaled.RelWeight</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">Variables</span>, <span class="va">Rescaled.RelWeight</span>, <span class="va">Sign.Rescaled.RelWeight</span>, <span class="va">Raw.Significant</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">diamond_importance</span><span class="op">)</span></span>
-<span></span>
-<span>  <span class="co"># Model explains this much variance:</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"R-squared:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">diamond_rwa</span><span class="op">$</span><span class="va">rsquare</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="op">}</span></span>
-<span><span class="co">#&gt;   Variables Rescaled.RelWeight Sign.Rescaled.RelWeight Raw.Significant</span></span>
-<span><span class="co">#&gt; 1     carat          28.980434               28.980434            TRUE</span></span>
-<span><span class="co">#&gt; 2         y          23.545054               23.545054            TRUE</span></span>
-<span><span class="co">#&gt; 3         x          23.495289               23.495289            TRUE</span></span>
-<span><span class="co">#&gt; 4         z          23.353464               23.353464            TRUE</span></span>
-<span><span class="co">#&gt; 5     table           0.387898                0.387898           FALSE</span></span>
-<span><span class="co">#&gt; 6     depth           0.237862               -0.237862            TRUE</span></span>
-<span><span class="co">#&gt; R-squared: 0.868</span></span></code></pre></div>
-</div>
+<span><span class="co">#&gt; 1     carat   0.243972113         28.4772113    +              28.4772113</span></span>
+<span><span class="co">#&gt; 2     depth   0.002017268          0.2354620    -              -0.2354620</span></span>
+<span><span class="co">#&gt; 3     table   0.003476043          0.4057349    -              -0.4057349</span></span>
+<span><span class="co">#&gt; 4         x   0.202571498         23.6447981    +              23.6447981</span></span>
+<span><span class="co">#&gt; 5         y   0.203117709         23.7085535    +              23.7085535</span></span>
+<span><span class="co">#&gt; 6         z   0.201572915         23.5282402    +              23.5282402</span></span></code></pre></div>
+<p>For bootstrap analysis of this example with confidence intervals,
+see:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="comparison-with-traditional-regression">Comparison with Traditional Regression<a class="anchor" aria-label="anchor" href="#comparison-with-traditional-regression"></a>
 </h2>
 <p>Let’s compare RWA results with traditional multiple regression to
 highlight the differences:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Traditional regression</span></span>
 <span><span class="va">lm_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">disp</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">gear</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span>
 <span><span class="va">lm_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">lm_model</span><span class="op">)</span></span>
@@ -569,8 +422,7 @@ highlight the differences:</p>
 <div class="section level3">
 <h3 id="sample-size-considerations">1. Sample Size Considerations<a class="anchor" aria-label="anchor" href="#sample-size-considerations"></a>
 </h3>
-<p>For bootstrap analysis, ensure adequate sample size:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check your sample size</span></span>
 <span><span class="va">n_obs</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
@@ -579,62 +431,29 @@ highlight the differences:</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Sample size:"</span>, <span class="va">n_obs</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Sample size: 32</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nRecommended bootstrap samples:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="va">n_obs</span> <span class="op">*</span> <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nRule of thumb: At least 5 observations per predictor"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Recommended bootstrap samples: 320</span></span></code></pre></div>
+<span><span class="co">#&gt; Rule of thumb: At least 5 observations per predictor</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="variable-selection">2. Variable Selection<a class="anchor" aria-label="anchor" href="#variable-selection"></a>
 </h3>
 <p>RWA works best with: - <strong>Continuous variables</strong> (though
 categorical can be used with caution) - <strong>Theoretically meaningful
-predictors</strong> - <strong>Reasonable predictor-to-observation
-ratios</strong></p>
+predictors</strong><br>
+- <strong>Reasonable predictor-to-observation ratios</strong></p>
 </div>
 <div class="section level3">
-<h3 id="interpreting-confidence-intervals">3. Interpreting Confidence Intervals<a class="anchor" aria-label="anchor" href="#interpreting-confidence-intervals"></a>
+<h3 id="reporting-results">3. Reporting Results<a class="anchor" aria-label="anchor" href="#reporting-results"></a>
 </h3>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Focus on raw weight confidence intervals for inference</span></span>
-<span><span class="va">ci_data</span> <span class="op">&lt;-</span> <span class="va">result_bootstrap</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span><span class="op">$</span><span class="va">raw_weights</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">ci_data</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 6</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> cyl                 1   0.173     0.279 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> disp                2   0.158     0.280 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> hp                  3   0.189     0.281 bca       raw    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> gear                4   0.041<span style="text-decoration: underline;">6</span>    0.184 bca       raw</span></span>
-<span></span>
-<span><span class="co"># Add interpretation based on available columns</span></span>
-<span><span class="va">ci_data</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>    significant <span class="op">=</span> <span class="va">ci_lower</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">|</span> <span class="va">ci_upper</span> <span class="op">&lt;</span> <span class="fl">0</span>,</span>
-<span>    ci_width <span class="op">=</span> <span class="va">ci_upper</span> <span class="op">-</span> <span class="va">ci_lower</span>,</span>
-<span>    precision <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case_when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
-<span>      <span class="va">ci_width</span> <span class="op">&lt;</span> <span class="fl">0.05</span> <span class="op">~</span> <span class="st">"High precision"</span>,</span>
-<span>      <span class="va">ci_width</span> <span class="op">&lt;</span> <span class="fl">0.15</span> <span class="op">~</span> <span class="st">"Medium precision"</span>, </span>
-<span>      <span class="cn">TRUE</span> <span class="op">~</span> <span class="st">"Low precision"</span></span>
-<span>    <span class="op">)</span></span>
-<span>  <span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 9</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type significant ci_width</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> cyl                 1   0.173     0.279 bca       raw     TRUE          0.105 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> disp                2   0.158     0.280 bca       raw     TRUE          0.123 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> hp                  3   0.189     0.281 bca       raw     TRUE          0.092<span style="text-decoration: underline;">5</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> gear                4   0.041<span style="text-decoration: underline;">6</span>    0.184 bca       raw     TRUE          0.143 </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: precision &lt;chr&gt;</span></span></span></code></pre></div>
-</div>
-<div class="section level3">
-<h3 id="reporting-results">4. Reporting Results<a class="anchor" aria-label="anchor" href="#reporting-results"></a>
-</h3>
-<p>When reporting RWA results, include:</p>
+<p>When reporting RWA results, include: - <strong>Sample size</strong>
+and missing data handling - <strong>Raw and rescaled weights</strong> -
+<strong>Model R-squared</strong></p>
+<p>For bootstrap confidence intervals and advanced statistical
+considerations, see:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <ul>
-<li>
-<strong>Sample size</strong> and missing data handling</li>
-<li>
-<strong>Bootstrap parameters</strong> (if used)</li>
 <li><strong>Raw and rescaled weights</strong></li>
 <li>
 <strong>Confidence intervals</strong> for key predictors</li>
@@ -649,7 +468,7 @@ ratios</strong></p>
 <h3 id="multicollinearity-warnings">Multicollinearity Warnings<a class="anchor" aria-label="anchor" href="#multicollinearity-warnings"></a>
 </h3>
 <p>If you encounter extreme multicollinearity:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check correlation matrix</span></span>
 <span><span class="va">cor_matrix</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -666,7 +485,7 @@ ratios</strong></p>
 <h3 id="missing-data">Missing Data<a class="anchor" aria-label="anchor" href="#missing-data"></a>
 </h3>
 <p>RWA handles missing data through listwise deletion:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check for missing data patterns</span></span>
 <span><span class="va">missing_summary</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -682,29 +501,22 @@ ratios</strong></p>
 </h2>
 <p>This package and methodology are based on the following key
 references:</p>
-<p><strong>Primary Sources:</strong></p>
-<ul>
-<li><p><strong>Johnson, J. W. (2000)</strong>. A heuristic method for
-estimating the relative weight of predictor variables in multiple
-regression. <em>Multivariate Behavioral Research</em>, 35(1), 1-19. DOI:
-10.1207/S15327906MBR3501_1</p></li>
-<li><p><strong>Tonidandel, S., &amp; LeBreton, J. M. (2015)</strong>.
-RWA Web: A free, comprehensive, web-based, and user-friendly tool for
-relative weight analyses. <em>Journal of Business and Psychology</em>,
-30(2), 207-216. DOI: 10.1007/s10869-014-9351-z</p></li>
-</ul>
-<p><strong>Bootstrap Methods:</strong></p>
+<p><strong>Primary Sources:</strong> - <strong>Johnson, J. W.
+(2000)</strong>. A heuristic method for estimating the relative weight
+of predictor variables in multiple regression. <em>Multivariate
+Behavioral Research</em>, 35(1), 1-19. DOI:
+10.1207/S15327906MBR3501_1</p>
 <ul>
 <li>
-<strong>Tonidandel, S., LeBreton, J. M., &amp; Johnson, J. W.
-(2009)</strong>. Determining the statistical significance of relative
-weights. <em>Psychological Methods</em>, 14(4), 387-399.</li>
+<strong>Tonidandel, S., &amp; LeBreton, J. M. (2015)</strong>. RWA
+Web: A free, comprehensive, web-based, and user-friendly tool for
+relative weight analyses. <em>Journal of Business and Psychology</em>,
+30(2), 207-216. DOI: 10.1007/s10869-014-9351-z</li>
 </ul>
-<p><strong>Additional Reading:</strong></p>
+<p><strong>Additional Reading:</strong> - Azen, R., &amp; Budescu, D. V.
+(2003). The dominance analysis approach for comparing predictors in
+multiple regression. <em>Psychological Methods</em>, 8(2), 129-148.</p>
 <ul>
-<li><p>Azen, R., &amp; Budescu, D. V. (2003). The dominance analysis
-approach for comparing predictors in multiple regression.
-<em>Psychological Methods</em>, 8(2), 129-148.</p></li>
 <li><p>Grömping, U. (2006). Relative importance for linear regression in
 R: The package relaimpo. <em>Journal of Statistical Software</em>,
 17(1), 1-27.</p></li>
@@ -712,18 +524,21 @@ R: The package relaimpo. <em>Journal of Statistical Software</em>,
 relative importance indices in organizational research.
 <em>Organizational Research Methods</em>, 7(3), 238-257.</p></li>
 </ul>
-<p>For the latest methodological developments and detailed technical
-information, see: <a href="https://relativeimportance.davidson.edu/" class="external-link uri">https://relativeimportance.davidson.edu/</a></p>
+<p>For bootstrap methods and statistical significance testing, see the
+dedicated bootstrap vignette and its references.</p>
+<p>For the latest methodological developments: <a href="https://relativeimportance.davidson.edu/" class="external-link uri">https://relativeimportance.davidson.edu/</a></p>
 </div>
 <div class="section level2">
 <h2 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
 </h2>
-<p>The <code>rwa</code> package provides a comprehensive, user-friendly
-implementation of Relative Weights Analysis in R. With features
-including bootstrap confidence intervals, sign application, and seamless
-integration with tidyverse workflows, it offers researchers and analysts
-a robust tool for understanding predictor variable importance in the
-presence of multicollinearity.</p>
+<p>The <code>rwa</code> package provides a user-friendly implementation
+of Relative Weights Analysis in R with seamless tidyverse integration.
+This introductory vignette covered the basic methodology and usage
+patterns.</p>
+<p>For advanced features including bootstrap confidence intervals and
+statistical significance testing, see:</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <p>Whether you’re conducting key drivers analysis in market research,
 exploring variable importance in predictive modeling, or addressing
 multicollinearity in academic research, RWA provides valuable insights
