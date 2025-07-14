@@ -2,3 +2,13 @@ template:
   params:
     bootswatch: cosmo
     ganalytics: UA-138721086-1
+
+articles:
+- title: "Getting Started"
+  navbar: ~
+  contents:
+  - introduction-to-rwa
+  
+- title: "Advanced Methods"
+  contents:
+  - bootstrap-confidence-intervals

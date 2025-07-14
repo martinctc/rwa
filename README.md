@@ -92,20 +92,21 @@ $n
 
 ### Documentation
 
-For comprehensive examples and methodology explanations, see the package vignette:
+For comprehensive examples and methodology explanations, see the package vignettes:
 
 ```R
-# After installation, view the vignette
+# Main introduction to RWA
 vignette("introduction-to-rwa", package = "rwa")
+
+# Bootstrap confidence intervals for statistical significance
+vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
-The vignette covers:
-
-- Detailed methodology and when to use RWA
-- Step-by-step examples with interpretation
-- Bootstrap confidence intervals for statistical significance
+The vignettes cover:
+- **Introduction vignette**: Detailed methodology, basic examples, and when to use RWA
+- **Bootstrap vignette**: Statistical significance testing, confidence intervals, and advanced features
 - Real-world applications and best practices
-- Troubleshooting and advanced features
+- Troubleshooting and interpretation guidance
 
 ---
 
