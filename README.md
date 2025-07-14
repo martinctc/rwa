@@ -87,9 +87,27 @@ $n
 
 ---
 
+### Documentation
+
+For comprehensive examples and methodology explanations, see the package vignette:
+
+```R
+# After installation, view the vignette
+vignette("introduction-to-rwa", package = "rwa")
+```
+
+The vignette covers:
+- Detailed methodology and when to use RWA
+- Step-by-step examples with interpretation
+- Bootstrap confidence intervals for statistical significance
+- Real-world applications and best practices
+- Troubleshooting and advanced features
+
+---
+
 ### Latest Status
 
-The main `rwa()` function is ready-to-use, but the intent is to develop additional functions for this package which supplement the use of this function, such as tidying outputs and visualisations.
+The main `rwa()` function is ready-to-use and now includes bootstrap confidence intervals for determining the statistical significance of relative weights. The package includes comprehensive documentation through vignettes and is designed to integrate seamlessly with tidyverse workflows.
 
 ---
 

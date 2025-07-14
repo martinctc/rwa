@@ -1,0 +1,417 @@
+---
+title: "Introduction to Relative Weights Analysis with the rwa Package"
+author: "Martin Chan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to Relative Weights Analysis with the rwa Package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%",
+  error = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r setup}
+library(rwa)
+library(dplyr)
+
+# Load ggplot2 if available, otherwise skip plotting examples
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  library(ggplot2)
+  has_ggplot2 <- TRUE
+} else {
+  has_ggplot2 <- FALSE
+  message("ggplot2 not available - skipping plotting examples")
+}
+```
+
+## Introduction
+
+**Relative Weights Analysis (RWA)** is a powerful method for determining the relative importance of predictor variables in multiple regression models, particularly when dealing with multicollinearity. This vignette provides a comprehensive guide to using the `rwa` package, explaining the methodology, interpreting results, and exploring advanced features including bootstrap confidence intervals.
+
+## Background and Methodology
+
+### What is Relative Weights Analysis?
+
+Relative Weights Analysis addresses a fundamental problem in multiple regression: when predictor variables are correlated with each other (multicollinearity), it becomes difficult to determine the true contribution of each variable to the outcome. Traditional regression coefficients can be misleading, unstable, or difficult to interpret in the presence of multicollinearity.
+
+RWA decomposes the total variance predicted in a regression model (R²) into weights that accurately reflect the proportional contribution of the various predictor variables. The method implemented in this package is based on **Tonidandel and LeBreton (2015)**, with its original roots in **Johnson (2000)**.
+
+### How RWA Works
+
+The core insight of RWA is to create a set of orthogonal (uncorrelated) variables that are maximally related to the original predictors, then use these in a regression model. The process involves:
+
+1. **Eigenvalue decomposition** of the predictor correlation matrix
+2. **Transformation** of predictors into orthogonal components
+3. **Regression** using the transformed predictors
+4. **Decomposition** of R² into relative weights
+
+This approach allows us to determine each variable's unique contribution to the explained variance, even when predictors are highly correlated.
+
+### When to Use RWA
+
+RWA is particularly useful when:
+
+- **Multicollinearity** is present among predictors
+- You need to **rank variables** by importance
+- **Traditional regression coefficients** are unstable or difficult to interpret
+- You want to understand **proportional contributions** to explained variance
+- Conducting **key drivers analysis** in market research or business analytics
+
+## Basic Usage
+
+### Simple Example with mtcars
+
+Let's start with a basic example using the built-in `mtcars` dataset to predict fuel efficiency (`mpg`):
+
+```{r basic-example}
+# Basic RWA
+result_basic <- mtcars %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp", "gear"))
+
+# View the results
+result_basic$result
+```
+
+### Understanding the Output
+
+The basic output includes several key components:
+
+```{r output-explanation}
+# Predictor variables used
+result_basic$predictors
+
+# Model R-squared
+result_basic$rsquare
+
+# Number of complete observations
+result_basic$n
+
+# Correlation matrices (for advanced users)
+str(result_basic$RXX)  # Predictor correlation matrix
+str(result_basic$RXY)  # Predictor-outcome correlations
+```
+
+### Interpreting the Results Table
+
+The main results table contains:
+
+- **Variables**: Names of predictor variables
+- **Raw.RelWeight**: Raw relative weights (sum to R²)
+- **Rescaled.RelWeight**: Rescaled weights as percentages (sum to 100%)
+- **Sign**: Direction of relationship with outcome (+/-)
+
+```{r interpret-results}
+# The rescaled weights show relative importance
+result_basic$result %>%
+  arrange(desc(Rescaled.RelWeight))
+
+# Raw weights sum to R-squared
+sum(result_basic$result$Raw.RelWeight)
+result_basic$rsquare
+
+# Rescaled weights sum to 100%
+sum(result_basic$result$Rescaled.RelWeight)
+```
+
+## Advanced Features
+
+### Adding Signs to Weights
+
+The `applysigns` parameter adds directional information to help interpret whether variables positively or negatively influence the outcome:
+
+```{r signs-example}
+result_signs <- mtcars %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp", "gear"),
+      applysigns = TRUE)
+
+result_signs$result
+```
+
+### Visualization
+
+The package automatically generates a visualization of the relative importance:
+
+```{r visualization, fig.width=8, fig.height=5, eval = has_ggplot2}
+# Generate plot (returned invisibly by default)
+if (has_ggplot2) {
+  plot_result <- mtcars %>%
+    rwa(outcome = "mpg",
+        predictors = c("cyl", "disp", "hp", "gear", "wt"),
+        plot = TRUE)
+
+  # The plot shows rescaled relative weights
+  plot_result$result
+} else {
+  cat("Note: Visualization requires ggplot2 package.")
+}
+```
+
+## Bootstrap Confidence Intervals
+
+One of the most powerful features of the `rwa` package is the ability to calculate bootstrap confidence intervals for relative weights, addressing the long-standing issue of statistical significance testing in RWA.
+
+### Why Bootstrap for RWA?
+
+As noted by Tonidandel et al. (2009):
+
+> "The difficulty in determining the statistical significance of relative weights stems from the fact that the exact (or small sample) sampling distribution of relative weights is unknown."
+
+Bootstrap methods provide a solution by empirically estimating the sampling distribution of relative weights.
+
+### Basic Bootstrap Analysis
+
+```{r bootstrap-basic}
+# Bootstrap analysis with 1000 samples
+result_bootstrap <- mtcars %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp", "gear"),
+      bootstrap = TRUE,
+      n_bootstrap = 1000,
+      conf_level = 0.95)
+
+# View results with confidence intervals
+result_bootstrap$result
+```
+
+### Understanding Bootstrap Results
+
+The bootstrap analysis adds several columns to the results:
+
+- **Raw.RelWeight.CI.Lower/Upper**: 95% confidence intervals for raw weights
+- **Raw.Significant**: Whether the weight is significantly different from zero
+
+```{r bootstrap-interpretation}
+# Bootstrap-specific information
+result_bootstrap$bootstrap$n_bootstrap
+result_bootstrap$bootstrap$ci_results$raw_weights
+
+# Identify significant predictors
+significant_vars <- result_bootstrap$result %>%
+  filter(Raw.Significant == TRUE) %>%
+  pull(Variables)
+
+cat("Significant predictors:", paste(significant_vars, collapse = ", "))
+```
+
+### Comprehensive Bootstrap Analysis
+
+For more detailed analysis, you can request comprehensive bootstrap results:
+
+```{r bootstrap-comprehensive}
+# Comprehensive bootstrap with focal variable comparison
+result_comprehensive <- mtcars %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp", "gear", "wt"),
+      bootstrap = TRUE,
+      comprehensive = TRUE,
+      focal = "wt",  # Compare other variables to weight
+      n_bootstrap = 500)  # Fewer samples for speed
+
+# Access detailed bootstrap results
+result_comprehensive$bootstrap$ci_results
+```
+
+### Working with Rescaled Weight Confidence Intervals
+
+**Important Note**: Rescaled weight confidence intervals should be interpreted with caution due to compositional data constraints. They are not recommended for formal statistical inference.
+
+```{r rescaled-ci-warning}
+# Rescaled CIs (use with caution)
+result_rescaled_ci <- mtcars %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp"),
+      bootstrap = TRUE,
+      include_rescaled_ci = TRUE,
+      n_bootstrap = 500)
+
+# Note the warning message about interpretation
+result_rescaled_ci$result
+```
+
+## Real-World Example: Diamond Price Analysis
+
+Let's explore a more complex example using the `diamonds` dataset to understand what drives diamond prices:
+
+```{r diamonds-example, eval = has_ggplot2}
+# Analyze diamond price drivers (only if ggplot2 is available)
+if (has_ggplot2) {
+  diamonds_subset <- diamonds %>%
+    select(price, carat, depth, table, x, y, z) %>%
+    sample_n(1000)  # Sample for faster computation
+
+  diamond_rwa <- diamonds_subset %>%
+    rwa(outcome = "price",
+        predictors = c("carat", "depth", "table", "x", "y", "z"),
+        bootstrap = TRUE,
+        applysigns = TRUE,
+        n_bootstrap = 500)
+
+  diamond_rwa$result
+} else {
+  cat("Note: Diamond example requires ggplot2 package for the diamonds dataset.")
+}
+```
+
+### Interpreting Diamond Price Drivers
+
+```{r diamonds-interpretation, eval = has_ggplot2}
+if (has_ggplot2) {
+  # Rank predictors by importance
+  diamond_importance <- diamond_rwa$result %>%
+    arrange(desc(Rescaled.RelWeight)) %>%
+    select(Variables, Rescaled.RelWeight, Sign.Rescaled.RelWeight, Raw.Significant)
+
+  print(diamond_importance)
+
+  # Model explains this much variance:
+  cat("R-squared:", round(diamond_rwa$rsquare, 3))
+}
+```
+
+## Comparison with Traditional Regression
+
+Let's compare RWA results with traditional multiple regression to highlight the differences:
+
+```{r regression-comparison}
+# Traditional regression
+lm_model <- lm(mpg ~ cyl + disp + hp + gear, data = mtcars)
+lm_summary <- summary(lm_model)
+
+# RWA results
+rwa_model <- mtcars %>%
+  rwa(outcome = "mpg", predictors = c("cyl", "disp", "hp", "gear"))
+
+# Compare importance rankings
+comparison <- data.frame(
+  Variable = rwa_model$predictors,
+  RWA_Rescaled = rwa_model$result$Rescaled.RelWeight,
+  RWA_Rank = rank(-rwa_model$result$Rescaled.RelWeight)
+)
+
+print(comparison)
+```
+
+## Best Practices and Recommendations
+
+### 1. Sample Size Considerations
+
+For bootstrap analysis, ensure adequate sample size:
+
+```{r sample-size}
+# Check your sample size
+n_obs <- mtcars %>% 
+  select(mpg, cyl, disp, hp, gear) %>% 
+  na.omit() %>% 
+  nrow()
+
+cat("Sample size:", n_obs)
+cat("\nRecommended bootstrap samples:", min(1000, n_obs * 10))
+```
+
+### 2. Variable Selection
+
+RWA works best with:
+- **Continuous variables** (though categorical can be used with caution)
+- **Theoretically meaningful predictors**
+- **Reasonable predictor-to-observation ratios**
+
+### 3. Interpreting Confidence Intervals
+
+```{r ci-interpretation}
+# Focus on raw weight confidence intervals for inference
+ci_data <- result_bootstrap$bootstrap$ci_results$raw_weights
+print(head(ci_data))
+
+# Add interpretation based on available columns
+ci_data %>%
+  mutate(
+    significant = ci_lower > 0 | ci_upper < 0,
+    ci_width = ci_upper - ci_lower,
+    precision = case_when(
+      ci_width < 0.05 ~ "High precision",
+      ci_width < 0.15 ~ "Medium precision", 
+      TRUE ~ "Low precision"
+    )
+  )
+```
+
+### 4. Reporting Results
+
+When reporting RWA results, include:
+- **Sample size** and missing data handling
+- **Bootstrap parameters** (if used)
+- **Raw and rescaled weights**
+- **Confidence intervals** for key predictors
+- **Model R-squared**
+
+## Troubleshooting Common Issues
+
+### Multicollinearity Warnings
+
+If you encounter extreme multicollinearity:
+
+```{r multicollinearity-check}
+# Check correlation matrix
+cor_matrix <- mtcars %>%
+  select(cyl, disp, hp, gear) %>%
+  cor()
+
+# Look for high correlations (>0.9)
+high_cor <- which(abs(cor_matrix) > 0.9 & cor_matrix != 1, arr.ind = TRUE)
+if(nrow(high_cor) > 0) {
+  cat("High correlations detected between variables")
+}
+```
+
+### Missing Data
+
+RWA handles missing data through listwise deletion:
+
+```{r missing-data}
+# Check for missing data patterns
+missing_summary <- mtcars %>%
+  select(mpg, cyl, disp, hp, gear) %>%
+  summarise_all(~sum(is.na(.)))
+
+print(missing_summary)
+```
+
+## References
+
+This package and methodology are based on the following key references:
+
+**Primary Sources:**
+- **Johnson, J. W. (2000)**. A heuristic method for estimating the relative weight of predictor variables in multiple regression. *Multivariate Behavioral Research*, 35(1), 1-19. DOI: 10.1207/S15327906MBR3501_1
+
+- **Tonidandel, S., & LeBreton, J. M. (2015)**. RWA Web: A free, comprehensive, web-based, and user-friendly tool for relative weight analyses. *Journal of Business and Psychology*, 30(2), 207-216. DOI: 10.1007/s10869-014-9351-z
+
+**Bootstrap Methods:**
+- **Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009)**. Determining the statistical significance of relative weights. *Psychological Methods*, 14(4), 387-399.
+
+**Additional Reading:**
+- Azen, R., & Budescu, D. V. (2003). The dominance analysis approach for comparing predictors in multiple regression. *Psychological Methods*, 8(2), 129-148.
+
+- Grömping, U. (2006). Relative importance for linear regression in R: The package relaimpo. *Journal of Statistical Software*, 17(1), 1-27.
+
+- Johnson, J. W., & LeBreton, J. M. (2004). History and use of relative importance indices in organizational research. *Organizational Research Methods*, 7(3), 238-257.
+
+For the latest methodological developments and detailed technical information, see: https://relativeimportance.davidson.edu/
+
+## Conclusion
+
+The `rwa` package provides a comprehensive, user-friendly implementation of Relative Weights Analysis in R. With features including bootstrap confidence intervals, sign application, and seamless integration with tidyverse workflows, it offers researchers and analysts a robust tool for understanding predictor variable importance in the presence of multicollinearity.
+
+Whether you're conducting key drivers analysis in market research, exploring variable importance in predictive modeling, or addressing multicollinearity in academic research, RWA provides valuable insights that complement traditional regression approaches.
