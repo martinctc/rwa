@@ -9,7 +9,7 @@ rwa(
   outcome,
   predictors,
   applysigns = FALSE,
-  plot = TRUE,
+  sort = TRUE,
   bootstrap = FALSE,
   n_bootstrap = 1000,
   conf_level = 0.95,
@@ -27,7 +27,7 @@ rwa(
 
 \item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
 
-\item{plot}{Logical value specifying whether to plot the rescaled importance metrics.}
+\item{sort}{Logical value specifying whether to sort results by rescaled relative weights in descending order. Defaults to \code{TRUE}.}
 
 \item{bootstrap}{Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to \code{FALSE}.}
 
@@ -46,7 +46,7 @@ rwa(
 \itemize{
 \item \code{predictors}: character vector of names of the predictor variables used.
 \item \code{rsquare}: the rsquare value of the regression model.
-\item \code{result}: the final output of the importance metrics.
+\item \code{result}: the final output of the importance metrics (sorted by Rescaled.RelWeight in descending order by default).
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
@@ -80,8 +80,11 @@ See https://relativeimportance.davidson.edu/multipleregression.html for the orig
 }
 \examples{
 library(ggplot2)
-# Basic RWA
+# Basic RWA (results sorted by default)
 rwa(diamonds,"price",c("depth","carat"))
+
+# RWA without sorting (preserves original predictor order)
+rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
 
 # RWA with bootstrap confidence intervals (raw weights only)
 rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
