@@ -61,9 +61,9 @@ test_that("plot_rwa() plot structure is correct", {
   # Check that plot has correct number of bars
   expect_equal(nrow(plot_data), length(rwa_result$predictors))
   
-  # Check mapping
-  expect_equal(as.character(p$mapping$x), "~stats::reorder(Variables, Sign.Rescaled.RelWeight)")
-  expect_equal(as.character(p$mapping$y), "~Sign.Rescaled.RelWeight")
+  # Check mapping using rlang::as_label instead of as.character
+  expect_equal(rlang::as_label(p$mapping$x), "stats::reorder(Variables, Sign.Rescaled.RelWeight)")
+  expect_equal(rlang::as_label(p$mapping$y), "Sign.Rescaled.RelWeight")
   
   # Check coordinate system (should be flipped)
   expect_s3_class(p$coordinates, "CoordFlip")
@@ -149,9 +149,12 @@ test_that("plot_rwa() y-axis limits work correctly", {
   max_weight <- max(plot_data$Sign.Rescaled.RelWeight)
   
   # The ylim should be from NA (automatic) to max_weight * 1.1
+  # But if max_weight is negative (all negative relationships), 
+  # we should test against the absolute maximum for proper scaling
+  expected_upper_limit <- max_weight * 1.1
   y_limits <- layer_scales(p)$y$limits
   if (!is.null(y_limits)) {
-    expect_gte(y_limits[2], max_weight)  # Upper limit should be >= max weight
+    expect_equal(y_limits[2], expected_upper_limit, tolerance = 1e-10)
   }
 })
 

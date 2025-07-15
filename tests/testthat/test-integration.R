@@ -29,7 +29,7 @@ test_that("package functions work with real data examples", {
     dplyr::slice_sample(n = 1000) %>%  # Sample for speed
     rwa(outcome = "price", predictors = c("depth", "carat"))
   
-  expect_s3_class(diamonds_result, "list")
+  expect_type(diamonds_result, "list")
   expect_true(all(c("predictors", "rsquare", "result", "n") %in% names(diamonds_result)))
   
   # Should be able to plot

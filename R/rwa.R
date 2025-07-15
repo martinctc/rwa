@@ -81,8 +81,8 @@ rwa <- function(df,
   # Gets data frame in right order and form
   thedata <-
     df %>%
-    dplyr::select(outcome,predictors) %>%
-    tidyr::drop_na(outcome)
+    dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
+    tidyr::drop_na(dplyr::all_of(outcome))
 
   numVar <- NCOL(thedata) # Output - number of variables
 
