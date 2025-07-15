@@ -180,7 +180,7 @@ test_that("rwa() parameter behavior", {
   expect_no_error({
     try(rwa(mtcars, outcome = "mpg", predictors = "cyl", bootstrap = "invalid"), silent = TRUE)
   })
-}))
+})
 
 test_that("rwa() consistency checks", {
   # Test that results are reproducible (without bootstrap)
