@@ -3,5 +3,9 @@ pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   bootstrap-confidence-intervals: bootstrap-confidence-intervals.html
+  evaluating-rwa-method-reference: evaluating-rwa-method-reference.html
   introduction-to-rwa: introduction-to-rwa.html
-last_built: 2025-07-14T15:36Z
+last_built: 2025-07-16T15:31Z
+urls:
+  reference: https://martinctc.github.io/rwa/reference
+  article: https://martinctc.github.io/rwa/articles
