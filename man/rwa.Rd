@@ -81,7 +81,7 @@ original set of predictors.
 weights (scaled as a percentage of predictable variance) for every predictor
 in the model. Signs are added to the weights when the \code{applysigns} argument
 is set to \code{TRUE}.
-See https://relativeimportance.davidson.edu/multipleregression.html for the
+See https://www.scotttonidandel.com/rwa-web for the
 original implementation that inspired this package.
 }
 \examples{

@@ -13,7 +13,7 @@
 #' weights (scaled as a percentage of predictable variance) for every predictor 
 #' in the model. Signs are added to the weights when the `applysigns` argument 
 #' is set to `TRUE`.
-#' See https://relativeimportance.davidson.edu/multipleregression.html for the 
+#' See https://www.scotttonidandel.com/rwa-web for the 
 #' original implementation that inspired this package.
 #'
 #' @param df Data frame or tibble to be passed through.

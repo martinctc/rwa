@@ -500,7 +500,7 @@ This package and methodology are based on the following key references:
 
 For bootstrap methods and statistical significance testing, see the dedicated bootstrap vignette and its references.
 
-For the latest methodological developments: https://relativeimportance.davidson.edu/
+For the latest methodological developments: https://www.scotttonidandel.com/rwa-web/
 
 ## Conclusion
 

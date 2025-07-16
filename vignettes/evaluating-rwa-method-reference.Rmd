@@ -132,10 +132,6 @@ In conclusion, **Tonidandel and LeBreton’s relative weights analysis method re
 
 4. [Stadler, M., Cooper-Thomas, H. D., & Greiff, S. (2017). A primer on relative importance analysis: Illustrations of its utility for psychological research. Psychological Test and Assessment Modeling, 59(4), 381–403.](https://www.researchgate.net/publication/322315015_A_primer_on_relative_importance_analysis_illustrations_of_its_utility_for_psychological_research)
 
-5. [Why-do-we-use-correlations-analysis-for-drivers-.aspx shared via SharePoint](https://microsoft.sharepoint.com/teams/PeopleScience/SitePages/Why-do-we-use-correlations-analysis-for-drivers-.aspx?web=1)
+5. [4 reasons to compute importance using Relative Weights rather than Shapley Regression | R-bloggers](https://www.r-bloggers.com/2017/04/4-reasons-to-compute-importance-using-relative-weights-rather-than-shapley-regression/)
 
-6. [4 reasons to compute importance using Relative Weights rather than Shapley Regression | R-bloggers](https://www.r-bloggers.com/2017/04/4-reasons-to-compute-importance-using-relative-weights-rather-than-shapley-regression/)
-
-7. [Relative Importance and RWA Web — Scott Tonidandel, Ph.D.](https://www.scotttonidandel.com/rwa-web)
-
-8. [Why-do-we-use-correlations-analysis-for-drivers-.aspx shared via SharePoint](https://microsoft.sharepoint.com/teams/PeopleScience/SitePages/Why-do-we-use-correlations-analysis-for-drivers-.aspx?web=1)
+6. [Relative Importance and RWA Web — Scott Tonidandel, Ph.D.](https://www.scotttonidandel.com/rwa-web)
