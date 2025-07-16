@@ -2,6 +2,8 @@
 
 [![R build status](https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg)](https://github.com/martinctc/rwa/actions)
 [![CodeFactor](https://www.codefactor.io/repository/github/martinctc/rwa/badge)](https://www.codefactor.io/repository/github/martinctc/rwa)
+[![CRAN status](https://www.r-pkg.org/badges/version/rwa)](https://CRAN.R-project.org/package=rwa/)
+[![CRAN last month downloads](https://cranlogs.r-pkg.org/badges/last-month/rwa?color=green/)](https://cran.r-project.org/package=rwa/)
 
 Perform a Relative Weights Analysis in R
 
