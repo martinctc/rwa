@@ -1,7 +1,26 @@
+url: https://martinctc.github.io/rwa/
+
 template:
   params:
     bootswatch: cosmo
     ganalytics: UA-138721086-1
+
+navbar:
+  structure:
+    left: [intro, reference, articles, tutorials, news]
+    right: [search, github]
+
+reference:
+  - title: "Main Functions"
+    desc: "Core functions for relative weights analysis"
+    contents:
+    - rwa
+    - plot_rwa
+  - title: "Utility Functions"
+    desc: "Helper functions and utilities"
+    contents:
+    - remove_all_na_cols
+    - pipe
 
 articles:
 - title: "Getting Started"
@@ -12,3 +31,4 @@ articles:
 - title: "Advanced Methods"
   contents:
   - bootstrap-confidence-intervals
+  - evaluating-rwa-method-reference
