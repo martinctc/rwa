@@ -1,8 +1,8 @@
 url: https://martinctc.github.io/rwa/
 
 template:
+  bootstrap: 5
   params:
-    bootswatch: cosmo
     ganalytics: UA-138721086-1
 
 navbar:
@@ -20,7 +20,6 @@ reference:
     desc: "Helper functions and utilities"
     contents:
     - remove_all_na_cols
-    - pipe
 
 articles:
 - title: "Getting Started"
