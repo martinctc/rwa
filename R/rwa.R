@@ -1,20 +1,26 @@
 #' @title Create a Relative Weights Analysis (RWA)
 #'
-#' @description This function creates a Relative Weights Analysis (RWA) and returns a list of outputs.
-#' RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
-#' creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
-#' maximally related to the original set of predictors.
+#' @description This function creates a Relative Weights Analysis (RWA) and 
+#'   returns a list of outputs. RWA provides a heuristic method for estimating 
+#'   the relative weight of predictor variables in multiple regression, which 
+#'   involves creating a multiple regression with on a set of transformed 
+#'   predictors which are orthogonal to each other but maximally related to the 
+#'   original set of predictors.
 #' `rwa()` is optimised for dplyr pipes and shows positive / negative signs for weights.
 #'
 #' @details
-#' `rwa()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
-#' for every predictor in the model.
-#' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
-#' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+#' `rwa()` produces raw relative weight values (epsilons) as well as rescaled 
+#' weights (scaled as a percentage of predictable variance) for every predictor 
+#' in the model. Signs are added to the weights when the `applysigns` argument 
+#' is set to `TRUE`.
+#' See https://relativeimportance.davidson.edu/multipleregression.html for the 
+#' original implementation that inspired this package.
 #'
 #' @param df Data frame or tibble to be passed through.
-#' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
-#' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
+#' @param outcome Outcome variable, to be specified as a string or bare input. 
+#'   Must be a numeric variable.
+#' @param predictors Predictor variable(s), to be specified as a vector of 
+#'   string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
 #' @param sort Logical value specifying whether to sort results by rescaled relative weights in descending order. Defaults to `TRUE`.
 #' @param bootstrap Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to `FALSE`.
@@ -83,8 +89,6 @@ rwa <- function(df,
     df %>%
     dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(dplyr::all_of(outcome))
-
-  numVar <- NCOL(thedata) # Output - number of variables
 
   cor_matrix <-
     cor(thedata, use = "pairwise.complete.obs") %>%

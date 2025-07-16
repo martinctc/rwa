@@ -190,7 +190,11 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
       }
 
       dplyr::tibble(
-        variable = if (!is.null(variable_names) && i <= length(variable_names)) variable_names[i] else paste0("Var", i),
+        variable = if (!is.null(variable_names) && i <= length(variable_names)) {
+          variable_names[i]
+        } else {
+          paste0("Var", i)
+        },
         weight_index = i,
         ci_lower = ci_lower,
         ci_upper = ci_upper,
@@ -206,7 +210,11 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
         ci_method <- "basic"
 
         dplyr::tibble(
-          variable = if (!is.null(variable_names) && i <= length(variable_names)) variable_names[i] else paste0("Var", i),
+          variable = if (!is.null(variable_names) && i <= length(variable_names)) {
+            variable_names[i]
+          } else {
+            paste0("Var", i)
+          },
           weight_index = i,
           ci_lower = ci_lower,
           ci_upper = ci_upper,
@@ -216,7 +224,11 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
       }, error = function(e2) {
         # If all methods fail, return NA values
         dplyr::tibble(
-          variable = if (!is.null(variable_names) && i <= length(variable_names)) variable_names[i] else paste0("Var", i),
+          variable = if (!is.null(variable_names) && i <= length(variable_names)) {
+            variable_names[i]
+          } else {
+            paste0("Var", i)
+          },
           weight_index = i,
           ci_lower = NA_real_,
           ci_upper = NA_real_,

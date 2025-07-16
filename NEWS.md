@@ -12,11 +12,16 @@
 - **Package compliance**: Updated DESCRIPTION with proper `Authors@R` field for CRAN submission
 - **CI/CD**: Enhanced GitHub Actions workflow with vignette building support
 - **Dependencies**: Added `boot`, `purrr`, and `utils` packages for bootstrap functionality
+- **Code quality improvements**: Fixed long lines in R code to meet CRAN standards
+- **Documentation cleanup**: Improved code formatting and removed unused variables
+- **Enhanced vignette formatting**: Cleaned up formatting in comprehensive vignette documentation
 
 ## Bug Fixes
 
 - Fixed vignette compilation issues
 - Resolved R CMD check warnings and notes
+- Removed unused variables to eliminate R CMD check notes
+- Improved consistency in code formatting
 
 ---
 
