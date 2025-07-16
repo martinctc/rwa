@@ -92,16 +92,23 @@ rwa(diamonds,"price",c("depth","carat"))
 # RWA without sorting (preserves original predictor order)
 rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
 
+\donttest{
+# For faster examples, use a subset of data for bootstrap
+diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+
 # RWA with bootstrap confidence intervals (raw weights only)
-rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
+rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 100)
 
 # Include rescaled weight CIs (use with caution for inference)
-rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, include_rescaled_ci = TRUE)
+rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, 
+    include_rescaled_ci = TRUE, n_bootstrap = 100)
 
 # Comprehensive bootstrap analysis with focal variable
-result <- rwa(diamonds,"price",c("depth","carat","table"), 
-              bootstrap = TRUE, comprehensive = TRUE, focal = "carat")
+result <- rwa(diamonds_small,"price",c("depth","carat","table"), 
+              bootstrap = TRUE, comprehensive = TRUE, focal = "carat", 
+              n_bootstrap = 100)
 # View confidence intervals
 result$bootstrap$ci_results
+}
 
 }
