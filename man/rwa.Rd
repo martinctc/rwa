@@ -9,7 +9,7 @@ rwa(
   outcome,
   predictors,
   applysigns = FALSE,
-  plot = TRUE,
+  sort = TRUE,
   bootstrap = FALSE,
   n_bootstrap = 1000,
   conf_level = 0.95,
@@ -21,13 +21,15 @@ rwa(
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
 
-\item{outcome}{Outcome variable, to be specified as a string or bare input. Must be a numeric variable.}
+\item{outcome}{Outcome variable, to be specified as a string or bare input.
+Must be a numeric variable.}
 
-\item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
+\item{predictors}{Predictor variable(s), to be specified as a vector of
+string(s) or bare input(s). All variables must be numeric.}
 
 \item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
 
-\item{plot}{Logical value specifying whether to plot the rescaled importance metrics.}
+\item{sort}{Logical value specifying whether to sort results by rescaled relative weights in descending order. Defaults to \code{TRUE}.}
 
 \item{bootstrap}{Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to \code{FALSE}.}
 
@@ -46,7 +48,7 @@ rwa(
 \itemize{
 \item \code{predictors}: character vector of names of the predictor variables used.
 \item \code{rsquare}: the rsquare value of the regression model.
-\item \code{result}: the final output of the importance metrics.
+\item \code{result}: the final output of the importance metrics (sorted by Rescaled.RelWeight in descending order by default).
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
@@ -66,33 +68,47 @@ rwa(
 }
 }
 \description{
-This function creates a Relative Weights Analysis (RWA) and returns a list of outputs.
-RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
-creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
-maximally related to the original set of predictors.
+This function creates a Relative Weights Analysis (RWA) and
+returns a list of outputs. RWA provides a heuristic method for estimating
+the relative weight of predictor variables in multiple regression, which
+involves creating a multiple regression with on a set of transformed
+predictors which are orthogonal to each other but maximally related to the
+original set of predictors.
 \code{rwa()} is optimised for dplyr pipes and shows positive / negative signs for weights.
 }
 \details{
-\code{rwa()} produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
-for every predictor in the model.
-Signs are added to the weights when the \code{applysigns} argument is set to \code{TRUE}.
-See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+\code{rwa()} produces raw relative weight values (epsilons) as well as rescaled
+weights (scaled as a percentage of predictable variance) for every predictor
+in the model. Signs are added to the weights when the \code{applysigns} argument
+is set to \code{TRUE}.
+See https://www.scotttonidandel.com/rwa-web for the
+original implementation that inspired this package.
 }
 \examples{
 library(ggplot2)
-# Basic RWA
+# Basic RWA (results sorted by default)
 rwa(diamonds,"price",c("depth","carat"))
 
+# RWA without sorting (preserves original predictor order)
+rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
+
+\donttest{
+# For faster examples, use a subset of data for bootstrap
+diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+
 # RWA with bootstrap confidence intervals (raw weights only)
-rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
+rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 100)
 
 # Include rescaled weight CIs (use with caution for inference)
-rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, include_rescaled_ci = TRUE)
+rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, 
+    include_rescaled_ci = TRUE, n_bootstrap = 100)
 
 # Comprehensive bootstrap analysis with focal variable
-result <- rwa(diamonds,"price",c("depth","carat","table"), 
-              bootstrap = TRUE, comprehensive = TRUE, focal = "carat")
+result <- rwa(diamonds_small,"price",c("depth","carat","table"), 
+              bootstrap = TRUE, comprehensive = TRUE, focal = "carat", 
+              n_bootstrap = 100)
 # View confidence intervals
 result$bootstrap$ci_results
+}
 
 }

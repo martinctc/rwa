@@ -11,7 +11,9 @@
 #' @examples
 #'
 #' library(ggplot2)
-#' diamonds %>%
+#' # Use a smaller sample for faster execution
+#' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+#' diamonds_small %>%
 #'   rwa(outcome = "price",
 #'       predictors = c("depth","carat", "x", "y", "z"),
 #'       applysigns = TRUE) %>%
@@ -28,7 +30,8 @@ plot_rwa <- function(rwa){
   max_weight <- max(result$Sign.Rescaled.RelWeight)
 
   result %>%
-    ggplot(aes(x = stats::reorder(Variables, Sign.Rescaled.RelWeight), y = Sign.Rescaled.RelWeight)) +
+    ggplot(aes(x = stats::reorder(Variables, Sign.Rescaled.RelWeight), 
+               y = Sign.Rescaled.RelWeight)) +
     geom_col(fill = "#0066cc") +
     geom_text(aes(label = round(Sign.Rescaled.RelWeight, 1)), hjust = -0.3) +
     coord_flip() +

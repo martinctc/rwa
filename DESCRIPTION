@@ -14,7 +14,7 @@ Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analy
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/martinctc/rwa
+URL: https://martinctc.github.io/rwa/, https://github.com/martinctc/rwa
 BugReports: https://github.com/martinctc/rwa/issues
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
@@ -28,6 +28,11 @@ Imports:
 	purrr,
 	utils
 Suggests:
-	knitr,
-	rmarkdown
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    rlang,
+    spelling
 VignetteBuilder: knitr
+Config/testthat/edition: 3
+Language: en-US

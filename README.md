@@ -2,12 +2,14 @@
 
 [![R build status](https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg)](https://github.com/martinctc/rwa/actions)
 [![CodeFactor](https://www.codefactor.io/repository/github/martinctc/rwa/badge)](https://www.codefactor.io/repository/github/martinctc/rwa)
+[![CRAN status](https://www.r-pkg.org/badges/version/rwa)](https://CRAN.R-project.org/package=rwa/)
+[![CRAN last month downloads](https://cranlogs.r-pkg.org/badges/last-month/rwa?color=green/)](https://cran.r-project.org/package=rwa/)
 
 Perform a Relative Weights Analysis in R
 
 
 ### Background
-**Relative Weights Analysis (RWA)** is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Toniandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), *A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression*. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella 'Relative Importance Analysis', where other members include the 'Shapley method' and 'dominance analysis'. This is often referred to as 'Key Drivers Analysis' within market research.
+**Relative Weights Analysis (RWA)** is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Tonidandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), *A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression*. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella 'Relative Importance Analysis', where other members include the 'Shapley method' and 'dominance analysis'. This is often referred to as 'Key Drivers Analysis' within market research.
 
 This package is built around the main function `rwa()`, which takes in a data frame as an argument and allows you to specify the names of the input variables and the outcome variable as arguments.
 

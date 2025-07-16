@@ -1,21 +1,28 @@
 #' @title Create a Relative Weights Analysis (RWA)
 #'
-#' @description This function creates a Relative Weights Analysis (RWA) and returns a list of outputs.
-#' RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
-#' creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
-#' maximally related to the original set of predictors.
+#' @description This function creates a Relative Weights Analysis (RWA) and 
+#'   returns a list of outputs. RWA provides a heuristic method for estimating 
+#'   the relative weight of predictor variables in multiple regression, which 
+#'   involves creating a multiple regression with on a set of transformed 
+#'   predictors which are orthogonal to each other but maximally related to the 
+#'   original set of predictors.
 #' `rwa()` is optimised for dplyr pipes and shows positive / negative signs for weights.
 #'
 #' @details
-#' `rwa()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
-#' for every predictor in the model.
-#' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
-#' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+#' `rwa()` produces raw relative weight values (epsilons) as well as rescaled 
+#' weights (scaled as a percentage of predictable variance) for every predictor 
+#' in the model. Signs are added to the weights when the `applysigns` argument 
+#' is set to `TRUE`.
+#' See https://www.scotttonidandel.com/rwa-web for the 
+#' original implementation that inspired this package.
 #'
 #' @param df Data frame or tibble to be passed through.
-#' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
-#' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
+#' @param outcome Outcome variable, to be specified as a string or bare input. 
+#'   Must be a numeric variable.
+#' @param predictors Predictor variable(s), to be specified as a vector of 
+#'   string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @param sort Logical value specifying whether to sort results by rescaled relative weights in descending order. Defaults to `TRUE`.
 #' @param bootstrap Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to `FALSE`.
 #' @param n_bootstrap Number of bootstrap samples to use when bootstrap = TRUE. Defaults to 1000.
 #' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
@@ -26,7 +33,7 @@
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
 #' - `rsquare`: the rsquare value of the regression model.
-#' - `result`: the final output of the importance metrics.
+#' - `result`: the final output of the importance metrics (sorted by Rescaled.RelWeight in descending order by default).
 #'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively correlated with the outcome.
 #'   - When bootstrap = TRUE, includes confidence interval columns for raw weights.
@@ -46,26 +53,37 @@
 #' @import dplyr
 #' @examples
 #' library(ggplot2)
-#' # Basic RWA
+#' # Basic RWA (results sorted by default)
 #' rwa(diamonds,"price",c("depth","carat"))
 #' 
+#' # RWA without sorting (preserves original predictor order)
+#' rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
+#' 
+#' \donttest{
+#' # For faster examples, use a subset of data for bootstrap
+#' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+#' 
 #' # RWA with bootstrap confidence intervals (raw weights only)
-#' rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 500)
+#' rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 100)
 #' 
 #' # Include rescaled weight CIs (use with caution for inference)
-#' rwa(diamonds,"price",c("depth","carat"), bootstrap = TRUE, include_rescaled_ci = TRUE)
+#' rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, 
+#'     include_rescaled_ci = TRUE, n_bootstrap = 100)
 #' 
 #' # Comprehensive bootstrap analysis with focal variable
-#' result <- rwa(diamonds,"price",c("depth","carat","table"), 
-#'               bootstrap = TRUE, comprehensive = TRUE, focal = "carat")
+#' result <- rwa(diamonds_small,"price",c("depth","carat","table"), 
+#'               bootstrap = TRUE, comprehensive = TRUE, focal = "carat", 
+#'               n_bootstrap = 100)
 #' # View confidence intervals
 #' result$bootstrap$ci_results
+#' }
 #'
 #' @export
 rwa <- function(df,
                 outcome,
                 predictors,
                 applysigns = FALSE,
+                sort = TRUE,
                 bootstrap = FALSE,
                 n_bootstrap = 1000,
                 conf_level = 0.95,
@@ -76,10 +94,8 @@ rwa <- function(df,
   # Gets data frame in right order and form
   thedata <-
     df %>%
-    dplyr::select(outcome,predictors) %>%
-    tidyr::drop_na(outcome)
-
-  numVar <- NCOL(thedata) # Output - number of variables
+    dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
+    tidyr::drop_na(dplyr::all_of(outcome))
 
   cor_matrix <-
     cor(thedata, use = "pairwise.complete.obs") %>%
@@ -135,6 +151,12 @@ rwa <- function(df,
       dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
                                               Rescaled.RelWeight * -1,
                                               Rescaled.RelWeight)) -> result
+  }
+
+  # Sort results by rescaled relative weights if requested
+  if(sort == TRUE){
+    result <- result %>%
+      dplyr::arrange(desc(Rescaled.RelWeight))
   }
 
   # Run bootstrap analysis if requested
@@ -194,5 +216,5 @@ rwa <- function(df,
                        "RXY" = RXY)
   }
 
-  return(return_list)
+  return_list
 }
