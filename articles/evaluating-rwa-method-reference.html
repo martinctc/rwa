@@ -37,14 +37,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/introduction-to-rwa.html">Introduction to Relative Weights Analysis with the rwa Package</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -69,9 +62,9 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2025-07-16</h4>
+            <h4 data-toc-skip class="date">2025-07-17</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/v0.1.0/vignettes/evaluating-rwa-method-reference.Rmd" class="external-link"><code>vignettes/evaluating-rwa-method-reference.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/evaluating-rwa-method-reference.Rmd" class="external-link"><code>vignettes/evaluating-rwa-method-reference.Rmd</code></a></small>
       <div class="d-none name"><code>evaluating-rwa-method-reference.Rmd</code></div>
     </div>
 
@@ -85,33 +78,30 @@ Analysis Method<a class="anchor" aria-label="anchor" href="#evaluation-of-the-to
 Scott Tonidandel and James LeBreton, is a statistical technique designed
 to determine the <strong>relative importance</strong> of predictor
 variables in a regression model, especially <strong>when those
-predictors are intercorrelated (multicollinearity)</strong> . In
-essence, RWA partitions the model’s total explained variance (_R_²)
-among the predictors to show how much each contributes to predicting the
-outcome . This method was inspired by earlier work on variance
-partitioning (e.g. Lindeman et al., 1980) and addresses shortcomings of
-traditional regression metrics under multicollinearity . Below we
-evaluate the current validity of RWA for handling multicollinearity,
-compare it to other methods (highlighting where it excels or falls
-short), and discuss practical considerations and scenarios for its
-use.</p>
+predictors are intercorrelated (multicollinearity)</strong>. In essence,
+RWA partitions the model’s total explained variance (_R_²) among the
+predictors to show how much each contributes to predicting the outcome.
+This method was inspired by earlier work on variance partitioning
+(e.g. Lindeman et al., 1980) and addresses shortcomings of traditional
+regression metrics under multicollinearity. Below we evaluate the
+current validity of RWA for handling multicollinearity, compare it to
+other methods (highlighting where it excels or falls short), and discuss
+practical considerations and scenarios for its use.</p>
 <div class="section level3">
 <h3 id="what-is-relative-weights-analysis-and-how-does-it-address-multicollinearity">What is Relative Weights Analysis and How Does it Address
 Multicollinearity?<a class="anchor" aria-label="anchor" href="#what-is-relative-weights-analysis-and-how-does-it-address-multicollinearity"></a>
 </h3>
-<p><strong>Relative Weights Analysis (RWA)</strong> (also known as
-<em>relative importance analysis</em>) is a technique that transforms
-the original predictors into a new set of <strong>orthogonal
-(uncorrelated) variables</strong> and uses them to apportion variance in
-the outcome back to each predictor . The result is a set of
-<strong>weights for each predictor that sum up to the model’s total
-R²</strong> (explained variance) . In other words, each weight
-represents the <strong>portion of outcome variance uniquely attributable
-to that predictor, taking into account its overlap with other
-predictors</strong>. This definition of “relative importance” considers
-a predictor’s contribution <strong>by itself <em>and in combination</em>
-with others</strong> , giving a more holistic measure than a simple
-regression coefficient.</p>
+<p>Relative Weights Analysis (RWA) (also known as <em>relative
+importance analysis</em>) is a technique that transforms the original
+predictors into a new set of orthogonal (uncorrelated) variables and
+uses them to apportion variance in the outcome back to each predictor.
+The result is a set of <strong>weights for each predictor that sum up to
+the model’s total R² (explained variance). In other words, each weight
+represents the portion of outcome variance uniquely attributable to that
+predictor, taking into account its overlap with other predictors. This
+definition of “relative importance” considers a predictor’s contribution
+</strong>by itself <em>and in combination</em> with others, giving a
+more holistic measure than a simple regression coefficient.</p>
 <div class="section level4">
 <h4 id="why-is-this-useful-for-multicollinearity">Why is this useful for multicollinearity?<a class="anchor" aria-label="anchor" href="#why-is-this-useful-for-multicollinearity"></a>
 </h4>
@@ -119,80 +109,77 @@ regression coefficient.</p>
 correlated, the usual indicators of importance (like standardized beta
 coefficients or p-values) can be misleading. Regression coefficients may
 become unstable, change signs, or appear nonsignificant due to shared
-variance among predictors . For example, a predictor that is strongly
+variance among predictors. For example, a predictor that is strongly
 correlated with the outcome might get a near-zero or even negative beta
 if another collinear predictor “soaks up” the variance when both are in
-the model . <strong>Tonidandel &amp; LeBreton (2011)</strong> note that
+the model. <strong>Tonidandel &amp; LeBreton (2011)</strong> note that
 commonly used indices “fail to appropriately partition variance to the
 predictors when they are correlated”. RWA directly tackles this by
-partitioning the <strong>overlapping variance in a principled
-way</strong>: it attributes the shared (collinear) variance between
-predictors to those predictors in proportion to their structure with the
-outcome. In effect, RWA <strong>untangles multicollinearity</strong> to
-show each variable’s true impact. This means that even if two predictors
-are strongly correlated with each other, each can still receive a
-substantial relative weight if each contributes to predicting
-<em>Y</em>. Crucially, <strong>the weights are all non-negative and sum
-to R²</strong>, making them interpretable as a percentage of explained
-variance (e.g. a weight of 0.30 in a model with R²=0.60 means that
-predictor accounts for 0.30/0.60 = 50% of the explained variance).</p>
+partitioning the overlapping variance in a principled way: it attributes
+the shared (collinear) variance between predictors to those predictors
+in proportion to their structure with the outcome. In effect, RWA
+<strong>untangles multicollinearity</strong> to show each variable’s
+true impact. This means that even if two predictors are strongly
+correlated with each other, each can still receive a substantial
+relative weight if each contributes to predicting <em>Y</em>. Crucially,
+the weights are all non-negative and sum to R², making them
+interpretable as a percentage of explained variance (e.g. a weight of
+0.30 in a model with R²=0.60 means that predictor accounts for 0.30/0.60
+= 50% of the explained variance).</p>
 <p>In technical terms, the <strong>Johnson (2000)</strong> algorithm for
-RWA works as follows: it performs an <strong>eigenvalue
-decomposition</strong> of the predictor correlation matrix to create
-uncorrelated principal components, then regresses the outcome on these
-components. The resulting regression coefficients and component loadings
-are combined to compute each predictor’s share of variance in the
-outcome. This procedure yields weights virtually identical to what would
-be obtained by averaging a predictor’s incremental R² contribution over
-<em>all possible subsets</em> of predictors (the logic used in dominance
-analysis). However, RWA does this <strong>without brute-force
-search</strong> over subsets, which is why it’s computationally
-efficient. By using an orthogonal basis, RWA <strong>preserves the
-interpretability of the original predictors</strong> (each weight maps
-back to an original variable) while circumventing the multicollinearity
-problem in the model fitting step. Essentially, it achieves what a
-principal components regression might — decorrelating predictors — but
-then translates the result back into variance attributed to each
-original variable.</p>
+RWA works as follows: it performs an eigenvalue decomposition of the
+predictor correlation matrix to create uncorrelated principal
+components, then regresses the outcome on these components. The
+resulting regression coefficients and component loadings are combined to
+compute each predictor’s share of variance in the outcome. This
+procedure yields weights virtually identical to what would be obtained
+by averaging a predictor’s incremental R² contribution over <em>all
+possible subsets</em> of predictors (the logic used in dominance
+analysis). However, RWA does this without brute-force search over
+subsets, which is why it’s computationally efficient. By using an
+orthogonal basis, RWA preserves the interpretability of the original
+predictors (each weight maps back to an original variable) while
+circumventing the multicollinearity problem in the model fitting step.
+Essentially, it achieves what a principal components regression might —
+decorrelating predictors — but then translates the result back into
+variance attributed to each original variable.</p>
 </div>
 <div class="section level4">
 <h4 id="is-rwa-still-a-valid-approach-for-evaluating-predictor-power-under-multicollinearity">Is RWA still a valid approach for evaluating predictor power under
 multicollinearity?<a class="anchor" aria-label="anchor" href="#is-rwa-still-a-valid-approach-for-evaluating-predictor-power-under-multicollinearity"></a>
 </h4>
-<p><strong>Yes – RWA remains a widely accepted and useful method for
-this purpose</strong>. It is <em>specifically designed</em> for
-situations with correlated predictors and is <strong>“particularly
-useful when predictors are correlated since it deals with issues of
+<p>Yes – RWA remains a widely accepted and useful method for this
+purpose. It is <em>specifically designed</em> for situations with
+correlated predictors and is <strong>“particularly useful when
+predictors are correlated since it deals with issues of
 multicollinearity.”</strong>. Since its introduction, numerous studies
 have validated that RWA indeed gives a fair assessment of each
 variable’s importance even in high-correlation settings. In practice,
-RWA <strong>better partitions variance than standard
-regression</strong>: researchers applying it have found that it reveals
-important predictors that regression beta weights had obscured due to
-multicollinearity. For example, in one organizational study, a “serial
-tactics” variable appeared unimportant in a standard regression (its
-beta was non-significant because another variable was collinear), but
-the RWA showed it actually explained meaningful variance in the outcome,
+RWA better partitions variance than standard regression: researchers
+applying it have found that it reveals important predictors that
+regression beta weights had obscured due to multicollinearity. For
+example, in one organizational study, a “serial tactics” variable
+appeared unimportant in a standard regression (its beta was
+non-significant because another variable was collinear), but the RWA
+showed it actually explained meaningful variance in the outcome,
 supporting its theoretical importance. This illustrates RWA’s value in
 preserving each predictor’s contribution.</p>
-<p>That said, <strong>RWA is not a magic bullet</strong> that completely
-nullifies all multicollinearity concerns (more on its limitations
-later). If two predictors are essentially measuring the <strong>same
-underlying construct</strong>, RWA will correctly indicate that together
-they contribute to prediction, but it will <strong>split the credit
-between them</strong>, potentially making each look less important
-individually. In extreme cases (e.g. r ≈ 0.98 between two variables),
-their individual weights might be small and nearly equal, because each
-one’s predictive power is redundant with the other. This is
+<p>That said, RWA is not a magic bullet that completely nullifies all
+multicollinearity concerns (more on its limitations later). If two
+predictors are essentially measuring the same underlying construct, RWA
+will correctly indicate that together they contribute to prediction, but
+it will split the credit between them, potentially making each look less
+important individually. In extreme cases (e.g. r ≈ 0.98 between two
+variables), their individual weights might be small and nearly equal,
+because each one’s predictive power is redundant with the other. This is
 <em>statistically appropriate</em> – it reflects that one alone can do
-the job of both – but a user must recognize that <strong>the pair as a
-whole may be very important even if each alone has a modest
-weight</strong>. In short, <strong>RWA handles multicollinearity well in
-that it partitions variance consistently and more informatively than
-naive methods</strong>. It remains a <strong>valid and recommended
-approach</strong> for evaluating predictor contributions under
-multicollinearity, <em>provided we interpret the results with the proper
-theoretical context</em> (e.g. recognizing when two variables are
+the job of both – but a user must recognize that the pair as a whole may
+be very important even if each alone has a modest weight. In short, RWA
+handles multicollinearity well in that it partitions variance
+consistently and more informatively than naive methods. It remains a
+valid and recommended approach for evaluating predictor contributions
+under multicollinearity, <em>provided we interpret the results with the
+proper theoretical context</em> (e.g. recognizing when two variables are
 essentially interchangeable measures of one factor).</p>
 </div>
 </div>
@@ -200,55 +187,54 @@ essentially interchangeable measures of one factor).</p>
 <h3 id="strengths-of-rwa-relative-to-other-methods">Strengths of RWA Relative to Other Methods<a class="anchor" aria-label="anchor" href="#strengths-of-rwa-relative-to-other-methods"></a>
 </h3>
 <p>Because RWA was developed to address deficiencies in standard
-approaches, it has several <strong>strengths and advantages</strong>
-over other methods of gauging predictor importance:</p>
+approaches, it has several strengths and advantages over other methods
+of gauging predictor importance:</p>
 <div class="section level4">
-<h4 id="superior-to-standard-regression-coefficients-under-multicollinearity">Superior to Standard Regression Coefficients (under
+<h4 id="superior-to-standard-regression-coefficients-under-multicollinearity">1. Superior to Standard Regression Coefficients (under
 multicollinearity)<a class="anchor" aria-label="anchor" href="#superior-to-standard-regression-coefficients-under-multicollinearity"></a>
 </h4>
 <p>In a typical regression analysis, researchers often look at the
-magnitude and significance of <strong>standardized beta
-coefficients</strong> to judge importance. However, this can be very
-misleading when predictors are correlated. A variable’s beta reflects
-unique contribution <em>holding others constant</em>, which in presence
-of multicollinearity might severely underestimate a variable that shares
-variance with others. Tonidandel &amp; LeBreton observed that many
-authors mistakenly labeled variables as “not meaningful” based on
-nonsignificant betas, when in fact those variables did explain variance
-in the criterion. RWA, by contrast, <strong>gives credit to a predictor
-for the variance it shares with the outcome <em>jointly</em> with other
-variables</strong>. This often reveals that a predictor has substantial
-importance even if its regression coefficient is suppressed by
-multicollinearity. Indeed, <strong>Courville &amp; Thompson
-(2001)</strong> found cases where a predictor had near-zero beta but was
-actually one of the top contributors to R² – something RWA would clearly
-show (since the variable’s relative weight would be relatively large,
-reflecting its combined effect). In short, <strong>RWA is a more
-equitable and interpretable metric of importance than raw beta weights
-when predictors overlap</strong>. It considers both direct and indirect
-(shared) effects, whereas beta only reflects the direct unique portion.
-This makes RWA <strong>far superior to relying on p-values of
-coefficients or semi-partial correlations</strong> for assessing “which
-predictors matter” in correlated systems.</p>
+magnitude and significance of standardized beta coefficients to judge
+importance. However, this can be very misleading when predictors are
+correlated. A variable’s beta reflects unique contribution <em>holding
+others constant</em>, which in presence of multicollinearity might
+severely underestimate a variable that shares variance with others.
+Tonidandel &amp; LeBreton observed that many authors mistakenly labeled
+variables as “not meaningful” based on nonsignificant betas, when in
+fact those variables did explain variance in the criterion. RWA, by
+contrast, gives credit to a predictor for the variance it shares with
+the outcome <em>jointly</em> with other variables. This often reveals
+that a predictor has substantial importance even if its regression
+coefficient is suppressed by multicollinearity. Indeed,
+<strong>Courville &amp; Thompson (2001)</strong> found cases where a
+predictor had near-zero beta but was actually one of the top
+contributors to R² – something RWA would clearly show (since the
+variable’s relative weight would be relatively large, reflecting its
+combined effect). In short, RWA is a more equitable and interpretable
+metric of importance than raw beta weights when predictors overlap. It
+considers both direct and indirect (shared) effects, whereas beta only
+reflects the direct unique portion. This makes RWA <strong>far superior
+to relying on p-values of coefficients or semi-partial
+correlations</strong> for assessing “which predictors matter” in
+correlated systems.</p>
 </div>
 <div class="section level4">
-<h4 id="better-than-stepwise-or-bivariate-ranking">Better than Stepwise or Bivariate Ranking<a class="anchor" aria-label="anchor" href="#better-than-stepwise-or-bivariate-ranking"></a>
+<h4 id="better-than-stepwise-or-bivariate-ranking">2. Better than Stepwise or Bivariate Ranking<a class="anchor" aria-label="anchor" href="#better-than-stepwise-or-bivariate-ranking"></a>
 </h4>
 <p>Sometimes analysts try to circumvent multicollinearity by using
-<strong>stepwise regression</strong> or looking at <strong>bivariate
-correlations</strong> with the outcome. These approaches have drawbacks
-that RWA avoids. Stepwise methods will arbitrarily pick one of a set of
-collinear variables and drop the others, which might lead you to
-conclude the dropped variables are unimportant. In reality, they might
-be just as important, but their contribution was redundant with the
-chosen variable. RWA would show those collinear variables each have high
-relative weights (indicating they each could account for variance if
-considered). Unlike stepwise selection, RWA <strong>does not throw away
-information</strong>; it tells you how much each predictor contributes
-<em>given the whole set</em>. As Tonidandel &amp; LeBreton caution,
-<strong>relative weights should not be used to select or eliminate
-variables</strong> – the correct model should be decided first, then RWA
-helps interpret it. Compared to simple bivariate correlations with
+stepwise regression or looking at bivariate correlations with the
+outcome. These approaches have drawbacks that RWA avoids. Stepwise
+methods will arbitrarily pick one of a set of collinear variables and
+drop the others, which might lead you to conclude the dropped variables
+are unimportant. In reality, they might be just as important, but their
+contribution was redundant with the chosen variable. RWA would show
+those collinear variables each have high relative weights (indicating
+they each could account for variance if considered). Unlike stepwise
+selection, RWA does not throw away information; it tells you how much
+each predictor contributes <em>given the whole set</em>. As Tonidandel
+&amp; LeBreton caution, relative weights should not be used to select or
+eliminate variables – the correct model should be decided first, then
+RWA helps interpret it. Compared to simple bivariate correlations with
 <em>Y</em>, RWA is also superior. A high correlation may exaggerate a
 variable’s standalone importance, while a low one may hide a variable
 that acts in combination with others. RWA puts all predictors on a level
@@ -261,114 +247,109 @@ effects and synergy among predictors that simple correlations or
 stepwise methods can miss.</p>
 </div>
 <div class="section level4">
-<h4 id="advantages-over-principal-component-or-factor-approaches">Advantages over Principal Component or Factor Approaches<a class="anchor" aria-label="anchor" href="#advantages-over-principal-component-or-factor-approaches"></a>
+<h4 id="advantages-over-principal-component-or-factor-approaches">3. Advantages over Principal Component or Factor Approaches<a class="anchor" aria-label="anchor" href="#advantages-over-principal-component-or-factor-approaches"></a>
 </h4>
 <p>A common strategy to handle multicollinearity is to perform a
-<strong>principal component analysis (PCA)</strong> or factor analysis
-on the predictors, then use those uncorrelated components in regression.
-While this addresses the numerical multicollinearity problem, it
-<strong>buries the identity of individual predictors</strong> – you end
-up with composite factors that are not as interpretable as the original
-variables. In contrast, <strong>RWA uses an orthogonalization behind the
-scenes but ultimately returns to the original predictor scale</strong>.
-Each predictor gets a weight in the same units of variance explained
-(e.g. an R² share). Thus, <strong>RWA retains interpretability: you can
-say “Variable X accounts for 20% of the explainable variance in
-Y,”</strong> which is straightforward. With PCA, you might find that a
-principal component is important, but that component might be a mix of
-several original variables – not as actionable or intuitive.
-Additionally, PCA-based regression typically still won’t tell you how
-much variance each original variable is responsible for; you would have
-to do additional calculations to map component importance back to
-variables. RWA essentially does that mapping for you (via the Johnson’s
-formula). So, RWA can be seen as <strong>a more direct way to get
-“interpretable principal components” importance</strong>. It’s worth
-noting that if predictors are extremely multicollinear due to measuring
-the same construct, one could combine them <em>a priori</em>
-(e.g. average them) to create a single predictor – but that is a
-decision outside the scope of statistical measures. RWA’s job is to
-measure contributions of the predictors as given, and it does so in a
-way that leverages techniques like PCA while keeping results in terms of
-the original features.</p>
+principal component analysis (PCA) or factor analysis on the predictors,
+then use those uncorrelated components in regression. While this
+addresses the numerical multicollinearity problem, it buries the
+identity of individual predictors – you end up with composite factors
+that are not as interpretable as the original variables. In contrast,
+RWA uses an orthogonalization behind the scenes but ultimately returns
+to the original predictor scale. Each predictor gets a weight in the
+same units of variance explained (e.g. an R² share). Thus, RWA retains
+interpretability: you can say “Variable X accounts for 20% of the
+explainable variance in Y,” which is straightforward. With PCA, you
+might find that a principal component is important, but that component
+might be a mix of several original variables – not as actionable or
+intuitive. Additionally, PCA-based regression typically still won’t tell
+you how much variance each original variable is responsible for; you
+would have to do additional calculations to map component importance
+back to variables. RWA essentially does that mapping for you (via the
+Johnson’s formula). So, RWA can be seen as a more direct way to get
+“interpretable principal components” importance. It’s worth noting that
+if predictors are extremely multicollinear due to measuring the same
+construct, one could combine them <em>a priori</em> (e.g. average them)
+to create a single predictor – but that is a decision outside the scope
+of statistical measures. RWA’s job is to measure contributions of the
+predictors as given, and it does so in a way that leverages techniques
+like PCA while keeping results in terms of the original features.</p>
 </div>
 <div class="section level4">
-<h4 id="comparable-outcome-to-dominance-analysis-with-greater-speed-and-extras">Comparable Outcome to Dominance Analysis, with Greater Speed and
+<h4 id="comparable-outcome-to-dominance-analysis-with-greater-speed-and-extras">4. Comparable Outcome to Dominance Analysis, with Greater Speed and
 Extras<a class="anchor" aria-label="anchor" href="#comparable-outcome-to-dominance-analysis-with-greater-speed-and-extras"></a>
 </h4>
 <p>Dominance analysis (or Shapley value regression) is often considered
 a gold-standard for determining relative importance because it
-exhaustively considers every subset of predictors. <strong>RWA’s
-greatest achievement is that it produces almost the same result as
-dominance analysis, but far more efficiently</strong> . Monte Carlo
-research by LeBreton, Ployhart &amp; Ladd (2004) found the rankings of
-predictors by Johnson’s relative weights were essentially the same as
-those by general dominance weights across a variety of conditions . The
-correlation between the two methods’ importance scores is typically
-<em>&gt;0.99</em> in simulations and real datasets . In fact, with only
-two predictors, it has been proven that Johnson’s RWA and the Shapley
-value exactly coincide . Thus, <strong>one doesn’t lose meaningful
-accuracy by using RWA</strong>. Meanwhile, the time saved is enormous:
-dominance analysis requires examining 2^p models (for <em>p</em>
-predictors) . With <em>p</em>=10, that’s 1,024 subset regressions; with
-<em>p</em>=20, over 1 million; with <em>p</em>=30, over 1 billion subset
-models. This quickly becomes computationally infeasible. Johnson’s RWA
-bypasses that combinatorial explosion by solving a set of equations
-instead. The difference is dramatic. For example, one practitioner noted
-that a model with 30 predictors would take <strong>“days to
-run”</strong> with Shapley regression, whereas <strong>RWA computes it
-“almost instantly” on a modern computer</strong>. RWA’s negligible
-computation time means you can include as many predictors as your theory
-and data allow (within reason) without worrying about algorithmic
-blow-up . Another strength is that <strong>RWA more easily provides
-analytical tools like confidence intervals and significance tests for
-weights</strong>. Because RWA has a closed-form solution, researchers
-like Johnson (2004) and Tonidandel et al. (2009) derived methods to
-estimate the standard errors of the weights (often using bootstrapping)
-. This lets you test if a weight is significantly greater than zero
-(i.e. the predictor contributes significantly to R²) , something not
-straightforward in dominance analysis except via intensive
+exhaustively considers every subset of predictors. RWA’s greatest
+achievement is that it produces almost the same result as dominance
+analysis, but far more efficiently. Monte Carlo research by LeBreton,
+Ployhart &amp; Ladd (2004) found the rankings of predictors by Johnson’s
+relative weights were essentially the same as those by general dominance
+weights across a variety of conditions. The correlation between the two
+methods’ importance scores is typically <em>&gt;0.99</em> in simulations
+and real datasets. In fact, with only two predictors, it has been proven
+that Johnson’s RWA and the Shapley value exactly coincide. Thus, one
+doesn’t lose meaningful accuracy by using RWA. Meanwhile, the time saved
+is enormous: dominance analysis requires examining 2^p models (for
+<em>p</em> predictors). With <em>p</em>=10, that’s 1,024 subset
+regressions; with <em>p</em>=20, over 1 million; with <em>p</em>=30,
+over 1 billion subset models. This quickly becomes computationally
+infeasible.</p>
+<p>Johnson’s RWA bypasses that combinatorial explosion by solving a set
+of equations instead. The difference is dramatic. For example, one
+practitioner noted that a model with 30 predictors would take “days to
+run” with Shapley regression, whereas RWA computes it “almost instantly”
+on a modern computer. RWA’s negligible computation time means you can
+include as many predictors as your theory and data allow (within reason)
+without worrying about algorithmic blow-up. Another strength is that RWA
+more easily provides analytical tools like confidence intervals and
+significance tests for weights. Because RWA has a closed-form solution,
+researchers like Johnson (2004) and Tonidandel et al. (2009) derived
+methods to estimate the standard errors of the weights (often using
+bootstrapping). This lets you test if a weight is significantly greater
+than zero (i.e. the predictor contributes significantly to R²) ,
+something not straightforward in dominance analysis except via intensive
 bootstrapping. Tonidandel et al. (2009) even provided a technique to
 test if one predictor’s weight is significantly different from another’s
-by examining their bootstrap distributions . These statistical
-comparison capabilities are now built into tools like RWA Web . By
-contrast, dominance analysis typically requires custom resampling
-methods to assess variability. <strong>RWA is also easier to extend to
-other modeling contexts</strong>: for instance, Tonidandel &amp;
-LeBreton (2010) showed how to apply a variant of RWA to logistic
-regression (where a traditional R² doesn’t exist, but one can use
-analogues) , and LeBreton &amp; Tonidandel (2008) extended it to
-multivariate criterion (multiple outcomes) cases . Dominance analysis
-can be extended too, but it becomes even more computationally arduous in
-those settings. In summary, RWA gives you <strong>the benefits of a
-rigorous relative importance measure without the downsides of
-computational complexity</strong>, and it adds convenient features (like
-significance testing and adaptability to non-OLS models) that make it
-very practical for users .</p>
+by examining their bootstrap distributions. These statistical comparison
+capabilities are now built into tools like RWA Web. By contrast,
+dominance analysis typically requires custom resampling methods to
+assess variability. RWA is also easier to extend to other modeling
+contexts: for instance, Tonidandel &amp; LeBreton (2010) showed how to
+apply a variant of RWA to logistic regression (where a traditional R²
+doesn’t exist, but one can use analogues) , and LeBreton &amp;
+Tonidandel (2008) extended it to multivariate criterion (multiple
+outcomes) cases. Dominance analysis can be extended too, but it becomes
+even more computationally arduous in those settings. In summary, RWA
+gives you the benefits of a rigorous relative importance measure without
+the downsides of computational complexity, and it adds convenient
+features (like significance testing and adaptability to non-OLS models)
+that make it very practical for users.</p>
 </div>
 <div class="section level4">
-<h4 id="proven-in-practice-and-accessible">Proven in Practice and Accessible<a class="anchor" aria-label="anchor" href="#proven-in-practice-and-accessible"></a>
+<h4 id="proven-in-practice-and-accessible">5. Proven in Practice and Accessible<a class="anchor" aria-label="anchor" href="#proven-in-practice-and-accessible"></a>
 </h4>
-<p>Another soft “strength” of RWA is that it has been <strong>embraced
-in various fields as a reliable tool</strong>. It’s not just a
-theoretical construct; many researchers have found it helpful for real
-data problems. For example, organizational psychologists use it to
-determine which employee or job factors are most important in predicting
+<p>Another soft “strength” of RWA is that it has been embraced in
+various fields as a reliable tool. It’s not just a theoretical
+construct; many researchers have found it helpful for real data
+problems. For example, organizational psychologists use it to determine
+which employee or job factors are most important in predicting
 performance or satisfaction, without being misled by intercorrelations
-among those factors . Marketing scientists use it in “key driver
+among those factors. Marketing scientists use it in “key driver
 analysis” to figure out which product attributes drive overall customer
-satisfaction, when those attributes ratings tend to move together . In
+satisfaction, when those attributes ratings tend to move together. In
 fact, a 2017 tutorial calls relative weights analysis “a way of
 exploring the relative importance of predictors” and demonstrates its
 utility in psychological research scenarios with multicollinear
-predictors . Because of such uptake, there are now <strong>user-friendly
-software packages</strong>: an R package <em>relaimpo</em> (Grömping,
-2006) and a newer one <em>rwa</em> implement Johnson’s method, and the
-aforementioned RWA Web tool provides a point-and-click interface . In
-other words, the method’s strengths have been recognized to the point
-that it’s readily available to analysts and doesn’t require hand-coding.
-This broad usage confirms that the method remains highly relevant and
-advantageous for analyzing predictor importance under
-multicollinearity.</p>
+predictors. Because of such uptake, there are now user-friendly software
+packages: an R package <em>relaimpo</em> (Grömping, 2006) and a newer
+one <em>rwa</em> implement Johnson’s method, and the aforementioned RWA
+Web tool provides a point-and-click interface. In other words, the
+method’s strengths have been recognized to the point that it’s readily
+available to analysts and doesn’t require hand-coding. This broad usage
+confirms that the method remains highly relevant and advantageous for
+analyzing predictor importance under multicollinearity.</p>
 </div>
 </div>
 <div class="section level3">
@@ -381,14 +362,13 @@ in scenarios where it might not be the top choice. No single technique
 is best in all respects, and RWA is no exception. Key points to consider
 include:</p>
 <div class="section level4">
-<h4 id="not-a-replacement-for-theory-or-causal-insight">Not a Replacement for Theory or Causal Insight<a class="anchor" aria-label="anchor" href="#not-a-replacement-for-theory-or-causal-insight"></a>
+<h4 id="not-a-replacement-for-theory-or-causal-insight">1. Not a Replacement for Theory or Causal Insight<a class="anchor" aria-label="anchor" href="#not-a-replacement-for-theory-or-causal-insight"></a>
 </h4>
-<p>RWA is ultimately a <strong>descriptive, variance-partitioning
-tool</strong>. It tells us “how much of the prediction was attributable
-to X” but <strong>does not imply causation or policy</strong>.
-Tonidandel &amp; LeBreton (2011) stress that relative weights
-<strong>“are not causal indicators and thus do not necessarily dictate a
-course of action”</strong> . For example, if one predictor has the
+<p>RWA is ultimately a descriptive, variance-partitioning tool. It tells
+us “how much of the prediction was attributable to X” but does not imply
+causation or policy. Tonidandel &amp; LeBreton (2011) stress that
+relative weights “are not causal indicators and thus do not necessarily
+dictate a course of action”. For example, if one predictor has the
 highest weight, it means it was most important in the regression sense;
 it doesn’t automatically mean that changing that predictor will have the
 largest effect on the outcome (because causality and manipulability are
@@ -401,85 +381,83 @@ unmeasured confounder is at play. In short, it supplements but does not
 replace the need for careful theoretical reasoning.</p>
 </div>
 <div class="section level4">
-<h4 id="dominance-analysis-vs--rwa-a-matter-of-precision-vs--practicality">Dominance Analysis vs. RWA – a matter of precision
+<h4 id="dominance-analysis-vs--rwa-a-matter-of-precision-vs--practicality">2. Dominance Analysis vs. RWA – a matter of precision
 vs. practicality:<a class="anchor" aria-label="anchor" href="#dominance-analysis-vs--rwa-a-matter-of-precision-vs--practicality"></a>
 </h4>
 <p><strong>Dominance analysis</strong> (DA) is an alternative that, in
-principle, provides even more information than RWA. <strong>Where RWA
-gives each predictor one number (its weight), DA breaks down the
-predictor’s contributions in every subset of predictors</strong> . From
-DA, you can derive additional nuanced concepts like <strong>complete
-dominance, conditional dominance, and general dominance</strong> (which
-examine importance at different subset sizes) . This can surface
-insights such as <strong>suppressor variables</strong> – predictors that
-have low importance by themselves but increase another variable’s
-importance in combination . Tonidandel &amp; LeBreton acknowledge that
-<em>if such detailed information is of interest, dominance analysis
-would be preferred over RWA</em> . In other words, <strong>RWA
-compresses the information into a single summary per predictor</strong>,
-whereas DA can tell you, for example, that predictor A dominates B in
-all subset sizes, or that A is only important when combined with C, etc.
-However, these situations (like identifying complex suppression
-patterns) are relatively specialized. <strong>In most research
-scenarios, a single importance score per variable is sufficient and more
-interpretable</strong>. The authors note that in cases with <strong>many
-predictors or when significance testing of weights is needed, RWA is
-more practical</strong> and thus often <em>preferred over dominance
-analysis</em> . Moreover, as computing power grows, one might attempt DA
-more often, but even today, <strong>dominance analysis can become
-unwieldy with a large predictor set</strong> or more complex models. A
-recent methods article (Braun et al., 2019) pointed out that although
-modern computing allows DA for typical regression sizes, the sampling
-variability in DA estimates (due to finite sample) can make ranks
-unstable, requiring confidence intervals and caution just like RWA . In
-summary: <strong>If absolute mathematical rigor is needed and <em>p</em>
-is small, dominance analysis could be considered “superior” (as it
-directly implements the definition of relative importance via subset
-contributions). But in practice, RWA’s near equivalence and added
-convenience usually outweigh the negligible theoretical loss of
-information</strong>. Indeed, some recent authors suggest performing DA
-when feasible and using RWA in cases where DA is computationally
-difficult (e.g. multivariate outcomes) . It’s telling that even critics
-of RWA concede that for most applications the results are <em>very
-similar</em>, and differences become theoretical in nature . One
-specific critique by Thomas et al. (2014) argued that RWA’s mathematical
-derivation has flaws and could in some contrived cases lead to
-“distorted inferences” compared to DA . However, they also
-<strong>“warned” against using RWA only while acknowledging the
-approaches give very similar results for most practical data and are
-geometrically identical with two predictors</strong> . In effect, the
-critique underscores that dominance analysis is the conceptually pure
-method, but it did not provide evidence that RWA mis-ranks important
-predictors in realistic scenarios. Thus, <strong>most methodologists
-continue to view RWA as a legitimate technique, using dominance analysis
-as a cross-check when convenient</strong>.</p>
+principle, provides even more information than RWA. Where RWA gives each
+predictor one number (its weight), DA breaks down the predictor’s
+contributions in every subset of predictors. From DA, you can derive
+additional nuanced concepts like complete dominance, conditional
+dominance, and general dominance (which examine importance at different
+subset sizes). This can surface insights such as suppressor variables –
+predictors that have low importance by themselves but increase another
+variable’s importance in combination. Tonidandel &amp; LeBreton
+acknowledge that <em>if such detailed information is of interest,
+dominance analysis would be preferred over RWA</em>. In other words, RWA
+compresses the information into a single summary per predictor, whereas
+DA can tell you, for example, that predictor A dominates B in all subset
+sizes, or that A is only important when combined with C, etc. However,
+these situations (like identifying complex suppression patterns) are
+relatively specialized. In most research scenarios, a single importance
+score per variable is sufficient and more interpretable. The authors
+note that in cases with many predictors or when significance testing of
+weights is needed, RWA is more practical and thus often <em>preferred
+over dominance analysis</em>.</p>
+<p>Moreover, as computing power grows, one might attempt DA more often,
+but even today, dominance analysis can become unwieldy with a large
+predictor set or more complex models. A recent methods article (Braun et
+al., 2019) pointed out that although modern computing allows DA for
+typical regression sizes, the sampling variability in DA estimates (due
+to finite sample) can make ranks unstable, requiring confidence
+intervals and caution just like RWA. In summary: If absolute
+mathematical rigor is needed and <em>p</em> is small, dominance analysis
+could be considered “superior” (as it directly implements the definition
+of relative importance via subset contributions). But in practice, RWA’s
+near equivalence and added convenience usually outweigh the negligible
+theoretical loss of information. Indeed, some recent authors suggest
+performing DA when feasible and using RWA in cases where DA is
+computationally difficult (e.g. multivariate outcomes). It’s telling
+that even critics of RWA concede that for most applications the results
+are <em>very similar</em>, and differences become theoretical in nature.
+One specific critique by Thomas et al. (2014) argued that RWA’s
+mathematical derivation has flaws and could in some contrived cases lead
+to “distorted inferences” compared to DA. However, they also “warned”
+against using RWA only while acknowledging the approaches give very
+similar results for most practical data and are geometrically identical
+with two predictors. In effect, the critique underscores that dominance
+analysis is the conceptually pure method, but it did not provide
+evidence that RWA mis-ranks important predictors in realistic scenarios.
+Thus, most methodologists continue to view RWA as a legitimate
+technique, using dominance analysis as a cross-check when
+convenient.</p>
 </div>
 <div class="section level4">
-<h4 id="multicollinearity-still-matters-if-it-means-redundancy">Multicollinearity <em>still matters</em> if it means redundancy<a class="anchor" aria-label="anchor" href="#multicollinearity-still-matters-if-it-means-redundancy"></a>
+<h4 id="multicollinearity-still-matters-if-it-means-redundancy">3. Multicollinearity <em>still matters</em> if it means
+redundancy<a class="anchor" aria-label="anchor" href="#multicollinearity-still-matters-if-it-means-redundancy"></a>
 </h4>
 <p>As mentioned earlier, RWA isn’t a panacea for extreme
-multicollinearity stemming from redundant predictors. It will
-<strong>partition variance among highly collinear predictors, but that
-might yield misleadingly low weights for each</strong> – misleading in
-the sense that one might incorrectly infer each variable is unimportant,
-whereas in truth the <strong>set of them is important but they share the
-same contribution</strong> . Tonidandel &amp; LeBreton explicitly
-caution: <em>“One mistakenly held belief is that importance weights
-solve the problem of multicollinearity. … If two or more predictors are
-very highly correlated because they tap the same underlying construct,
-the resulting importance weights can be misleading. … One would need to
-consider dropping one of the highly multicollinear variables or forming
-a composite.”</em> . They go on to say there’s no absolute statistical
-cutoff for “too much” multicollinearity – it’s more a theoretical
-question of whether two variables are essentially measuring the same
-thing . If they are merely <em>related but distinct</em> (e.g. income
-and education are correlated but not identical), <strong>RWA will
-partition variance appropriately and actually performs much better than
-regression coefficients in those conditions</strong> ; if they are
-<em>duplicitous</em> (e.g. income and income in euros), RWA will simply
-split the income variance between them, making each look half as
-important. So, <strong>the onus is on the researcher to diagnose cases
-of redundant predictors</strong>. In scenarios of theoretical
+multicollinearity stemming from redundant predictors. It will partition
+variance among highly collinear predictors, but that might yield
+misleadingly low weights for each – misleading in the sense that one
+might incorrectly infer each variable is unimportant, whereas in truth
+the set of them is important but they share the same contribution.
+Tonidandel &amp; LeBreton explicitly caution: <em>“One mistakenly held
+belief is that importance weights solve the problem of
+multicollinearity…. If two or more predictors are very highly correlated
+because they tap the same underlying construct, the resulting importance
+weights can be misleading…. One would need to consider dropping one of
+the highly multicollinear variables or forming a composite.”</em>. They
+go on to say there’s no absolute statistical cutoff for “too much”
+multicollinearity – it’s more a theoretical question of whether two
+variables are essentially measuring the same thing. If they are merely
+<em>related but distinct</em> (e.g. income and education are correlated
+but not identical), RWA will partition variance appropriately and
+actually performs much better than regression coefficients in those
+conditions; if they are <em>duplicitous</em> (e.g. income and income in
+euros), RWA will simply split the income variance between them, making
+each look half as important. So, the onus is on the researcher to
+diagnose cases of redundant predictors. In scenarios of theoretical
 redundancy, RWA is not “inferior” per se – it correctly reflects that
 individually those variables add less because they overlap – but the
 <em>interpretation</em> can trip up unwary users. The remedy is
@@ -491,22 +469,22 @@ half the total combined importance, and one would similarly have to
 decide to drop or merge them.</p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-and-sampling-error">Sample Size and Sampling Error<a class="anchor" aria-label="anchor" href="#sample-size-and-sampling-error"></a>
+<h4 id="sample-size-and-sampling-error">4. Sample Size and Sampling Error<a class="anchor" aria-label="anchor" href="#sample-size-and-sampling-error"></a>
 </h4>
 <p>RWA, like multiple regression, relies on sample estimates of
-correlations and can be <strong>unstable with small samples or a high
-predictor-to-sample ratio</strong>. It doesn’t inherently “fix” the
-issue of having too little data. <strong>Tonidandel &amp; LeBreton
+correlations and can be unstable with small samples or a high
+predictor-to-sample ratio. It doesn’t inherently “fix” the issue of
+having too little data. <strong>Tonidandel &amp; LeBreton
 (2011)</strong> note that importance weights derived from a given sample
 can differ from true population values due to sampling error and
-measurement error, just as regression coefficients can . Bootstrapping
+measurement error, just as regression coefficients can. Bootstrapping
 helps to quantify this uncertainty by producing confidence intervals for
 the weights , but “bootstrapping will not overcome the inherent
-limitations associated with a small sample size” . In practice, one
+limitations associated with a small sample size”. In practice, one
 should ensure their sample is large enough to support stable estimation
 of a multiple regression model in the first place. A rule of thumb often
 used: have at least 10–15 observations per predictor (and generally N
-&gt; 100) for regression-type analyses . If you violate this, RWA might
+&gt; 100) for regression-type analyses. If you violate this, RWA might
 yield weights, but their confidence intervals will be huge and
 conclusions uncertain. In comparison to other methods, this is not a
 unique weakness of RWA – any method of assessing importance will suffer
@@ -515,20 +493,20 @@ with insufficient data. However, one could argue that simpler methods
 <em>N</em> because they require estimating fewer parameters. For
 instance, an internal analytics note pointed out that a correlation
 analysis can sometimes be done with N ~ 30, whereas a full regression
-with many predictors might demand N &gt; 100 to get reliable estimates .
+with many predictors might demand N &gt; 100 to get reliable estimates.
 In such cases, if sample size cannot be increased, the analyst might opt
 for simpler exploratory measures (acknowledging their limitations) or
 focus on a smaller set of predictors. RWA is <em>not inferior</em> so
 much as <em>more data-hungry</em> than a simple correlation approach.
-The bottom line is: <strong>with adequate sample, RWA excels; with very
-small sample, no method will perform well, and one must be
-cautious</strong>. Using the bootstrap confidence intervals and even
-comparing the weights to those of a “random noise” variable (a technique
-suggested by Tonidandel et al., 2009) can help judge whether a weight is
-significantly above what random chance would produce .</p>
+The bottom line is: with adequate sample, RWA excels; with very small
+sample, no method will perform well, and one must be cautious. Using the
+bootstrap confidence intervals and even comparing the weights to those
+of a “random noise” variable (a technique suggested by Tonidandel et
+al., 2009) can help judge whether a weight is significantly above what
+random chance would produce.</p>
 </div>
 <div class="section level4">
-<h4 id="interpretation-of-weights-communication-challenges">Interpretation of Weights – Communication Challenges<a class="anchor" aria-label="anchor" href="#interpretation-of-weights-communication-challenges"></a>
+<h4 id="interpretation-of-weights-communication-challenges">5. Interpretation of Weights – Communication Challenges<a class="anchor" aria-label="anchor" href="#interpretation-of-weights-communication-challenges"></a>
 </h4>
 <p>While easier to interpret than many alternatives, relative weights
 might still confuse audiences not familiar with them. For example, some
@@ -539,7 +517,7 @@ meaning it accounted for 30% of the explained variance in Y in our
 model.” That interpretation – essentially as a type of “importance
 percentage” – tends to be intuitive once explained. In fact, rescaled
 relative weights (expressed as percentages of R²) are often reported for
-easy communication . However, one must avoid overinterpreting the exact
+easy communication. However, one must avoid overinterpreting the exact
 percentages as precise in the population; they are subject to confidence
 intervals. Also, because the weights always sum to R², they have a
 <strong>compositional nature</strong> (an increase in one weight means a
@@ -551,17 +529,16 @@ given sampling error. Thus, RWA users should embrace statistical tests
 or at least bootstrap intervals to compare weights, rather than blindly
 ranking tiny differences – the same caution that applies to any
 importance metric. Recent research (Braun et al., 2019) found that the
-<strong>rank ordering of predictors by importance can itself have
-sampling error</strong>, and recommended techniques like reporting
-confidence intervals for ranks or performing paired comparisons of
-weights . So, <strong>one limitation is that people may be tempted to
-over-interpret a rank ordering without regard to overlap in
-intervals</strong>. The remedy is good practice in reporting: give the
-weights, perhaps give their standard errors or CIs, and highlight only
-clear distinctions.</p>
+rank ordering of predictors by importance can itself have sampling
+error, and recommended techniques like reporting confidence intervals
+for ranks or performing paired comparisons of weights. So, one
+limitation is that people may be tempted to over-interpret a rank
+ordering without regard to overlap in intervals. The remedy is good
+practice in reporting: give the weights, perhaps give their standard
+errors or CIs, and highlight only clear distinctions.</p>
 </div>
 <div class="section level4">
-<h4 id="when-other-methods-might-be-considered-superior">When other methods might be considered “superior”<a class="anchor" aria-label="anchor" href="#when-other-methods-might-be-considered-superior"></a>
+<h4 id="when-other-methods-might-be-considered-superior">6. When other methods might be considered “superior”<a class="anchor" aria-label="anchor" href="#when-other-methods-might-be-considered-superior"></a>
 </h4>
 <p>Aside from dominance analysis (discussed above), there are a few
 other methods and contexts to mention. If one’s goal is purely
@@ -576,8 +553,9 @@ can drop correlated variables entirely. Therefore, in terms of
 informative than lasso feature selection – RWA will tell you that two
 collinear variables together explain, say, 40% of variance (split
 20%/20%), whereas lasso might simply keep one and discard the other,
-telling you nothing about the discarded variable’s potential importance.
-Another approach is <strong>random forest or other machine-learning
+telling you nothing about the discarded variable’s potential
+importance.</p>
+<p>Another approach is <strong>random forest or other machine-learning
 variable importance measures</strong>. These can capture complex
 non-linear importance and also handle correlated predictors to some
 extent (a random forest’s permutation importance, for example, can be
@@ -588,37 +566,37 @@ is used in splits, the others add little new). This might be seen as an
 advantage (it picks a representative) or disadvantage (it doesn’t inform
 on overlap) depending on the goal. A 2023 article recommends using both
 dominance analysis and random forest importance to robustly identify key
-predictors . However, those ML methods are “black box” in the sense that
+predictors. However, those ML methods are “black box” in the sense that
 the importance is measured on the model’s terms (like Gini impurity
 reduction or out-of-bag error), not as a percentage of variance as in
-RWA. So, <strong>if the question is specifically about variance
-explained and relative contribution in a linear model, RWA is more
-interpretable and aligned with that goal than ML feature
-importance</strong>. On the other hand, if one suspects non-linear
-effects or interactions drive importance, RWA (being based on a linear
-model) might miss those, in which case methods like random forests or
-boosted trees could be considered complementary.</p>
-<p>In summary, <strong>RWA is a very robust method for assessing
-variable importance in the presence of multicollinearity, but it is not
-infallible nor universally best for every purpose</strong>. Its
-“inferiors” are mainly the naive methods it was designed to improve upon
-(raw betas, stepwise routines, etc.), and it clearly outperforms those
-in delivering insight. Its “superior or equal peers” are dominance
-analysis (which is essentially equivalent in result, albeit with more
-effort) and, in specific aims, other approaches like regularization or
-machine learning (which serve different objectives). RWA’s limitations
-are generally well-understood and can be managed by the user: ensure you
-have a solid theoretical model, be cautious with essentially duplicate
-predictors, use RWA results as part of a bigger interpretive picture
-(alongside coefficient estimates, etc.), and communicate the findings
-with the appropriate nuance (e.g. include CIs, emphasize proportions of
-variance, not causal effect sizes). As Stadler et al. (2017) concluded
-in their primer, <strong>relative weights and dominance analysis provide
-valuable additional information beyond classical regression, but do not
-fix all problems and should be used as supplements</strong> to
-regression rather than replacements . That perspective nicely captures
-RWA’s role: an important tool in the toolkit, best used with awareness
-of its assumptions and in concert with other analyses.</p>
+RWA. So, if the question is specifically about variance explained and
+relative contribution in a linear model, RWA is more interpretable and
+aligned with that goal than ML feature importance. On the other hand, if
+one suspects non-linear effects or interactions drive importance, RWA
+(being based on a linear model) might miss those, in which case methods
+like random forests or boosted trees could be considered
+complementary.</p>
+<p>In summary, RWA is a very robust method for assessing variable
+importance in the presence of multicollinearity, but it is not
+infallible nor universally best for every purpose. Its “inferiors” are
+mainly the naive methods it was designed to improve upon (raw betas,
+stepwise routines, etc.), and it clearly outperforms those in delivering
+insight. Its “superior or equal peers” are dominance analysis (which is
+essentially equivalent in result, albeit with more effort) and, in
+specific aims, other approaches like regularization or machine learning
+(which serve different objectives). RWA’s limitations are generally
+well-understood and can be managed by the user: ensure you have a solid
+theoretical model, be cautious with essentially duplicate predictors,
+use RWA results as part of a bigger interpretive picture (alongside
+coefficient estimates, etc.), and communicate the findings with the
+appropriate nuance (e.g. include CIs, emphasize proportions of variance,
+not causal effect sizes). As Stadler et al. (2017) concluded in their
+primer, relative weights and dominance analysis provide valuable
+additional information beyond classical regression, but do not fix all
+problems and should be used as supplements to regression rather than
+replacements. That perspective nicely captures RWA’s role: an important
+tool in the toolkit, best used with awareness of its assumptions and in
+concert with other analyses.</p>
 </div>
 </div>
 <div class="section level3">
@@ -626,13 +604,13 @@ of its assumptions and in concert with other analyses.</p>
 </h3>
 <p>If a researcher or analyst decides to use the Tonidandel &amp;
 LeBreton RWA method to evaluate predictor importance, there are several
-<strong>practical considerations and scenarios</strong> to bear in mind
-in order to get the most from the method:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Ensure the Model is Well-Specified:</strong> RWA assumes you
-have chosen a set of predictors to analyze (i.e. the “correct” model).
-It <strong>does not tell you which predictors to include</strong> – you
+practical considerations and scenarios to bear in mind in order to get
+the most from the method:</p>
+<div class="section level4">
+<h4 id="ensure-the-model-is-well-specified">1. Ensure the Model is Well-Specified:<a class="anchor" aria-label="anchor" href="#ensure-the-model-is-well-specified"></a>
+</h4>
+<p>RWA assumes you have chosen a set of predictors to analyze (i.e. the
+“correct” model). It does not tell you which predictors to include – you
 should determine that based on theory, prior research, or other model
 selection techniques. As noted, RWA isn’t for variable selection and can
 actually mislead if used that way (e.g., a variable with a small weight
@@ -650,253 +628,196 @@ will be split). For example, if <em>education</em> and <em>income</em>
 are both in a job performance model and correlate 0.8, decide if they’re
 distinct predictors or one proxy for socioeconomic status; if the
 latter, combine them into one index. This decision is outside RWA’s
-scope. RWA presupposes the set of predictors is given and meaningful
-.</li>
-<li>
-<strong>Check Data and Assumptions:</strong> RWA shares the basic
-assumptions of multiple regression: linear relationships between
-predictors and outcome (unless you explicitly include polynomial terms
-or interactions), and reliable measurement of variables. Extreme
-multicollinearity (e.g. variables that are linear combinations of each
-other) will cause computational issues (singular matrices). If you get
-warnings about the correlation matrix being singular or near-singular,
-you must address that (by removing or combining collinear variables)
-before trusting the weights. One good practice is to inspect the
-correlation matrix of predictors for any <strong>very high correlations
-(say &gt; 0.9)</strong> . If found, make a conscious decision how to
-handle those variables. Also, handle missing data (RWA typically uses
-listwise deletion by default, like regression does) – ensure missingness
-isn’t introducing bias. Outliers can affect regression and thus RWA; if
-your data has extreme outliers that distort correlations, consider
-remedying that (via robust methods or transformations) prior to RWA.
-Essentially, treat RWA as you would a regression analysis in terms of
-preparing clean, appropriate input data.</li>
-<li>
-<strong>Adequate Sample Size:</strong> It’s worth emphasizing again
-– use RWA on datasets where <em>N</em> is large enough to support your
-model. If you have a small sample with many predictors, your weights
-will have large uncertainty. In such cases, a <strong>bootstrap
-procedure</strong> is highly recommended to get confidence intervals for
-the weights . Many RWA software implementations can bootstrap easily
-(for example, Tonidandel &amp; LeBreton’s RWA web tool and the R
-packages allow specifying a number of bootstrap resamples). A common
-practice is using 500 or 1,000 bootstrap samples to derive 95%
-confidence intervals for each weight . If a predictor’s interval
-includes very low values (relative to others or relative to zero), be
-cautious in declaring it important. Tonidandel et al. (2009) also
-suggest a clever bootstrap test: include a completely random “noise”
-variable in your model and compute RWA. If your real predictors have
-weights significantly larger than the noise variable’s weight, that’s
-evidence they truly contribute beyond chance . This addresses the issue
-that relative weights, being proportions of R², are never exactly zero
-in sample (even noise will get some tiny share) . The bottom line –
-<strong>the more predictors you have, the larger your sample should
-be</strong> to get stable estimates. If you have say 10 predictors, a
+scope. RWA presupposes the set of predictors is given and
+meaningful.</p>
+</div>
+<div class="section level4">
+<h4 id="check-data-and-assumptions">2. Check Data and Assumptions:<a class="anchor" aria-label="anchor" href="#check-data-and-assumptions"></a>
+</h4>
+<p>RWA shares the basic assumptions of multiple regression: linear
+relationships between predictors and outcome (unless you explicitly
+include polynomial terms or interactions), and reliable measurement of
+variables. Extreme multicollinearity (e.g. variables that are linear
+combinations of each other) will cause computational issues (singular
+matrices). If you get warnings about the correlation matrix being
+singular or near-singular, you must address that (by removing or
+combining collinear variables) before trusting the weights. One good
+practice is to inspect the correlation matrix of predictors for any very
+high correlations (say &gt; 0.9). If found, make a conscious decision
+how to handle those variables. Also, handle missing data (RWA typically
+uses listwise deletion by default, like regression does) – ensure
+missingness isn’t introducing bias. Outliers can affect regression and
+thus RWA; if your data has extreme outliers that distort correlations,
+consider remedying that (via robust methods or transformations) prior to
+RWA. Essentially, treat RWA as you would a regression analysis in terms
+of preparing clean, appropriate input data.</p>
+</div>
+<div class="section level4">
+<h4 id="adequate-sample-size">3. Adequate Sample Size:<a class="anchor" aria-label="anchor" href="#adequate-sample-size"></a>
+</h4>
+<p>It’s worth emphasizing again – use RWA on datasets where <em>N</em>
+is large enough to support your model. If you have a small sample with
+many predictors, your weights will have large uncertainty. In such
+cases, a <strong>bootstrap procedure</strong> is highly recommended to
+get confidence intervals for the weights. Many RWA software
+implementations can bootstrap easily (for example, Tonidandel &amp;
+LeBreton’s RWA web tool and the R packages allow specifying a number of
+bootstrap resamples). A common practice is using 500 or 1,000 bootstrap
+samples to derive 95% confidence intervals for each weight. If a
+predictor’s interval includes very low values (relative to others or
+relative to zero), be cautious in declaring it important. Tonidandel et
+al. (2009) also suggest a clever bootstrap test: include a completely
+random “noise” variable in your model and compute RWA. If your real
+predictors have weights significantly larger than the noise variable’s
+weight, that’s evidence they truly contribute beyond chance. This
+addresses the issue that relative weights, being proportions of R², are
+never exactly zero in sample (even noise will get some tiny share). The
+bottom line – the more predictors you have, the larger your sample
+should be to get stable estimates. If you have say 10 predictors, a
 sample of 50 is quite low; if you cannot get more data, at least be very
 tentative about the results. Conversely, in big data scenarios (N in the
 thousands), RWA can shine – it will give very precise estimates of
-importance.</li>
-<li>
-<strong>Interpreting the Output (Weights):</strong> When you run
-RWA, you will get <strong>“Raw Relative Weights”</strong> for each
-predictor, which sum to the model’s R² . Often there is also a column of
+importance.</p>
+</div>
+<div class="section level4">
+<h4 id="interpreting-the-output-weights">4. Interpreting the Output (Weights):<a class="anchor" aria-label="anchor" href="#interpreting-the-output-weights"></a>
+</h4>
+<p>When you run RWA, you will get “Raw Relative Weights” for each
+predictor, which sum to the model’s R². Often there is also a column of
 those weights rescaled to percentages of R² (summing to 100%) for
-convenience . You should interpret these as <strong>measures of effect
-size or importance</strong>. A weight of 0.10 (out of R² = 0.50,
-i.e. 20%) might be considered moderately important; something like 0.30
-out of 0.50 (60%) is very important. There’s no rigid cut-off for what
-constitutes “high” importance – it’s relative. One good practice is to
-rank the predictors by their weights and see if there is a natural
-drop-off point or clustering. For example, you might find two top
-predictors with weights around 0.25 each, and then a third with 0.15,
-fourth 0.05, etc. That tells you two predictors clearly dominate in
-importance. However, always refer to uncertainty: if two weights are
-close (say 0.25 vs 0.22), check if that difference is likely real or
-just sampling noise. If you’ve bootstrapped, see if the 95% CIs overlap.
-If they do, you might say those predictors are <strong>tied in
-importance</strong> statistically. If one’s interval is wholly above the
-other’s, then you can more confidently say predictor A is more important
-than B. Additionally, look at the <strong>signs of
-relationships</strong> if provided. By default, relative weights are
-concerned only with magnitude of explained variance (they are inherently
+convenience. You should interpret these as measures of effect size or
+importance. A weight of 0.10 (out of R² = 0.50, i.e. 20%) might be
+considered moderately important; something like 0.30 out of 0.50 (60%)
+is very important. There’s no rigid cut-off for what constitutes “high”
+importance – it’s relative. One good practice is to rank the predictors
+by their weights and see if there is a natural drop-off point or
+clustering. For example, you might find two top predictors with weights
+around 0.25 each, and then a third with 0.15, fourth 0.05, etc. That
+tells you two predictors clearly dominate in importance. However, always
+refer to uncertainty: if two weights are close (say 0.25 vs 0.22), check
+if that difference is likely real or just sampling noise. If you’ve
+bootstrapped, see if the 95% CIs overlap. If they do, you might say
+those predictors are tied in importance statistically. If one’s interval
+is wholly above the other’s, then you can more confidently say predictor
+A is more important than B. Additionally, look at the signs of
+relationships if provided. By default, relative weights are concerned
+only with magnitude of explained variance (they are inherently
 non-negative). Some implementations, like the <em>rwa</em> R package,
 offer a signed version where the sign of a predictor’s correlation with
 the outcome is attached to the weight for context – e.g. “X accounts for
 15% of variance and its effect is positive (higher X -&gt; higher Y)”.
 This can be useful to report, because stakeholders often ask not just
 “how important is it?” but “in which direction does it influence the
-outcome?”. So, <strong>best practice</strong>: report relative weights
-alongside the sign of the predictor’s correlation or regression
-coefficient. For example: “Education had a relative importance of 0.18
-(36% of R²) in predicting income, and it was positively related to
-income (higher education associated with higher income).” This gives a
-full picture: importance and direction.</li>
-<li>
-<strong>Comparing Predictors and Groups:</strong> If your analysis
-calls for comparing predictors’ importances <strong>within different
-groups or models</strong>, RWA has procedures for that too. For
+outcome?”. So, best practice: report relative weights alongside the sign
+of the predictor’s correlation or regression coefficient. For example:
+“Education had a relative importance of 0.18 (36% of R²) in predicting
+income, and it was positively related to income (higher education
+associated with higher income).” This gives a full picture: importance
+and direction.</p>
+</div>
+<div class="section level4">
+<h4 id="comparing-weights-and-groups">5. Comparing Weights and Groups<a class="anchor" aria-label="anchor" href="#comparing-weights-and-groups"></a>
+</h4>
+<p>If your analysis calls for comparing predictors’ importances within
+different groups or models, RWA has procedures for that too. For
 instance, you might run RWA separately for males and females to see if
 the pattern of importance differs. Tonidandel &amp; LeBreton (2015)
 discuss methods to statistically compare weights across groups
-(essentially by pooling bootstraps or using tests for differences) . If
+(essentially by pooling bootstraps or using tests for differences). If
 using their web tool or other software that supports it, you can test,
 say, whether “education is a significantly stronger predictor of job
 performance for males than for females.” This is an advanced use-case
 but shows the flexibility of RWA – something that would be cumbersome to
 do with dominance analysis or other methods. If doing such comparisons,
 ensure the models are comparable and the groups have sufficient sample
-each.</li>
-<li>
-<strong>Use Case Scenarios – when to use RWA:</strong> You should
-consider using RWA whenever you face a regression analysis where
-understanding the <em>relative contribution</em> of correlated
-predictors is important to your goals. Classic scenarios:
-<ul>
-<li>
-<strong>Key Driver Analysis:</strong> In marketing or HR analytics,
-you have many survey items or factors that all correlate (e.g. many
-aspects of customer satisfaction, or many employee engagement factors)
-and you want to know which ones matter most for an outcome (like loyalty
-or performance). RWA is ideal here because it will handle the
-inter-correlations among those drivers and yield a list of the top
-drivers by importance . It’s been used widely in these domains to
-present results as a bar chart of percentage contributions, which is
-easy for managers to digest.</li>
-<li>
-<strong>Multicollinear Predictors in Scientific Research:</strong>
-In fields like ecology, psychology, or economics, you may have variables
-that naturally occur together (e.g. various climate variables, or
-socioeconomic indicators). If you include them in a regression, you’ll
-want to partition their effects. RWA has been recommended in psychology
-precisely for such situations – e.g., intelligence research often
-measures different cognitive abilities that inter-correlate; RWA can
-tell which ability accounts for more variance in academic performance,
-for instance .</li>
-<li>
-<strong>Suppressor Situations:</strong> If you suspect suppressor
-effects (where a variable increases another’s predictive validity by
-being included), RWA can help illuminate that. A suppressor variable
-might not correlate strongly with Y itself but helps remove irrelevant
-variance from another predictor, thereby boosting that predictor’s beta.
-In RWA, the suppressor could still get a moderate weight because in
-combination it contributes to R², and the combination effects are
-inherently counted. Dominance analysis could pinpoint which subsets show
-suppression, but RWA will at least not ignore the joint
-contribution.</li>
-<li>
-<strong>Logistic Regression “Pseudo-R²” analysis:</strong> If your
-outcome is binary (yes/no) or categorical, and you use logistic
-regression, you don’t have an exact R², but you can still use analogues
-(like Nagelkerke R² or just treat it as variance in log-odds explained).
-Tonidandel &amp; LeBreton (2010) extended RWA to logistic regression by
-deriving weights using an analogous approach . If you have software that
-supports it (some implementations do), you can interpret importance in
-logistic models similarly. For example, in predicting employee turnover
-(left vs stayed), where predictors might be job satisfaction, pay,
-tenure, etc., RWA can tell which contributes most to the prediction of
-turnover, even though it’s a non-linear model.</li>
-<li>
-<strong>Multiple Outcomes:</strong> If you’re interested in which
-predictors are important across multiple outcomes (say you have a set of
-related outcome variables), the <strong>multivariate RWA</strong>
-extension (LeBreton &amp; Tonidandel, 2008) can be used to determine
-overall importance in explaining the multivariate criterion space . This
-is more complex, but it basically combines the idea of canonical
-correlation with relative importance. This could be useful, for
-instance, in educational research where you care about predicting a
-bundle of outcomes (grades in math <em>and</em> science, for example)
-from some predictors; you’d get a sense of which predictors are globally
-most important to the set of outcomes.</li>
-<li>
-<strong>Interactions or Nonlinear Terms:</strong> If your model
-includes interaction terms or polynomial terms (which themselves are
-often highly correlated with the main effects), you have to be careful
-because importance analysis methods assume predictors are not an
-arbitrary set but include all necessary components. Tonidandel &amp;
-LeBreton (2009) provided guidance on handling models with interactions –
-essentially suggesting a procedure where higher-order terms are
-residualized with respect to lower-order terms to maintain
-interpretability . If you are examining relative importance in such
-models, consult their work; it’s a more advanced scenario. In many
-cases, one might enter interaction terms and simply use RWA, but due to
-the hierarchy, the interpretation of weights for main effect vs
-interaction needs care (since the interaction’s importance is
-conditional on being allowed to explain something above and beyond the
-main effects). This is a niche consideration but worth noting if your
-analysis goes in that direction.</li>
-</ul>
-</li>
-<li>
-<strong>Presenting and Reporting Results:</strong> When reporting
-RWA results, it’s best to be transparent and thorough. Report the
-model’s R² (so readers know total variance explained) and how the R² is
-partitioned among predictors . You can present a table with predictors,
-their raw relative weight, and the rescaled weight (% of R²). It’s also
-useful to report standard errors or confidence intervals for the weights
-, especially if you want to make claims about significance (“predictor
-A’s weight is significantly greater than zero” or “A is significantly
-more important than B”). If space permits, you might include both RWA
-results and the traditional regression coefficients for reference, to
-give a full picture. Often they will tell complementary stories: for
-instance, a variable might have a low beta (due to suppression) but a
-high relative weight – that juxtaposition itself is a finding to
-discuss. Make sure to explain in prose what the weights mean (“this
-variable accounted for X% of the explainable variance in Y”). Using
-visuals can help: a bar chart of rescaled weights is intuitive, or a pie
-chart of R² division (though pie charts can be less precise – bar or
-column chart is preferred). Always cite the source of the method (e.g.,
-“using the relative weight analysis approach of Johnson (2000), as
-recommended by Tonidandel and LeBreton (2011)”). This signals to readers
-that a known method was used, and they can refer to those papers for
-methodology.</li>
-<li>
-<strong>Be Mindful of Audience:</strong> Finally, consider who will
-consume the results. If it’s an academic audience, they may be more
-familiar with beta coefficients than with relative weights. In such
-cases, you might have to spend a few sentences educating the reader on
-RWA. Tonidandel &amp; LeBreton (2011) is a great reference to cite for
-the rationale, and you can briefly say “we computed relative importance
-weights to mitigate multicollinearity issues; these represent each
-predictor’s proportional contribution to R² .” If it’s a business
-audience or general audience, they may actually find relative weights
-more intuitive (“X contributes 25% of the prediction”) than regression
-coefficients (“a one-unit change in X changes Y by …”). So, tailoring
-the explanation is key. Just avoid jargon like “Johnson’s epsilon”
-(sometimes the weights are denoted epsilon\_i in literature) when
-communicating – translate it to plain language.</li>
-</ol>
+each.</p>
+</div>
+<div class="section level4">
+<h4 id="use-case-scenarios-when-to-use-rwa">6. Use Case Scenarios – when to use RWA<a class="anchor" aria-label="anchor" href="#use-case-scenarios-when-to-use-rwa"></a>
+</h4>
+<p>You should consider using RWA whenever you face a regression analysis
+where understanding the <em>relative contribution</em> of correlated
+predictors is important to your goals. Classic scenarios:</p>
+<pre><code>- **Key Driver Analysis:** In marketing or HR analytics, you have many survey items or factors that all correlate (e.g. many aspects of customer satisfaction, or many employee engagement factors) and you want to know which ones matter most for an outcome (like loyalty or performance). RWA is ideal here because it will handle the inter-correlations among those drivers and yield a list of the top drivers by importance. It's been used widely in these domains to present results as a bar chart of percentage contributions, which is easy for managers to digest.
+- **Multicollinear Predictors in Scientific Research:** In fields like ecology, psychology, or economics, you may have variables that naturally occur together (e.g. various climate variables, or socioeconomic indicators). If you include them in a regression, you'll want to partition their effects. RWA has been recommended in psychology precisely for such situations – e.g., intelligence research often measures different cognitive abilities that inter-correlate; RWA can tell which ability accounts for more variance in academic performance, for instance.
+- **Suppressor Situations:** If you suspect suppressor effects (where a variable increases another's predictive validity by being included), RWA can help illuminate that. A suppressor variable might not correlate strongly with Y itself but helps remove irrelevant variance from another predictor, thereby boosting that predictor's beta. In RWA, the suppressor could still get a moderate weight because in combination it contributes to R², and the combination effects are inherently counted. Dominance analysis could pinpoint which subsets show suppression, but RWA will at least not ignore the joint contribution.
+- **Logistic Regression "Pseudo-R²" analysis:** If your outcome is binary (yes/no) or categorical, and you use logistic regression, you don't have an exact R², but you can still use analogues (like Nagelkerke R² or just treat it as variance in log-odds explained). Tonidandel &amp; LeBreton (2010) extended RWA to logistic regression by deriving weights using an analogous approach. If you have software that supports it (some implementations do), you can interpret importance in logistic models similarly. For example, in predicting employee turnover (left vs stayed), where predictors might be job satisfaction, pay, tenure, etc., RWA can tell which contributes most to the prediction of turnover, even though it's a non-linear model.
+- **Multiple Outcomes:** If you're interested in which predictors are important across multiple outcomes (say you have a set of related outcome variables), the multivariate RWA extension (LeBreton &amp; Tonidandel, 2008) can be used to determine overall importance in explaining the multivariate criterion space. This is more complex, but it basically combines the idea of canonical correlation with relative importance. This could be useful, for instance, in educational research where you care about predicting a bundle of outcomes (grades in math _and_ science, for example) from some predictors; you'd get a sense of which predictors are globally most important to the set of outcomes.
+- **Interactions or Nonlinear Terms:** If your model includes interaction terms or polynomial terms (which themselves are often highly correlated with the main effects), you have to be careful because importance analysis methods assume predictors are not an arbitrary set but include all necessary components. Tonidandel &amp; LeBreton (2009) provided guidance on handling models with interactions – essentially suggesting a procedure where higher-order terms are residualized with respect to lower-order terms to maintain interpretability. If you are examining relative importance in such models, consult their work; it's a more advanced scenario. In many cases, one might enter interaction terms and simply use RWA, but due to the hierarchy, the interpretation of weights for main effect vs interaction needs care (since the interaction's importance is conditional on being allowed to explain something above and beyond the main effects). This is a niche consideration but worth noting if your analysis goes in that direction.</code></pre>
+</div>
+<div class="section level4">
+<h4 id="presenting-and-reporting-results">7. Presenting and Reporting Results:<a class="anchor" aria-label="anchor" href="#presenting-and-reporting-results"></a>
+</h4>
+<p>When reporting RWA results, it’s best to be transparent and thorough.
+Report the model’s R² (so readers know total variance explained) and how
+the R² is partitioned among predictors. You can present a table with
+predictors, their raw relative weight, and the rescaled weight (% of
+R²). It’s also useful to report standard errors or confidence intervals
+for the weights , especially if you want to make claims about
+significance (“predictor A’s weight is significantly greater than zero”
+or “A is significantly more important than B”). If space permits, you
+might include both RWA results and the traditional regression
+coefficients for reference, to give a full picture. Often they will tell
+complementary stories: for instance, a variable might have a low beta
+(due to suppression) but a high relative weight – that juxtaposition
+itself is a finding to discuss. Make sure to explain in prose what the
+weights mean (“this variable accounted for X% of the explainable
+variance in Y”). Using visuals can help: a bar chart of rescaled weights
+is intuitive, or a pie chart of R² division (though pie charts can be
+less precise – bar or column chart is preferred). Always cite the source
+of the method (e.g., “using the relative weight analysis approach of
+Johnson (2000), as recommended by Tonidandel and LeBreton (2011)”). This
+signals to readers that a known method was used, and they can refer to
+those papers for methodology.</p>
+</div>
+<div class="section level4">
+<h4 id="be-mindful-of-audience">8. Be Mindful of Audience:<a class="anchor" aria-label="anchor" href="#be-mindful-of-audience"></a>
+</h4>
+<p>Finally, consider who will consume the results. If it’s an academic
+audience, they may be more familiar with beta coefficients than with
+relative weights. In such cases, you might have to spend a few sentences
+educating the reader on RWA. Tonidandel &amp; LeBreton (2011) is a great
+reference to cite for the rationale, and you can briefly say “we
+computed relative importance weights to mitigate multicollinearity
+issues; these represent each predictor’s proportional contribution to
+R².” If it’s a business audience or general audience, they may actually
+find relative weights more intuitive (“X contributes 25% of the
+prediction”) than regression coefficients (“a one-unit change in X
+changes Y by …”). So, tailoring the explanation is key. Just avoid
+jargon like “Johnson’s epsilon” (sometimes the weights are denoted
+epsilon\_i in literature) when communicating – translate it to plain
+language.</p>
+</div>
 </div>
 </div>
 <div class="section level2">
 <h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
-<p>In conclusion, <strong>Tonidandel and LeBreton’s relative weights
-analysis method remains a valuable and valid approach for assessing
-predictor importance in the presence of multicollinearity</strong>. It
-offers a balanced way to look at the <strong>predictive power</strong>
-of variables by accounting for intercorrelations that confound other
-metrics. RWA is generally <strong>superior to naive methods</strong>
-(standardized betas, stepwise selection, etc.) in those situations
-because it more faithfully represents each variable’s contribution . It
-performs <strong>similarly to rigorous methods like dominance
-analysis</strong>, while being more feasible to use and extending
-readily to additional analyses (significance testing, other model types)
-. <strong>Its chief limitations</strong> are that it does not
-automatically resolve issues of redundant predictors or small sample
-sizes – those require researcher input and cautious interpretation . By
-following best practices – verifying model assumptions, using bootstrap
-confidence intervals, and interpreting the results in context – a user
-can effectively harness RWA to gain insights into which variables truly
-drive outcomes and to what extent. In many research and business
-analytics scenarios today, RWA provides a clear, quantifiable answer to
-the question, <strong>“which of these factors matter most, and how much
-do they each contribute?”</strong> – an answer that is often obscured
-when using standard regression in a collinear world but is illuminated
-by the relative weights method . With the considerations outlined above,
-one can confidently apply relative weights analysis and communicate its
-findings to guide decisions, theory development, or further model
-refinement, making it a valuable component of the analytical toolkit in
-2025 and beyond.</p>
+<p>In conclusion, Tonidandel and LeBreton’s relative weights analysis
+method remains a valuable and valid approach for assessing predictor
+importance in the presence of multicollinearity. It offers a balanced
+way to look at the predictive power of variables by accounting for
+intercorrelations that confound other metrics. RWA is generally superior
+to naive methods (standardized betas, stepwise selection, etc.) in those
+situations because it more faithfully represents each variable’s
+contribution. It performs similarly to rigorous methods like dominance
+analysis, while being more feasible to use and extending readily to
+additional analyses (significance testing, other model types). Its chief
+limitations are that it does not automatically resolve issues of
+redundant predictors or small sample sizes – those require researcher
+input and cautious interpretation. By following best practices –
+verifying model assumptions, using bootstrap confidence intervals, and
+interpreting the results in context – a user can effectively harness RWA
+to gain insights into which variables truly drive outcomes and to what
+extent. In many research and business analytics scenarios today, RWA
+provides a clear, quantifiable answer to the question, “which of these
+factors matter most, and how much do they each contribute?” – an answer
+that is often obscured when using standard regression in a collinear
+world but is illuminated by the relative weights method. With the
+considerations outlined above, one can confidently apply relative
+weights analysis and communicate its findings to guide decisions, theory
+development, or further model refinement, making it a valuable component
+of the analytical toolkit in 2025 and beyond.</p>
 <hr>
 </div>
 <div class="section level2">

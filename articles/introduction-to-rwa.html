@@ -37,14 +37,7 @@
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/introduction-to-rwa.html">Introduction to Relative Weights Analysis with the rwa Package</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item" href="../articles/index.html">More articles...</a></li>
-  </ul>
-</li>
+<li class="active nav-item"><a class="nav-link" href="../articles/index.html">Articles</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -69,9 +62,9 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2025-07-16</h4>
+            <h4 data-toc-skip class="date">2025-07-17</h4>
       
-      <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/v0.1.0/vignettes/introduction-to-rwa.Rmd" class="external-link"><code>vignettes/introduction-to-rwa.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/introduction-to-rwa.Rmd" class="external-link"><code>vignettes/introduction-to-rwa.Rmd</code></a></small>
       <div class="d-none name"><code>introduction-to-rwa.Rmd</code></div>
     </div>
 
@@ -605,7 +598,7 @@ intervals and significance tests</li>
 <span><span class="va">rwa_speed_test</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>, predictors <span class="op">=</span> <span class="va">predictors</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"RWA computation time:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"seconds\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; RWA computation time: 0.0143 seconds</span></span></code></pre></div>
+<span><span class="co">#&gt; RWA computation time: 0.0101 seconds</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -698,11 +691,18 @@ size.”</p>
 <div class="section level3">
 <h3 id="variable-selection-and-model-specification">2. Variable Selection and Model Specification<a class="anchor" aria-label="anchor" href="#variable-selection-and-model-specification"></a>
 </h3>
-<p>RWA works best with: - <strong>Continuous variables</strong> (though
-categorical can be used with caution) - <strong>Theoretically meaningful
-predictors</strong><br>
-- <strong>Reasonable predictor-to-observation ratios</strong> -
-<strong>Predictors that are distinct but may be correlated</strong></p>
+<p>RWA works best with:</p>
+<ul>
+<li>
+<strong>Continuous variables</strong> (though categorical can be
+used with caution)</li>
+<li>
+<strong>Theoretically meaningful predictors</strong><br>
+</li>
+<li><strong>Reasonable predictor-to-observation ratios</strong></li>
+<li><strong>Predictors that are distinct but may be
+correlated</strong></li>
+</ul>
 </div>
 <div class="section level3">
 <h3 id="when-to-use-rwa-vs--alternatives">3. When to Use RWA vs. Alternatives<a class="anchor" aria-label="anchor" href="#when-to-use-rwa-vs--alternatives"></a>
@@ -722,10 +722,16 @@ variable selection rather than interpretation</strong> 4.
 <div class="section level3">
 <h3 id="reporting-results">4. Reporting Results<a class="anchor" aria-label="anchor" href="#reporting-results"></a>
 </h3>
-<p>When reporting RWA results, include: - <strong>Sample size</strong>
-and missing data handling - <strong>Raw and rescaled weights</strong> -
-<strong>Model R-squared</strong> - <strong>Confidence intervals</strong>
-for key predictors (when using bootstrap)</p>
+<p>When reporting RWA results, include:</p>
+<ul>
+<li>
+<strong>Sample size</strong> and missing data handling</li>
+<li><strong>Raw and rescaled weights</strong></li>
+<li><strong>Model R-squared</strong></li>
+<li>
+<strong>Confidence intervals</strong> for key predictors (when using
+bootstrap)</li>
+</ul>
 <p>For bootstrap confidence intervals and advanced statistical
 considerations, see:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
