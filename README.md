@@ -105,6 +105,7 @@ vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
 The vignettes cover:
+
 - **Introduction vignette**: Detailed methodology, basic examples, and when to use RWA
 - **Bootstrap vignette**: Statistical significance testing, confidence intervals, and advanced features
 - Real-world applications and best practices

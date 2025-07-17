@@ -25,6 +25,7 @@ vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
 ### 2. From RStudio
+
 - Go to the **Help** menu
 - Select **Vignettes**
 - Look for the `rwa` package

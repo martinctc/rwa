@@ -416,6 +416,7 @@ cat("\nRule of thumb: At least 5-10 observations per predictor")
 ### 2. Variable Selection and Model Specification
 
 RWA works best with:
+
 - **Continuous variables** (though categorical can be used with caution)
 - **Theoretically meaningful predictors**  
 - **Reasonable predictor-to-observation ratios**
@@ -438,6 +439,7 @@ RWA works best with:
 ### 4. Reporting Results
 
 When reporting RWA results, include:
+
 - **Sample size** and missing data handling
 - **Raw and rescaled weights**
 - **Model R-squared**
