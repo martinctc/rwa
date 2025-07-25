@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2025-07-17</h4>
+            <h4 data-toc-skip class="date">2025-07-25</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/introduction-to-rwa.Rmd" class="external-link"><code>vignettes/introduction-to-rwa.Rmd</code></a></small>
       <div class="d-none name"><code>introduction-to-rwa.Rmd</code></div>
@@ -598,7 +598,7 @@ intervals and significance tests</li>
 <span><span class="va">rwa_speed_test</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>, predictors <span class="op">=</span> <span class="va">predictors</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"RWA computation time:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"seconds\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; RWA computation time: 0.0101 seconds</span></span></code></pre></div>
+<span><span class="co">#&gt; RWA computation time: 0.0084 seconds</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -693,44 +693,43 @@ size.”</p>
 </h3>
 <p>RWA works best with:</p>
 <ul>
-<li>
-<strong>Continuous variables</strong> (though categorical can be
-used with caution)</li>
-<li>
-<strong>Theoretically meaningful predictors</strong><br>
+<li>Continuous variables (though categorical can be used with
+caution)</li>
+<li>Theoretically meaningful predictors<br>
 </li>
-<li><strong>Reasonable predictor-to-observation ratios</strong></li>
-<li><strong>Predictors that are distinct but may be
-correlated</strong></li>
+<li>Reasonable predictor-to-observation ratios</li>
+<li>Predictors that are distinct but may be correlated</li>
 </ul>
 </div>
 <div class="section level3">
 <h3 id="when-to-use-rwa-vs--alternatives">3. When to Use RWA vs. Alternatives<a class="anchor" aria-label="anchor" href="#when-to-use-rwa-vs--alternatives"></a>
 </h3>
-<p><strong>Use RWA when:</strong> 1. <strong>Predictors are
-theoretically distinct but empirically correlated</strong> 2.
-<strong>Understanding relative contribution (not just prediction) is the
-goal</strong> 3. <strong>Sample size supports stable multiple
-regression</strong> 4. <strong>Linear relationships are reasonable
-assumptions</strong></p>
-<p><strong>Consider alternatives when:</strong> 1. <strong>Predictors
-are essentially redundant measures</strong> 2. <strong>Sample size is
-very small relative to predictors</strong> 3. <strong>Primary goal is
-variable selection rather than interpretation</strong> 4.
-<strong>Non-linear effects are suspected</strong></p>
+<p>Use RWA when:</p>
+<ol style="list-style-type: decimal">
+<li>Predictors are theoretically distinct but empirically
+correlated</li>
+<li>Understanding relative contribution (not just prediction) is the
+goal</li>
+<li>Sample size supports stable multiple regression</li>
+<li>Linear relationships are reasonable assumptions</li>
+</ol>
+<p>Consider alternatives when:</p>
+<ol style="list-style-type: decimal">
+<li>Predictors are essentially redundant measures</li>
+<li>Sample size is very small relative to predictors</li>
+<li>Primary goal is variable selection rather than interpretation</li>
+<li>Non-linear effects are suspected</li>
+</ol>
 </div>
 <div class="section level3">
 <h3 id="reporting-results">4. Reporting Results<a class="anchor" aria-label="anchor" href="#reporting-results"></a>
 </h3>
 <p>When reporting RWA results, include:</p>
 <ul>
-<li>
-<strong>Sample size</strong> and missing data handling</li>
-<li><strong>Raw and rescaled weights</strong></li>
-<li><strong>Model R-squared</strong></li>
-<li>
-<strong>Confidence intervals</strong> for key predictors (when using
-bootstrap)</li>
+<li>Sample size and missing data handling</li>
+<li>Raw and rescaled weights</li>
+<li>Model R-squared</li>
+<li>Confidence intervals for key predictors (when using bootstrap)</li>
 </ul>
 <p>For bootstrap confidence intervals and advanced statistical
 considerations, see:</p>
@@ -815,35 +814,25 @@ foundations.</p>
 <div class="section level3">
 <h3 id="key-takeaways">Key Takeaways<a class="anchor" aria-label="anchor" href="#key-takeaways"></a>
 </h3>
-<p><strong>Methodological Strengths:</strong></p>
+<p>Methodological Strengths:</p>
 <ul>
-<li>
-<strong>Handles multicollinearity effectively</strong> by
-partitioning shared variance appropriately</li>
-<li>
-<strong>Provides interpretable results</strong> as percentages of
-explained variance<br>
+<li>Handles multicollinearity effectively by partitioning shared
+variance appropriately</li>
+<li>Provides interpretable results as percentages of explained
+variance<br>
 </li>
-<li>
-<strong>Computationally efficient</strong> compared to dominance
-analysis</li>
-<li>
-<strong>Statistically robust</strong> with bootstrap confidence
-intervals</li>
+<li>Computationally efficient compared to dominance analysis</li>
+<li>Statistically robust with bootstrap confidence intervals</li>
 </ul>
-<p><strong>Important Limitations:</strong></p>
+<p>Important Limitations:</p>
 <ul>
-<li>
-<strong>Not a replacement for theory</strong> - results are
-descriptive, not causal</li>
-<li>
-<strong>Redundant predictors</strong> will split variance,
-potentially appearing less important individually</li>
-<li>
-<strong>Sample size matters</strong> - adequate observations needed
-for stable estimates</li>
-<li>
-<strong>Linear model assumptions</strong> apply</li>
+<li>Not a replacement for theory - results are descriptive, not
+causal</li>
+<li>Redundant predictors will split variance, potentially appearing less
+important individually</li>
+<li>Sample size matters - adequate observations needed for stable
+estimates</li>
+<li>Linear model assumptions apply</li>
 </ul>
 </div>
 <div class="section level3">
@@ -851,17 +840,12 @@ for stable estimates</li>
 </h3>
 <p>RWA is particularly valuable for:</p>
 <ul>
-<li>
-<strong>Key drivers analysis</strong> in market research and
-business analytics<br>
+<li>Key drivers analysis in market research and business analytics<br>
 </li>
-<li>
-<strong>Multicollinear predictors</strong> in scientific
-research</li>
-<li><strong>Situations requiring interpretable importance
-measures</strong></li>
-<li><strong>Linear models where traditional regression coefficients are
-misleading</strong></li>
+<li>Multicollinear predictors in scientific research</li>
+<li>Situations requiring interpretable importance measures</li>
+<li>Linear models where traditional regression coefficients are
+misleading</li>
 </ul>
 </div>
 <div class="section level3">
