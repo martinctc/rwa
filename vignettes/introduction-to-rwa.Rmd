@@ -417,33 +417,35 @@ cat("\nRule of thumb: At least 5-10 observations per predictor")
 
 RWA works best with:
 
-- **Continuous variables** (though categorical can be used with caution)
-- **Theoretically meaningful predictors**  
-- **Reasonable predictor-to-observation ratios**
-- **Predictors that are distinct but may be correlated**
+- Continuous variables (though categorical can be used with caution)
+- Theoretically meaningful predictors  
+- Reasonable predictor-to-observation ratios
+- Predictors that are distinct but may be correlated
 
 ### 3. When to Use RWA vs. Alternatives
 
-**Use RWA when:**
-1. **Predictors are theoretically distinct but empirically correlated**
-2. **Understanding relative contribution (not just prediction) is the goal**
-3. **Sample size supports stable multiple regression**
-4. **Linear relationships are reasonable assumptions**
+Use RWA when:
 
-**Consider alternatives when:**
-1. **Predictors are essentially redundant measures**
-2. **Sample size is very small relative to predictors**
-3. **Primary goal is variable selection rather than interpretation**
-4. **Non-linear effects are suspected**
+1. Predictors are theoretically distinct but empirically correlated
+2. Understanding relative contribution (not just prediction) is the goal
+3. Sample size supports stable multiple regression
+4. Linear relationships are reasonable assumptions
+
+Consider alternatives when:
+
+1. Predictors are essentially redundant measures
+2. Sample size is very small relative to predictors
+3. Primary goal is variable selection rather than interpretation
+4. Non-linear effects are suspected
 
 ### 4. Reporting Results
 
 When reporting RWA results, include:
 
-- **Sample size** and missing data handling
-- **Raw and rescaled weights**
-- **Model R-squared**
-- **Confidence intervals** for key predictors (when using bootstrap)
+- Sample size and missing data handling
+- Raw and rescaled weights
+- Model R-squared
+- Confidence intervals for key predictors (when using bootstrap)
 
 For bootstrap confidence intervals and advanced statistical considerations, see:
 ```{r eval=FALSE}
@@ -510,28 +512,28 @@ The `rwa` package provides a user-friendly implementation of Relative Weights An
 
 ### Key Takeaways
 
-**Methodological Strengths:**
+Methodological Strengths:
 
-- **Handles multicollinearity effectively** by partitioning shared variance appropriately
-- **Provides interpretable results** as percentages of explained variance  
-- **Computationally efficient** compared to dominance analysis
-- **Statistically robust** with bootstrap confidence intervals
+- Handles multicollinearity effectively by partitioning shared variance appropriately
+- Provides interpretable results as percentages of explained variance  
+- Computationally efficient compared to dominance analysis
+- Statistically robust with bootstrap confidence intervals
 
-**Important Limitations:**
+Important Limitations:
 
-- **Not a replacement for theory** - results are descriptive, not causal
-- **Redundant predictors** will split variance, potentially appearing less important individually
-- **Sample size matters** - adequate observations needed for stable estimates
-- **Linear model assumptions** apply
+- Not a replacement for theory - results are descriptive, not causal
+- Redundant predictors will split variance, potentially appearing less important individually
+- Sample size matters - adequate observations needed for stable estimates
+- Linear model assumptions apply
 
 ### When to Use RWA
 
 RWA is particularly valuable for:
 
-- **Key drivers analysis** in market research and business analytics  
-- **Multicollinear predictors** in scientific research
-- **Situations requiring interpretable importance measures**
-- **Linear models where traditional regression coefficients are misleading**
+- Key drivers analysis in market research and business analytics  
+- Multicollinear predictors in scientific research
+- Situations requiring interpretable importance measures
+- Linear models where traditional regression coefficients are misleading
 
 ### The Bottom Line
 
