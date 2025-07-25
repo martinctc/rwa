@@ -1,3 +1,10 @@
+# rwa 0.1.1
+
+## Documentation Improvements
+
+- **Vignette formatting**: Cleaned up excessive bold formatting in the evaluating-rwa-method-reference.Rmd vignette for better readability
+- **CRAN compliance**: Updated package version for resubmission to CRAN
+
 # rwa 0.1.0
 
 ## New Features
