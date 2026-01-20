@@ -198,3 +198,140 @@ test_that("rwa() consistency checks", {
   
   expect_equal(result_order1$result, result_order2$result)
 })
+
+# ---- Edge case and error message tests ----
+
+test_that("rwa() validates conf_level correctly", {
+  # conf_level must be between 0 and 1
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", conf_level = 0),
+    "conf_level.*between 0 and 1"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", conf_level = 1),
+    "conf_level.*between 0 and 1"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", conf_level = -0.5),
+    "conf_level.*between 0 and 1"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", conf_level = 1.5),
+    "conf_level.*between 0 and 1"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", conf_level = "high"),
+    "conf_level.*between 0 and 1"
+  )
+})
+
+test_that("rwa() validates n_bootstrap correctly", {
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", n_bootstrap = 0),
+    "n_bootstrap.*positive integer"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", n_bootstrap = -10),
+    "n_bootstrap.*positive integer"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", n_bootstrap = 10.5),
+    "n_bootstrap.*positive integer"
+  )
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = "cyl", n_bootstrap = "many"),
+    "n_bootstrap.*positive integer"
+  )
+})
+
+test_that("rwa() validates non-numeric predictors correctly", {
+  # Create data with non-numeric predictor
+  test_data <- mtcars
+  test_data$gear_factor <- as.factor(test_data$gear)
+  
+  expect_error(
+    rwa(test_data, outcome = "mpg", predictors = c("cyl", "gear_factor")),
+    "must be numeric.*gear_factor"
+  )
+  
+  # Character column
+  test_data$car_name <- rownames(mtcars)
+  expect_error(
+    rwa(test_data, outcome = "mpg", predictors = c("cyl", "car_name")),
+    "must be numeric.*car_name"
+  )
+})
+
+test_that("rwa() validates non-numeric outcome correctly", {
+  test_data <- mtcars
+  test_data$mpg_factor <- as.factor(ifelse(test_data$mpg > 20, "high", "low"))
+  
+  expect_error(
+    rwa(test_data, outcome = "mpg_factor", predictors = c("cyl", "hp")),
+    "Outcome variable.*must be numeric"
+  )
+})
+
+test_that("rwa() handles zero-variance variables correctly", {
+  # Zero-variance outcome
+  test_data <- mtcars
+  test_data$constant_outcome <- 10
+  
+  expect_error(
+    rwa(test_data, outcome = "constant_outcome", predictors = c("cyl", "hp")),
+    "zero variance"
+  )
+  
+  # Zero-variance predictor
+  test_data$constant_predictor <- 5
+  expect_error(
+    rwa(test_data, outcome = "mpg", predictors = c("cyl", "constant_predictor")),
+    "zero variance.*constant_predictor"
+  )
+})
+
+test_that("rwa() handles perfect collinearity correctly", {
+  # Create perfectly collinear predictors
+  test_data <- mtcars
+  test_data$cyl_doubled <- test_data$cyl * 2
+  
+  expect_error(
+    rwa(test_data, outcome = "mpg", predictors = c("cyl", "cyl_doubled")),
+    "singular|collinearity"
+  )
+})
+
+test_that("rwa() handles small samples appropriately", {
+  # Small but sufficient sample
+  small_data <- mtcars[1:10, ]
+  
+  # With 10 observations and 2 predictors, this should work
+  expect_no_error(
+    result <- rwa(small_data, outcome = "mpg", predictors = c("cyl", "hp"))
+  )
+  
+  # Very small sample (3 obs with 2 predictors) may produce singular matrix
+  # This verifies we get an informative error rather than cryptic failure
+  very_small_data <- mtcars[1:3, ]
+  expect_error(
+    rwa(very_small_data, outcome = "mpg", predictors = c("cyl", "hp")),
+    "singular|collinearity|zero variance"
+  )
+})
+
+test_that("rwa() provides informative error for missing variables", {
+  expect_error(
+    rwa(mtcars, outcome = "nonexistent_outcome", predictors = c("cyl", "hp")),
+    "Outcome variable.*not found"
+  )
+  
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = c("cyl", "nonexistent_pred")),
+    "Predictor variable.*not found.*nonexistent_pred"
+  )
+  
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = c("fake1", "fake2")),
+    "Predictor variable.*not found.*fake1.*fake2"
+  )
+})
