@@ -32,6 +32,10 @@ test_that("bootstrap confidence intervals are reasonable", {
 test_that("bootstrap with different confidence levels works", {
   skip_on_cran()
   
+  # Use fixed seed for reproducibility to avoid flaky test failures
+  # See: https://github.com/martinctc/rwa/issues/20
+  set.seed(42)
+  
   # Test with 90% confidence level
   result_90 <- mtcars %>%
     rwa(outcome = "mpg", predictors = c("cyl", "hp"), 
