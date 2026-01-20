@@ -104,6 +104,12 @@ vignette("introduction-to-rwa", package = "rwa")
 vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
+**Online documentation**: Visit [https://martinctc.github.io/rwa/](https://martinctc.github.io/rwa/) for the full pkgdown site with:
+
+- [Getting Started Guide](https://martinctc.github.io/rwa/articles/introduction-to-rwa.html)
+- [Bootstrap Confidence Intervals](https://martinctc.github.io/rwa/articles/bootstrap-confidence-intervals.html)
+- [Function Reference](https://martinctc.github.io/rwa/reference/index.html)
+
 The vignettes cover:
 
 - **Introduction vignette**: Detailed methodology, basic examples, and when to use RWA

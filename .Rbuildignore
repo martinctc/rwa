@@ -1,6 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
+^\.vscode$
 ^_pkgdown.yml$
 ^_dev$
 cran-comments\.md

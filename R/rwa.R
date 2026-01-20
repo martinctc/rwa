@@ -49,7 +49,7 @@
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyr drop_na
-#' @importFrom stats cor
+#' @importFrom stats cor var
 #' @import dplyr
 #' @examples
 #' library(ggplot2)
@@ -91,11 +91,64 @@ rwa <- function(df,
                 comprehensive = FALSE,
                 include_rescaled_ci = FALSE){
 
+
+  # ---- Input validation ----
+  
+
+  # Validate conf_level
+  if (!is.numeric(conf_level) || length(conf_level) != 1 || 
+      conf_level <= 0 || conf_level >= 1) {
+    stop("`conf_level` must be a single numeric value between 0 and 1 (exclusive).")
+  }
+  
+  # Validate n_bootstrap
+  if (!is.numeric(n_bootstrap) || length(n_bootstrap) != 1 || 
+      n_bootstrap < 1 || n_bootstrap != floor(n_bootstrap)) {
+    stop("`n_bootstrap` must be a positive integer.")
+  }
+  
+  # Check that outcome and predictors exist in data
+  if (!outcome %in% names(df)) {
+    stop(sprintf("Outcome variable '%s' not found in data.", outcome))
+  }
+  
+  missing_predictors <- predictors[!predictors %in% names(df)]
+  if (length(missing_predictors) > 0) {
+    stop(sprintf("Predictor variable(s) not found in data: %s", 
+                 paste(missing_predictors, collapse = ", ")))
+  }
+  
+  # Validate that outcome is numeric
+  if (!is.numeric(df[[outcome]])) {
+    stop(sprintf("Outcome variable '%s' must be numeric.", outcome))
+  }
+  
+  # Validate that all predictors are numeric
+  non_numeric_predictors <- predictors[!sapply(df[predictors], is.numeric)]
+  if (length(non_numeric_predictors) > 0) {
+    stop(sprintf("All predictor variables must be numeric. Non-numeric: %s", 
+                 paste(non_numeric_predictors, collapse = ", ")))
+  }
+
   # Gets data frame in right order and form
   thedata <-
     df %>%
     dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(dplyr::all_of(outcome))
+
+  # Check for zero-variance outcome
+  outcome_var <- stats::var(thedata[[outcome]], na.rm = TRUE)
+  if (is.na(outcome_var) || outcome_var == 0) {
+    stop(sprintf("Outcome variable '%s' has zero variance.", outcome))
+  }
+  
+  # Check for zero-variance predictors
+  predictor_vars <- sapply(thedata[predictors], function(x) stats::var(x, na.rm = TRUE))
+  zero_var_predictors <- names(predictor_vars)[is.na(predictor_vars) | predictor_vars == 0]
+  if (length(zero_var_predictors) > 0) {
+    stop(sprintf("Predictor variable(s) with zero variance: %s", 
+                 paste(zero_var_predictors, collapse = ", ")))
+  }
 
   cor_matrix <-
     cor(thedata, use = "pairwise.complete.obs") %>%
@@ -116,7 +169,19 @@ rwa <- function(df,
     names() %>%
     .[.!=outcome]
 
+  # Check for singular/near-singular correlation matrix (perfect collinearity)
+  RXX_det <- det(as.matrix(RXX))
+  if (abs(RXX_det) < .Machine$double.eps * 100) {
+    stop("Predictor correlation matrix is singular or near-singular. This usually indicates perfect or near-perfect collinearity among predictors. Consider removing highly correlated predictors.")
+  }
+
   RXX.eigen <- eigen(RXX) # Compute eigenvalues and eigenvectors of matrix
+  
+  # Check for negative eigenvalues (indicates numerical issues)
+  if (any(RXX.eigen$val < 0)) {
+    warning("Correlation matrix has negative eigenvalues, which may indicate numerical instability. Results should be interpreted with caution.")
+  }
+  
   D <- diag(RXX.eigen$val) # Run diag() on the values of eigen - construct diagonal matrix
   delta <- sqrt(D) # Take square root of the created diagonal matrix
 
