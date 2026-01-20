@@ -38,3 +38,4 @@ rsconnect/
 
 # Dev folder
 /_dev/
+.vscode/settings.json
