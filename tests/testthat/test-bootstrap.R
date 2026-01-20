@@ -35,12 +35,12 @@ test_that("bootstrap with different confidence levels works", {
   # Test with 90% confidence level
   result_90 <- mtcars %>%
     rwa(outcome = "mpg", predictors = c("cyl", "hp"), 
-        bootstrap = TRUE, n_bootstrap = 100, conf_level = 0.90)
+        bootstrap = TRUE, n_bootstrap = 150, conf_level = 0.90)
   
   # Test with 99% confidence level  
   result_99 <- mtcars %>%
     rwa(outcome = "mpg", predictors = c("cyl", "hp"), 
-        bootstrap = TRUE, n_bootstrap = 100, conf_level = 0.99)
+        bootstrap = TRUE, n_bootstrap = 150, conf_level = 0.99)
   
   # 99% CIs should be wider than 90% CIs
   width_90 <- result_90$result$Raw.RelWeight.CI.Upper - result_90$result$Raw.RelWeight.CI.Lower
