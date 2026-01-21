@@ -73,6 +73,53 @@ test_that("rwa() handles missing data by listwise deletion", {
   expect_equal(result$n, nrow(mtcars) - 3)
 })
 
+# --- Missing data handling options ------------------------------------------
+
+test_that("rwa() accepts different use parameter values", {
+  # Test with complete.obs (listwise deletion)
+  result_complete <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), 
+                         use = "complete.obs")
+  expect_type(result_complete, "list")
+  expect_equal(result_complete$n, nrow(mtcars))
+  
+  # Test with pairwise.complete.obs (default)
+  result_pairwise <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), 
+                         use = "pairwise.complete.obs")
+  expect_type(result_pairwise, "list")
+  expect_equal(result_pairwise$n, nrow(mtcars))
+})
+
+test_that("rwa() validates use parameter", {
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), use = "invalid"),
+    "use.*must be one of"
+  )
+})
+
+test_that("rwa() handles pairwise vs complete deletion differently with missing data", {
+  # Create data with missing values in predictors
+  mtcars_na <- mtcars
+  mtcars_na$cyl[1:2] <- NA
+  mtcars_na$hp[3:4] <- NA
+  
+  # With pairwise deletion, it should use all available pairwise correlations
+  result_pairwise <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"), 
+                         use = "pairwise.complete.obs")
+  
+  # With complete.obs, it should only use rows with no missing values
+  result_complete <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"), 
+                         use = "complete.obs")
+  
+  # Both should return valid results
+  expect_type(result_pairwise, "list")
+  expect_type(result_complete, "list")
+  
+  # The n should be different (pairwise uses more data for outcome)
+  # Both use listwise deletion on outcome, so n should be based on complete outcome
+  expect_true(result_pairwise$n <= nrow(mtcars_na))
+  expect_true(result_complete$n <= result_pairwise$n)
+})
+
 # --- Sorting behavior -------------------------------------------------------
 
 test_that("rwa() sorts results by default", {

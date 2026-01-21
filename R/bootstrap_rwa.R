@@ -24,11 +24,12 @@ NULL
 #' @param outcome Name of outcome variable
 #' @param predictors Names of predictor variables
 #' @param return_all If TRUE, returns list with raw weights, rescaled weights, and rsquare
+#' @param use Method for handling missing data in correlations (passed to cor())
 #'
 #' @return Numeric vector of raw weights, or list if return_all=TRUE
 #' @noRd
-rwa_core_calculation <- function(thedata, outcome, predictors, return_all = FALSE) {
-  cor_matrix <- cor(thedata, use = "pairwise.complete.obs") %>%
+rwa_core_calculation <- function(thedata, outcome, predictors, return_all = FALSE, use = "pairwise.complete.obs") {
+  cor_matrix <- cor(thedata, use = use) %>%
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
     remove_all_na_cols() %>%
     tidyr::drop_na()
@@ -78,18 +79,19 @@ rwa_core_calculation <- function(thedata, outcome, predictors, return_all = FALS
 #' @param indices Bootstrap sample indices (provided by boot::boot)
 #' @param outcome Outcome variable name
 #' @param predictors Vector of predictor variable names
+#' @param use Method for handling missing data in correlations
 #'
 #' @return Numeric vector of raw relative weights
 #' @keywords internal
 #' @noRd
-rwa_boot_statistic <- function(data, indices, outcome, predictors) {
+rwa_boot_statistic <- function(data, indices, outcome, predictors, use = "pairwise.complete.obs") {
   sample_data <- data[indices, ]
 
   thedata <- sample_data %>%
     dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(dplyr::all_of(outcome))
 
-  rwa_core_calculation(thedata, outcome, predictors, return_all = FALSE)
+  rwa_core_calculation(thedata, outcome, predictors, return_all = FALSE, use = use)
 }
 
 #' Bootstrap statistic function for rescaled RWA weights
@@ -100,18 +102,19 @@ rwa_boot_statistic <- function(data, indices, outcome, predictors) {
 #' @param indices Bootstrap sample indices (provided by boot::boot)
 #' @param outcome Outcome variable name
 #' @param predictors Vector of predictor variable names
+#' @param use Method for handling missing data in correlations
 #'
 #' @return Numeric vector of rescaled relative weights (summing to 100)
 #' @keywords internal
 #' @noRd
-rwa_boot_statistic_rescaled <- function(data, indices, outcome, predictors) {
+rwa_boot_statistic_rescaled <- function(data, indices, outcome, predictors, use = "pairwise.complete.obs") {
   sample_data <- data[indices, ]
 
   thedata <- sample_data %>%
     dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(dplyr::all_of(outcome))
 
-  result <- rwa_core_calculation(thedata, outcome, predictors, return_all = TRUE)
+  result <- rwa_core_calculation(thedata, outcome, predictors, return_all = TRUE, use = use)
   result$rescaled_weights
 }
 
@@ -125,23 +128,24 @@ rwa_boot_statistic_rescaled <- function(data, indices, outcome, predictors) {
 #' @param outcome Outcome variable name
 #' @param predictors Vector of predictor variable names
 #' @param focal Focal variable for comparisons (optional)
+#' @param use Method for handling missing data in correlations
 #'
 #' @return Numeric vector containing raw weights, random comparison differences,
 #'   and (if focal specified) focal comparison differences
 #' @keywords internal
 #' @noRd
-rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = NULL) {
+rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = NULL, use = "pairwise.complete.obs") {
   sample_data <- data[indices, ]
 
   # Get raw weights using core calculation
-  raw_weights <- rwa_boot_statistic(sample_data, seq_len(nrow(sample_data)), outcome, predictors)
+  raw_weights <- rwa_boot_statistic(sample_data, seq_len(nrow(sample_data)), outcome, predictors, use = use)
 
   # Get random variable comparison (difference from random variable)
-  rand_diff <- rwa_rand_internal(sample_data, outcome, predictors)
+  rand_diff <- rwa_rand_internal(sample_data, outcome, predictors, use = use)
 
   # Get focal variable comparison if focal is specified
   if (!is.null(focal)) {
-    focal_diff <- rwa_comp_internal(sample_data, outcome, predictors, focal)
+    focal_diff <- rwa_comp_internal(sample_data, outcome, predictors, focal, use = use)
     c(raw_weights, rand_diff, focal_diff)
   } else {
     c(raw_weights, rand_diff)
@@ -157,11 +161,12 @@ rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = N
 #' @param df Data frame
 #' @param outcome Outcome variable name
 #' @param predictors Vector of predictor variable names
+#' @param use Method for handling missing data in correlations
 #'
 #' @return Numeric vector of weight differences (predictor weight - random weight)
 #' @keywords internal
 #' @noRd
-rwa_rand_internal <- function(df, outcome, predictors) {
+rwa_rand_internal <- function(df, outcome, predictors, use = "pairwise.complete.obs") {
   thedata <- df %>%
     dplyr::select(all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(all_of(outcome)) %>%
@@ -169,7 +174,7 @@ rwa_rand_internal <- function(df, outcome, predictors) {
 
   # Use core calculation with random variable added
   predictors_with_rand <- c(predictors, "rand")
-  RawWgt <- rwa_core_calculation(thedata, outcome, predictors_with_rand, return_all = FALSE)
+  RawWgt <- rwa_core_calculation(thedata, outcome, predictors_with_rand, return_all = FALSE, use = use)
   
   RawWgt <- RawWgt - tail(RawWgt, n = 1)  # subtract random variable weight
   head(RawWgt, -1)  # remove random variable from output
@@ -184,11 +189,12 @@ rwa_rand_internal <- function(df, outcome, predictors) {
 #' @param outcome Outcome variable name
 #' @param predictors Vector of predictor variable names
 #' @param focal Name of the focal variable to compare against
+#' @param use Method for handling missing data in correlations
 #'
 #' @return Numeric vector of weight differences (predictor weight - focal weight)
 #' @keywords internal
 #' @noRd
-rwa_comp_internal <- function(df, outcome, predictors, focal) {
+rwa_comp_internal <- function(df, outcome, predictors, focal, use = "pairwise.complete.obs") {
   thedata <- df %>%
     dplyr::select(all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(all_of(outcome)) %>%
@@ -196,7 +202,7 @@ rwa_comp_internal <- function(df, outcome, predictors, focal) {
 
   # Reorder predictors to match data
   predictors_reordered <- c(predictors[predictors != focal], focal)
-  RawWgt <- rwa_core_calculation(thedata, outcome, predictors_reordered, return_all = FALSE)
+  RawWgt <- rwa_core_calculation(thedata, outcome, predictors_reordered, return_all = FALSE, use = use)
 
   RawWgt <- RawWgt - tail(RawWgt, n = 1)  # subtract focal variable weight
   head(RawWgt, -1)  # remove focal variable from output
@@ -304,6 +310,7 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
 #' @param comprehensive Whether to run comprehensive analysis with random
 #'   variable and focal comparisons
 #' @param include_rescaled Whether to bootstrap rescaled weights
+#' @param use Method for handling missing data in correlations
 #'
 #' @return List containing:
 #'   - boot_object: Raw bootstrap object
@@ -313,7 +320,7 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
 #' @noRd
 run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
                               conf_level = 0.95, focal = NULL, comprehensive = FALSE,
-                              include_rescaled = FALSE) {
+                              include_rescaled = FALSE, use = "pairwise.complete.obs") {
 
   # Prepare data
   bootstrap_data <- data %>%
@@ -331,7 +338,8 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
     statistic = rwa_boot_statistic,
     R = n_bootstrap,
     outcome = outcome,
-    predictors = predictors
+    predictors = predictors,
+    use = use
   )
 
   # Extract CIs for raw weights
@@ -348,7 +356,8 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
       statistic = rwa_boot_statistic_rescaled,
       R = n_bootstrap,
       outcome = outcome,
-      predictors = predictors
+      predictors = predictors,
+      use = use
     )
 
     rescaled_ci <- extract_ci(boot_result_rescaled, conf_level, predictors, "rescaled")
@@ -364,7 +373,8 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
       R = n_bootstrap,
       outcome = outcome,
       predictors = predictors,
-      focal = focal
+      focal = focal,
+      use = use
     )
 
     n_vars <- length(predictors)

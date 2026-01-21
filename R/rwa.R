@@ -29,6 +29,13 @@
 #' @param focal Focal variable for bootstrap comparisons (optional).
 #' @param comprehensive Whether to run comprehensive bootstrap analysis including random variable and focal comparisons.
 #' @param include_rescaled_ci Logical value specifying whether to include confidence intervals for rescaled weights. Defaults to `FALSE` due to compositional data constraints. Use with caution.
+#' @param use Method for handling missing data when computing correlations. Options are: 
+#'   "everything" (missing values in correlations propagate), 
+#'   "all.obs" (error if missing values present),
+#'   "complete.obs" (listwise deletion),
+#'   "na.or.complete" (error if some but not all missing),
+#'   "pairwise.complete.obs" (pairwise deletion, default).
+#'   See \code{\link[stats]{cor}} for more details.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -89,7 +96,8 @@ rwa <- function(df,
                 conf_level = 0.95,
                 focal = NULL,
                 comprehensive = FALSE,
-                include_rescaled_ci = FALSE){
+                include_rescaled_ci = FALSE,
+                use = "pairwise.complete.obs"){
 
 
   # ---- Input validation ----
@@ -105,6 +113,14 @@ rwa <- function(df,
   if (!is.numeric(n_bootstrap) || length(n_bootstrap) != 1 || 
       n_bootstrap < 1 || n_bootstrap != floor(n_bootstrap)) {
     stop("`n_bootstrap` must be a positive integer.")
+  }
+  
+  # Validate use parameter
+  valid_use_options <- c("everything", "all.obs", "complete.obs", 
+                         "na.or.complete", "pairwise.complete.obs")
+  if (!use %in% valid_use_options) {
+    stop(sprintf("`use` must be one of: %s", 
+                 paste(valid_use_options, collapse = ", ")))
   }
   
   # Check that outcome and predictors exist in data
@@ -151,7 +167,7 @@ rwa <- function(df,
   }
 
   cor_matrix <-
-    cor(thedata, use = "pairwise.complete.obs") %>%
+    cor(thedata, use = use) %>%
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
     remove_all_na_cols() %>%
     tidyr::drop_na()
@@ -236,7 +252,8 @@ rwa <- function(df,
       conf_level = conf_level,
       focal = focal,
       comprehensive = comprehensive,
-      include_rescaled = include_rescaled_ci  # Only include if explicitly requested
+      include_rescaled = include_rescaled_ci,  # Only include if explicitly requested
+      use = use  # Pass missing data handling method
     )
     
     # Add confidence intervals to result dataframe
