@@ -176,7 +176,7 @@ result_logit_signed <- rwa_logit(
 )
 
 result_logit_signed$result %>%
-  select(predictors, Rescaled.RelWeight, Sign)
+  select(Variables, Rescaled.RelWeight, Sign)
 ```
 
 ## Using the `rwa()` Wrapper Function
@@ -281,7 +281,7 @@ iris_logit <- rwa_logit(
   applysigns = TRUE
 )
 
-cat("Lambda:", round(iris_logit$lambda, 4), "\n\n")
+cat("Pseudo R-squared:", round(iris_logit$rsquare, 4), "\n\n")
 iris_logit$result
 ```
 

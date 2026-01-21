@@ -4,10 +4,10 @@
 #' RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
 #' creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
 #' maximally related to the original set of predictors.
-#' `rwa()` is optimised for dplyr pipes and shows positive / negative signs for weights.
+#' `rwa_multiregress()` is optimised for dplyr pipes and shows positive / negative signs for weights.
 #'
 #' @details
-#' `rwa()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
+#' `rwa_multiregress()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 #' for every predictor in the model.
 #' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
 #' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.

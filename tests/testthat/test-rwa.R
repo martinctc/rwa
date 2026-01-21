@@ -362,8 +362,10 @@ test_that("rwa() logistic regression returns correct structure", {
   expect_true("n" %in% names(result))
   expect_true("lambda" %in% names(result))
   
-  # Logistic regression doesn't return RXX/RXY or rsquare
+  # Logistic regression doesn't return RXX/RXY
   # (these are specific to multiple regression)
+  # But it does return rsquare (pseudo R-squared)
+  expect_true("rsquare" %in% names(result))
 })
 
 test_that("rwa() multiple vs logistic produce different results", {

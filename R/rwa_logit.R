@@ -51,10 +51,11 @@ rwa_logit <- function(df,
     dplyr::select(all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(all_of(outcome))
 
-  # Predictors
+  # Get variable names for output
   Variables <-
     thedata %>%
-    select(all_of(predictors))
+    select(all_of(predictors)) %>%
+    names()
 
   # Select outcome variable
   Y <-
@@ -125,7 +126,7 @@ rwa_logit <- function(df,
 
   ## Result
   result <-
-    data.frame(predictors,
+    data.frame(Variables,
                Raw.RelWeight = epsilon,
                Rescaled.RelWeight = PropWeights) %>%
     mutate(Sign = sign)

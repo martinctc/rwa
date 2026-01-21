@@ -69,8 +69,6 @@ plot_rwa <- function(rwa){
                           rwa$n, ". ",
                           if (!is.null(rwa$rsquare)) {
                             paste0("R-squared: ", round(rwa$rsquare, 2), ".")
-                          } else if (!is.null(rwa$lambda)) {
-                            paste0("Lambda: ", round(rwa$lambda, 2), ".")
                           } else {
                             ""
                           })) +
