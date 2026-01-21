@@ -45,7 +45,23 @@ Signs are added to the weights when the \code{applysigns} argument is set to \co
 See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
 }
 \examples{
-library(ggplot2)
-rwa(diamonds,"price",c("depth","carat"))
+# Basic multiple regression RWA
+result <- rwa_multiregress(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt")
+)
+
+# View the relative importance results
+result$result
+
+# With sign information
+result_signed <- rwa_multiregress(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  applysigns = TRUE
+)
+result_signed$result
 
 }

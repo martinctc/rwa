@@ -4,6 +4,38 @@
 #'
 #' @inheritParams rwa
 #'
+#' @return `rwa_logit()` returns a list of outputs, as follows:
+#' - `predictors`: character vector of names of the predictor variables used.
+#' - `result`: the final output of the importance metrics.
+#'   - The `Rescaled.RelWeight` column sums up to 1.
+#'   - The `Sign` column indicates whether a predictor is positively or negatively associated with the outcome.
+#' - `n`: indicates the number of observations used in the analysis.
+#' - `lambda`: pseudo R-squared value for the logistic regression model.
+#'
+#' @examples
+#' # Create a binary outcome variable
+#' mtcars_binary <- mtcars
+#' mtcars_binary$high_mpg <- ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+#'
+#' # Basic logistic RWA
+#' result <- rwa_logit(
+#'   df = mtcars_binary,
+#'   outcome = "high_mpg",
+#'   predictors = c("cyl", "disp", "hp", "wt")
+#' )
+#'
+#' # View the relative importance results
+#' result$result
+#'
+#' # With sign information
+#' result_signed <- rwa_logit(
+#'   df = mtcars_binary,
+#'   outcome = "high_mpg",
+#'   predictors = c("cyl", "disp", "hp", "wt"),
+#'   applysigns = TRUE
+#' )
+#' result_signed$result
+#'
 #' @importFrom stats glm binomial coef predict sd lm
 #' @export
 rwa_logit <- function(df,

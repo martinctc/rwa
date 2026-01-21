@@ -18,6 +18,19 @@ string(s) or bare input(s). All variables must be numeric.}
 \item{applysigns}{Logical value specifying whether to show an estimate that
 applies the sign. Defaults to \code{FALSE}.}
 }
+\value{
+\code{rwa_logit()} returns a list of outputs, as follows:
+\itemize{
+\item \code{predictors}: character vector of names of the predictor variables used.
+\item \code{result}: the final output of the importance metrics.
+\itemize{
+\item The \code{Rescaled.RelWeight} column sums up to 1.
+\item The \code{Sign} column indicates whether a predictor is positively or negatively associated with the outcome.
+}
+\item \code{n}: indicates the number of observations used in the analysis.
+\item \code{lambda}: pseudo R-squared value for the logistic regression model.
+}
+}
 \description{
 This function creates a Relative Weights Analysis (RWA) and
 returns a list of outputs. RWA provides a heuristic method for estimating
@@ -26,4 +39,29 @@ involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
 original set of predictors. \code{rwa()} is optimised for dplyr pipes and shows
 positive / negative signs for weights.
+}
+\examples{
+# Create a binary outcome variable
+mtcars_binary <- mtcars
+mtcars_binary$high_mpg <- ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+
+# Basic logistic RWA
+result <- rwa_logit(
+  df = mtcars_binary,
+  outcome = "high_mpg",
+  predictors = c("cyl", "disp", "hp", "wt")
+)
+
+# View the relative importance results
+result$result
+
+# With sign information
+result_signed <- rwa_logit(
+  df = mtcars_binary,
+  outcome = "high_mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  applysigns = TRUE
+)
+result_signed$result
+
 }

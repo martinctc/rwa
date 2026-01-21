@@ -33,8 +33,24 @@
 #' @importFrom stats cor
 #' @import dplyr
 #' @examples
-#' library(ggplot2)
-#' rwa(diamonds,"price",c("depth","carat"))
+#' # Basic multiple regression RWA
+#' result <- rwa_multiregress(
+#'   df = mtcars,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp", "hp", "wt")
+#' )
+#'
+#' # View the relative importance results
+#' result$result
+#'
+#' # With sign information
+#' result_signed <- rwa_multiregress(
+#'   df = mtcars,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp", "hp", "wt"),
+#'   applysigns = TRUE
+#' )
+#' result_signed$result
 #'
 #' @export
 rwa_multiregress <- function(df,
