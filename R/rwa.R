@@ -70,9 +70,20 @@
 #' # RWA without sorting (preserves original predictor order)
 #' rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
 #' 
+#' # RWA with different missing data handling
+#' # Use complete.obs for listwise deletion
+#' rwa(diamonds,"price",c("depth","carat"), use = "complete.obs")
+#' 
+#' # Use pairwise.complete.obs for pairwise deletion (default)
+#' rwa(diamonds,"price",c("depth","carat"), use = "pairwise.complete.obs")
+#' 
 #' \donttest{
 #' # For faster examples, use a subset of data for bootstrap
 #' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+#' 
+#' # RWA with weights
+#' diamonds_small$sample_weight <- runif(nrow(diamonds_small), 0.5, 2)
+#' rwa(diamonds_small,"price",c("depth","carat"), weight = "sample_weight")
 #' 
 #' # RWA with bootstrap confidence intervals (raw weights only)
 #' rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 100)
