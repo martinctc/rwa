@@ -55,14 +55,14 @@ test_that("plot_rwa() plot structure is correct", {
   # Check plot data
   plot_data <- p$data
   expect_s3_class(plot_data, "data.frame")
-  expect_true("Variables" %in% names(plot_data))
+  expect_true("variable_name" %in% names(plot_data))
   expect_true("Sign.Rescaled.RelWeight" %in% names(plot_data))
   
   # Check that plot has correct number of bars
   expect_equal(nrow(plot_data), length(rwa_result$predictors))
   
   # Check mapping using rlang::as_label instead of as.character
-  expect_equal(rlang::as_label(p$mapping$x), "stats::reorder(Variables, Sign.Rescaled.RelWeight)")
+  expect_equal(rlang::as_label(p$mapping$x), "stats::reorder(variable_name, Sign.Rescaled.RelWeight)")
   expect_equal(rlang::as_label(p$mapping$y), "Sign.Rescaled.RelWeight")
   
   # Check coordinate system (should be flipped)
@@ -177,4 +177,72 @@ test_that("plot_rwa() text labels are present", {
   # Check that text layer has correct mapping
   text_layer <- p$layers[geom_classes == "GeomText"][[1]]
   expect_true("label" %in% names(text_layer$mapping))
+})
+
+# Tests for logistic regression plotting
+test_that("plot_rwa() works with logistic regression results", {
+  # Create binary outcome
+  mtcars_binary <- mtcars
+  mtcars_binary$high_mpg <- ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+  
+  # Run logistic RWA
+  rwa_logit_result <- rwa_logit(
+    df = mtcars_binary,
+    outcome = "high_mpg",
+    predictors = c("cyl", "hp", "wt")
+  )
+  
+  # plot_rwa() should work without error
+  expect_no_error(p <- plot_rwa(rwa_logit_result))
+  expect_s3_class(p, "ggplot")
+  
+  # Check that all predictors are represented
+  expect_equal(nrow(p$data), 3)
+})
+
+test_that("plot_rwa() caption shows R-squared for logistic regression", {
+  # Create binary outcome
+  mtcars_binary <- mtcars
+  mtcars_binary$high_mpg <- ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+  
+  # Run logistic RWA
+  rwa_logit_result <- rwa_logit(
+    df = mtcars_binary,
+    outcome = "high_mpg",
+    predictors = c("cyl", "hp", "wt")
+  )
+  
+  p <- plot_rwa(rwa_logit_result)
+  
+  # Caption should contain R-squared (logistic regression now returns rsquare too)
+  expect_true(grepl("R-squared:", p$labels$caption))
+})
+
+test_that("plot_rwa() caption shows R-squared for multiple regression", {
+  rwa_result <- mtcars %>%
+    rwa(outcome = "mpg", predictors = c("cyl", "hp", "wt"))
+  
+  p <- plot_rwa(rwa_result)
+  
+  # Caption should contain R-squared, not Lambda
+  expect_true(grepl("R-squared:", p$labels$caption))
+  expect_false(grepl("Lambda:", p$labels$caption))
+})
+
+test_that("plot_rwa() handles logistic regression with applysigns", {
+  # Create binary outcome
+  mtcars_binary <- mtcars
+  mtcars_binary$high_mpg <- ifelse(mtcars$mpg > median(mtcars$mpg), 1, 0)
+  
+  # Run logistic RWA with signs
+  rwa_logit_result <- rwa_logit(
+    df = mtcars_binary,
+    outcome = "high_mpg",
+    predictors = c("cyl", "hp", "wt"),
+    applysigns = TRUE
+  )
+  
+  # plot_rwa() should work without error
+  expect_no_error(p <- plot_rwa(rwa_logit_result))
+  expect_s3_class(p, "ggplot")
 })
