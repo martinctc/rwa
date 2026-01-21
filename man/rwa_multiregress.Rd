@@ -26,7 +26,7 @@ rwa_multiregress(df, outcome, predictors, applysigns = FALSE)
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
-\item \code{lambda}:
+\item \code{lambda}: the transformation matrix that maps the original correlated predictors to orthogonal variables while preserving their relationship to the outcome. Used internally to compute relative weights.
 \item \code{RXX}: Correlation matrix of all the predictor variables against each other.
 \item \code{RXY}: Correlation values of the predictor variables against the outcome variable.
 }

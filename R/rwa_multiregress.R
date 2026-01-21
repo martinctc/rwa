@@ -24,7 +24,7 @@
 #'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively correlated with the outcome.
 #' - `n`: indicates the number of observations used in the analysis.
-#' - `lambda`:
+#' - `lambda`: the transformation matrix that maps the original correlated predictors to orthogonal variables while preserving their relationship to the outcome. Used internally to compute relative weights.
 #' - `RXX`: Correlation matrix of all the predictor variables against each other.
 #' - `RXY`: Correlation values of the predictor variables against the outcome variable.
 #'
