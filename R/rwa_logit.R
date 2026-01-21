@@ -6,11 +6,12 @@
 #'
 #' @return `rwa_logit()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
+#' - `rsquare`: the pseudo R-squared value (sum of epsilon weights) for the logistic regression model.
 #' - `result`: the final output of the importance metrics.
 #'   - The `Rescaled.RelWeight` column sums up to 1.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively associated with the outcome.
 #' - `n`: indicates the number of observations used in the analysis.
-#' - `lambda`: pseudo R-squared value for the logistic regression model.
+#' - `lambda`: the Lambda transformation matrix from the analysis.
 #'
 #' @examples
 #' # Create a binary outcome variable
@@ -139,7 +140,7 @@ rwa_logit <- function(df,
   }
 
   list("predictors" = predictors,
-       # "rsquare" = rsquare,
+       "rsquare" = R.sq,
        "result" = result,
        "n" = complete_cases,
        "lambda" = Lambda)
