@@ -424,9 +424,8 @@ test_that("rwa_logit() computes valid weights", {
   # Raw weights should be non-negative
   expect_true(all(result$result$Raw.RelWeight >= 0))
   
-  # Rescaled weights should sum to approximately 1 (logistic uses proportions)
-  # Note: rwa_logit uses proportions (0-1) not percentages (0-100)
-  expect_equal(sum(result$result$Rescaled.RelWeight), 1, tolerance = 1e-6)
+  # Rescaled weights should sum to 100 (now consistent with rwa_multiregress)
+  expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-6)
 })
 
 test_that("rwa_logit() handles applysigns parameter",

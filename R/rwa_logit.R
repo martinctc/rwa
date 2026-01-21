@@ -8,7 +8,7 @@
 #' - `predictors`: character vector of names of the predictor variables used.
 #' - `rsquare`: the pseudo R-squared value (sum of epsilon weights) for the logistic regression model.
 #' - `result`: the final output of the importance metrics.
-#'   - The `Rescaled.RelWeight` column sums up to 1.
+#'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively associated with the outcome.
 #' - `n`: indicates the number of observations used in the analysis.
 #' - `lambda`: the Lambda transformation matrix from the analysis.
@@ -111,7 +111,7 @@ rwa_logit <- function(df,
   epsilon <- Lambda^2 %*% beta^2
 
   R.sq <- sum(epsilon)
-  PropWeights <- (epsilon/R.sq)
+  PropWeights <- (epsilon/R.sq) * 100  # Convert to percentage (0-100) for consistency with rwa_multiregress
 
   # Get signs from coefficients
   sign <-
