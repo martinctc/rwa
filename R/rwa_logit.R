@@ -4,6 +4,7 @@
 #'
 #' @inheritParams rwa
 #'
+#' @importFrom stats glm binomial coef predict sd lm
 #' @export
 rwa_logit <- function(df,
                       outcome,
