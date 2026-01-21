@@ -428,8 +428,7 @@ test_that("rwa_logit() computes valid weights", {
   expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-6)
 })
 
-test_that("rwa_logit() handles applysigns parameter",
-{
+test_that("rwa_logit() handles applysigns parameter", {
   mtcars_binary <- mtcars
   mtcars_binary$high_mpg <- as.numeric(mtcars_binary$mpg > 20)
   
