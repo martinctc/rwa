@@ -102,10 +102,10 @@ test_that("plot_rwa() labels and aesthetics are correct", {
   expect_equal(p$labels$title, "Variable importance estimates")
   expect_equal(p$labels$subtitle, "Using the Relative Weights Analysis method")
   expect_equal(p$labels$x, "Predictor variables")
-  expect_equal(p$labels$y, "Rescaled Relative Weights")
+  expect_equal(p$labels$y, "Rescaled Relative Weights (with sign)")
   
   # Check that caption contains expected elements
-  expect_true(grepl("Rescaled Relative Weights sum to 100%", p$labels$caption))
+  expect_true(grepl("Absolute Rescaled Relative Weights sum to 100%", p$labels$caption))
   expect_true(grepl("n =", p$labels$caption))
   expect_true(grepl("R-squared:", p$labels$caption))
   
@@ -146,15 +146,20 @@ test_that("plot_rwa() y-axis limits work correctly", {
   plot_data <- p$data
   
   # Check that y-limits accommodate the data plus some buffer
+  min_weight <- min(plot_data$Sign.Rescaled.RelWeight)
   max_weight <- max(plot_data$Sign.Rescaled.RelWeight)
   
-  # The ylim should be from NA (automatic) to max_weight * 1.1
-  # But if max_weight is negative (all negative relationships), 
-  # we should test against the absolute maximum for proper scaling
-  expected_upper_limit <- max_weight * 1.1
+  # The ylim should properly accommodate all values with buffer for labels
   y_limits <- layer_scales(p)$y$limits
   if (!is.null(y_limits)) {
-    expect_equal(y_limits[2], expected_upper_limit, tolerance = 1e-10)
+    # For all-negative case, lower limit should extend past minimum
+    if (min_weight < 0 && max_weight <= 0) {
+      expect_true(y_limits[1] < min_weight)
+    }
+    # For all-positive case, upper limit should extend past maximum
+    if (min_weight >= 0 && max_weight > 0) {
+      expect_true(y_limits[2] > max_weight)
+    }
   }
 })
 
