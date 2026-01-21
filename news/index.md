@@ -2,6 +2,8 @@
 
 ## rwa 0.1.1
 
+CRAN release: 2026-01-20
+
 ### Improvements
 
 - **Input validation**: Added comprehensive validation for

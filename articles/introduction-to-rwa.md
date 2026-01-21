@@ -500,7 +500,7 @@ start_time <- Sys.time()
 rwa_speed_test <- mtcars %>% rwa(outcome = "mpg", predictors = predictors)
 end_time <- Sys.time()
 cat("RWA computation time:", round(as.numeric(end_time - start_time, units = "secs"), 4), "seconds\n")
-#> RWA computation time: 0.0119 seconds
+#> RWA computation time: 0.0089 seconds
 ```
 
 ## Critical Limitations and When to Exercise Caution
