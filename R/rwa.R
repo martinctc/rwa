@@ -150,8 +150,8 @@ rwa <- function(df,
     if (!is.numeric(df[[weight]])) {
       stop(sprintf("Weight variable '%s' must be numeric.", weight))
     }
-    if (any(df[[weight]] < 0, na.rm = TRUE)) {
-      stop(sprintf("Weight variable '%s' must have non-negative values.", weight))
+    if (any(df[[weight]] <= 0, na.rm = TRUE)) {
+      stop(sprintf("Weight variable '%s' must have positive values.", weight))
     }
   }
   
@@ -213,13 +213,13 @@ rwa <- function(df,
     
     # Check for zero or NA weights
     if (any(is.na(weight_values))) {
-      if (use == "complete.obs") {
-        # Remove rows with NA weights
+      if (use %in% c("complete.obs", "pairwise.complete.obs")) {
+        # Remove rows with NA weights for complete/pairwise cases
         non_na_idx <- !is.na(weight_values)
         weight_values <- weight_values[non_na_idx]
         analysis_data <- analysis_data[non_na_idx, ]
       } else {
-        stop("Weight variable contains NA values. Set use = 'complete.obs' for listwise deletion or remove NA weights from data.")
+        stop("Weight variable contains NA values. Set use = 'complete.obs' or 'pairwise.complete.obs' for automatic removal of NA weights.")
       }
     }
     

@@ -142,6 +142,7 @@ test_that("rwa() validates weight parameter", {
   mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
   mtcars_weighted$char_weight <- as.character(mtcars_weighted$weights)
   mtcars_weighted$neg_weight <- -1 * mtcars_weighted$weights
+  mtcars_weighted$zero_weight <- rep(0, nrow(mtcars))
   
   # Non-existent weight variable
   expect_error(
@@ -158,7 +159,13 @@ test_that("rwa() validates weight parameter", {
   # Negative weight values
   expect_error(
     rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "neg_weight"),
-    "Weight variable.*must have non-negative values"
+    "Weight variable.*must have positive values"
+  )
+  
+  # Zero weight values (should also be rejected as they're not positive)
+  expect_error(
+    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "zero_weight"),
+    "Weight variable.*must have positive values"
   )
 })
 
