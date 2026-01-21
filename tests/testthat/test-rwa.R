@@ -297,7 +297,7 @@ test_that("rwa() auto-detects binary outcome for logistic regression", {
   # Create binary outcome
   mtcars_binary <- mtcars
 
-mtcars_binary$high_mpg <- as.numeric(mtcars_binary$mpg > 20)
+  mtcars_binary$high_mpg <- as.numeric(mtcars_binary$mpg > 20)
   
   expect_message(
     result <- rwa(mtcars_binary, "high_mpg", c("cyl", "hp"), method = "auto"),
