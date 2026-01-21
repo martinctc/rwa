@@ -26,6 +26,15 @@ plot_rwa <- function(rwa){
     dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
                                                    Rescaled.RelWeight * -1,
                                                    Rescaled.RelWeight))
+ 
+  # Handle different column names: 'Variables' (multiple regression) vs 'predictors' (logistic)
+  if ("Variables" %in% names(result)) {
+    result$variable_name <- result$Variables
+  } else if ("predictors" %in% names(result)) {
+    result$variable_name <- result$predictors
+  } else {
+    stop("Could not find variable names in result. Expected 'Variables' or 'predictors' column.")
+  }
 
   # Calculate appropriate axis limits for both positive and negative values
   max_abs_weight <- max(abs(result$Sign.Rescaled.RelWeight))
@@ -45,7 +54,7 @@ plot_rwa <- function(rwa){
   }
 
   result %>%
-    ggplot(aes(x = stats::reorder(Variables, Sign.Rescaled.RelWeight), 
+    ggplot(aes(x = stats::reorder(variable_name, Sign.Rescaled.RelWeight), 
                y = Sign.Rescaled.RelWeight)) +
     geom_col(fill = "#0066cc") +
     geom_text(aes(label = round(Sign.Rescaled.RelWeight, 1),
@@ -58,8 +67,12 @@ plot_rwa <- function(rwa){
          y = "Rescaled Relative Weights (with sign)",
          caption = paste0("Note: Absolute Rescaled Relative Weights sum to 100%. n = ",
                           rwa$n, ". ",
-                          "R-squared: ",
-                          round(rwa$rsquare, 2),
-                          ".")) +
+                          if (!is.null(rwa$rsquare)) {
+                            paste0("R-squared: ", round(rwa$rsquare, 2), ".")
+                          } else if (!is.null(rwa$lambda)) {
+                            paste0("Lambda: ", round(rwa$lambda, 2), ".")
+                          } else {
+                            ""
+                          })) +
     theme_classic()
 }
