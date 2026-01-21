@@ -30,5 +30,6 @@ articles:
   
 - title: "Advanced Methods"
   contents:
+  - regression-methods
   - bootstrap-confidence-intervals
   - evaluating-rwa-method-reference
