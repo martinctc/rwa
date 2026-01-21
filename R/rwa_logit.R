@@ -128,7 +128,7 @@ rwa_logit <- function(df,
                Rescaled.RelWeight = PropWeights) %>%
     mutate(Sign = sign)
 
-  complete_cases <- nrow(drop_na(thedata))
+  complete_cases <- nrow(tidyr::drop_na(thedata))
 
   if(applysigns == TRUE){
     result <-

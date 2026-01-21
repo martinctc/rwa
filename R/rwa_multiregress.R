@@ -111,7 +111,7 @@ rwa_multiregress <- function(df,
                        Rescaled.RelWeight = import,
                        Sign = sign) # Output - results
 
-  nrow(drop_na(thedata)) -> complete_cases
+  nrow(tidyr::drop_na(thedata)) -> complete_cases
 
   if(applysigns == TRUE){
     result %>%
