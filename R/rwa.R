@@ -12,9 +12,12 @@
 #' `rwa()` produces raw relative weight values (epsilons) as well as rescaled
 #' weights (scaled as a percentage of predictable variance) for every predictor
 #' in the model. Signs are added to the weights when the `applysigns` argument
-#' is set to `TRUE`. See
-#' https://relativeimportance.davidson.edu/multipleregression.html for the
+#' is set to `TRUE`. See <https://www.scotttonidandel.com/rwa-web> for the
 #' original implementation that inspired this package.
+#'
+#' This function is a wrapper around `rwa_multiregress()` and `rwa_logit()`,
+#' automatically selecting the appropriate method based on the outcome variable
+#' or the `method` argument.
 #'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input.
@@ -24,37 +27,91 @@
 #' @param applysigns Logical value specifying whether to show an estimate that
 #'   applies the sign. Defaults to `FALSE`.
 #' @param method String to specify the method of regression to apply. Valid
-#' values include:
+#'   values include:
 #'   - `"auto"`: automatically detect whether to use multiple regression or
-#'   logistic regression based on the outcome variable provided.
+#'     logistic regression based on the outcome variable provided.
 #'   - `"multiple"`: use multiple regression.
 #'   - `"logistic"`: use logistic regression.
-#' @param plot Logical value specifying whether to plot the rescaled importance
-#'   metrics.
+#' @param sort Logical value specifying whether to sort results by rescaled
+#'   relative weights in descending order. Defaults to `TRUE`.
+#' @param bootstrap Logical value specifying whether to calculate bootstrap
+#'   confidence intervals. Defaults to `FALSE`. Currently only supported for
+#'   multiple regression.
+#' @param n_bootstrap Number of bootstrap samples to use when bootstrap = TRUE.
+#'   Defaults to 1000.
+#' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
+#' @param focal Focal variable for bootstrap comparisons (optional).
+#' @param comprehensive Whether to run comprehensive bootstrap analysis
+#'   including random variable and focal comparisons.
+#' @param include_rescaled_ci Logical value specifying whether to include
+#'   confidence intervals for rescaled weights. Defaults to `FALSE` due to
+#'   compositional data constraints. Use with caution.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
-#' - `rsquare`: the rsquare value of the regression model.
-#' - `result`: the final output of the importance metrics.
+#' - `rsquare`: the rsquare value of the regression model (multiple regression only).
+#' - `result`: the final output of the importance metrics (sorted by
+#'   Rescaled.RelWeight in descending order by default).
 #'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or
-#'   negatively correlated with the outcome.
+#'     negatively correlated with the outcome.
+#'   - When bootstrap = TRUE, includes confidence interval columns for raw weights.
+#'   - Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
+#'     recommended for inference.
 #' - `n`: indicates the number of observations used in the analysis.
-#' - `lambda`:
+#' - `bootstrap`: bootstrap results (only present when bootstrap = TRUE), containing:
+#'   - `ci_results`: confidence intervals for weights
+#'   - `boot_object`: raw bootstrap object for advanced analysis
+#'   - `n_bootstrap`: number of bootstrap samples used
+#' - `lambda`: lambda matrix from the RWA calculation.
 #' - `RXX`: Correlation matrix of all the predictor variables against each
-#' other. Not available for logistic regression.
+#'   other. Not available for logistic regression.
 #' - `RXY`: Correlation values of the predictor variables against the outcome
-#' variable. Not available for logistic regression.
+#'   variable. Not available for logistic regression.
 #'
+#' @seealso [plot_rwa()] for plotting results, [rwa_multiregress()] and
+#'   [rwa_logit()] for the underlying implementations.
+#'
+#' @importFrom magrittr %>%
+#' @importFrom tidyr drop_na
+#' @importFrom stats cor var
+#' @import dplyr
 #' @examples
 #' library(ggplot2)
+#' # Basic RWA (results sorted by default)
+#' rwa(diamonds, "price", c("depth", "carat"))
 #'
-#' # Based on multiple regression
-#' rwa(diamonds,"price",c("depth","carat"))
+#' # RWA without sorting (preserves original predictor order)
+#' rwa(diamonds, "price", c("depth", "carat"), sort = FALSE)
 #'
-#' # Based on logistic regression
+#' # Plot results using plot_rwa()
+#' diamonds |>
+#'   rwa("price", c("depth", "carat", "x", "y")) |>
+#'   plot_rwa()
+#'
+#' \donttest{
+#' # For faster examples, use a subset of data for bootstrap
+#' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+#'
+#' # RWA with bootstrap confidence intervals (raw weights only)
+#' rwa(diamonds_small, "price", c("depth", "carat"),
+#'     bootstrap = TRUE, n_bootstrap = 100)
+#'
+#' # Include rescaled weight CIs (use with caution for inference)
+#' rwa(diamonds_small, "price", c("depth", "carat"),
+#'     bootstrap = TRUE, include_rescaled_ci = TRUE, n_bootstrap = 100)
+#'
+#' # Comprehensive bootstrap analysis with focal variable
+#' result <- rwa(diamonds_small, "price", c("depth", "carat", "table"),
+#'               bootstrap = TRUE, comprehensive = TRUE, focal = "carat",
+#'               n_bootstrap = 100)
+#' # View confidence intervals
+#' result$bootstrap$ci_results
+#' }
+#'
+#' # Based on logistic regression (auto-detected from binary outcome)
 #' diamonds$IsIdeal <- as.numeric(diamonds$cut == "Ideal")
-#' rwa(diamonds,"IsIdeal",c("depth","carat"))
+#' rwa(diamonds, "IsIdeal", c("depth", "carat"))
 #'
 #' @export
 rwa <- function(df,
@@ -62,68 +119,161 @@ rwa <- function(df,
                 predictors,
                 applysigns = FALSE,
                 method = "auto",
-                plot = TRUE){
+                sort = TRUE,
+                bootstrap = FALSE,
+                n_bootstrap = 1000,
+                conf_level = 0.95,
+                focal = NULL,
+                comprehensive = FALSE,
+                include_rescaled_ci = FALSE) {
 
-  # Check if outcome variable is a binary variable
-  outcome_var <- unique(df[[outcome]])
-  outcome_var_unique <- dplyr::n_distinct(outcome_var[!is.na(outcome_var)])
 
-  # Logistic regression
-  run_logit <- function(){
-    rwa_logit(
-      df = df,
-      outcome = outcome,
-      predictors = predictors,
-      applysigns = applysigns,
-      plot = plot
-    )
+  # ---- Input validation ----
+
+  # Validate method
+
+  if (!method %in% c("auto", "multiple", "logistic")) {
+    stop("Invalid input for `method`. Must be one of: 'auto', 'multiple', 'logistic'.")
   }
 
-  # Multiple regression
-  run_mult <- function(){
-    rwa_multiregress(
-      df = df,
-      outcome = outcome,
-      predictors = predictors,
-      applysigns = applysigns,
-      plot = plot
-    )
+  # Validate conf_level
+  if (!is.numeric(conf_level) || length(conf_level) != 1 ||
+      conf_level <= 0 || conf_level >= 1) {
+    stop("`conf_level` must be a single numeric value between 0 and 1 (exclusive).")
   }
 
+  # Validate n_bootstrap
+  if (!is.numeric(n_bootstrap) || length(n_bootstrap) != 1 ||
+      n_bootstrap < 1 || n_bootstrap != floor(n_bootstrap)) {
+    stop("`n_bootstrap` must be a positive integer.")
+  }
 
-  if(method == "auto"){
+  # Check that outcome and predictors exist in data
+  if (!outcome %in% names(df)) {
+    stop(sprintf("Outcome variable '%s' not found in data.", outcome))
+  }
 
-    if(outcome_var_unique == 2){
+  missing_predictors <- predictors[!predictors %in% names(df)]
+  if (length(missing_predictors) > 0) {
+    stop(sprintf("Predictor variable(s) not found in data: %s",
+                 paste(missing_predictors, collapse = ", ")))
+  }
 
+  # Validate that outcome is numeric
+  if (!is.numeric(df[[outcome]])) {
+    stop(sprintf("Outcome variable '%s' must be numeric.", outcome))
+  }
+
+  # Validate that all predictors are numeric
+  non_numeric_predictors <- predictors[!sapply(df[predictors], is.numeric)]
+  if (length(non_numeric_predictors) > 0) {
+    stop(sprintf("All predictor variables must be numeric. Non-numeric: %s",
+                 paste(non_numeric_predictors, collapse = ", ")))
+  }
+
+  # ---- Determine regression method ----
+
+  outcome_values <- unique(df[[outcome]])
+  outcome_var_unique <- dplyr::n_distinct(outcome_values[!is.na(outcome_values)])
+
+  use_logistic <- (method == "logistic") ||
+                  (method == "auto" && outcome_var_unique == 2)
+
+  if (method == "auto") {
+    if (use_logistic) {
       message(
-        paste0("Parsing `", outcome, "`", " as a binary variable."),
-        "\nApplying logistic regression to calculate relative weights..."
+        paste0("Parsing `", outcome, "` as a binary variable.\n"),
+        "Applying logistic regression to calculate relative weights..."
       )
-
-      run_logit()
-
     } else {
-
       message(
-        paste0("Parsing `", outcome, "`", " as a non-binary variable."),
-        "\nApplying multiple regression to calculate relative weights..."
+        paste0("Parsing `", outcome, "` as a non-binary variable.\n"),
+        "Applying multiple regression to calculate relative weights..."
       )
+    }
+  }
 
-      run_mult()
+  # ---- Handle bootstrap for logistic regression ----
 
+  if (bootstrap && use_logistic) {
+    warning("Bootstrap confidence intervals are not yet implemented for logistic regression. ",
+            "Proceeding without bootstrap.")
+    bootstrap <- FALSE
+  }
+
+  # ---- Call appropriate sub-function ----
+
+  if (use_logistic) {
+    result_list <- rwa_logit(
+      df = df,
+      outcome = outcome,
+      predictors = predictors,
+      applysigns = applysigns
+    )
+  } else {
+    result_list <- rwa_multiregress(
+      df = df,
+      outcome = outcome,
+      predictors = predictors,
+      applysigns = applysigns
+    )
+  }
+
+  # ---- Apply sorting ----
+
+  if (sort) {
+    result_list$result <- result_list$result %>%
+      dplyr::arrange(dplyr::desc(Rescaled.RelWeight))
+  }
+
+  # ---- Run bootstrap analysis if requested (multiple regression only) ----
+
+  if (bootstrap) {
+    message("Running bootstrap analysis with ", n_bootstrap, " samples...")
+
+    bootstrap_results <- run_rwa_bootstrap(
+      data = df,
+      outcome = outcome,
+      predictors = predictors,
+      n_bootstrap = n_bootstrap,
+      conf_level = conf_level,
+      focal = focal,
+      comprehensive = comprehensive,
+      include_rescaled = include_rescaled_ci
+    )
+
+    # Add confidence intervals to result dataframe
+    if (!is.null(bootstrap_results$ci_results$raw_weights)) {
+      ci_data <- bootstrap_results$ci_results$raw_weights
+
+      # Add CI columns for raw weights
+      result_list$result$Raw.RelWeight.CI.Lower <-
+        ci_data$ci_lower[match(result_list$result$Variables, ci_data$variable)]
+      result_list$result$Raw.RelWeight.CI.Upper <-
+        ci_data$ci_upper[match(result_list$result$Variables, ci_data$variable)]
+
+      # Add significance indicator for raw weights (if CI doesn't include 0)
+      result_list$result$Raw.Significant <-
+        !(result_list$result$Raw.RelWeight.CI.Lower <= 0 &
+          result_list$result$Raw.RelWeight.CI.Upper >= 0)
     }
 
-  } else if(method == "multiple"){
+    # Add rescaled weight CIs only if explicitly requested and warn user
+    if (include_rescaled_ci && !is.null(bootstrap_results$ci_results$rescaled_weights)) {
+      warning("Rescaled weight confidence intervals should be interpreted with caution ",
+              "due to compositional data constraints. Use for descriptive purposes only, ",
+              "not formal statistical inference.")
 
-    run_mult()
+      rescaled_ci <- bootstrap_results$ci_results$rescaled_weights
 
-  } else if(method == "logistic"){
+      result_list$result$Rescaled.RelWeight.CI.Lower <-
+        rescaled_ci$ci_lower[match(result_list$result$Variables, rescaled_ci$variable)]
+      result_list$result$Rescaled.RelWeight.CI.Upper <-
+        rescaled_ci$ci_upper[match(result_list$result$Variables, rescaled_ci$variable)]
+    }
 
-    run_logit()
-
-  } else {
-
-    stop("invalid input for `method`.")
-
+    result_list$bootstrap <- bootstrap_results
   }
+
+  result_list
 }

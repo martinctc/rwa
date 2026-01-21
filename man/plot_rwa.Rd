@@ -17,7 +17,9 @@ argument to \code{TRUE} in \code{rwa()}.
 \examples{
 
 library(ggplot2)
-diamonds \%>\%
+# Use a smaller sample for faster execution
+diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+diamonds_small \%>\%
   rwa(outcome = "price",
       predictors = c("depth","carat", "x", "y", "z"),
       applysigns = TRUE) \%>\%

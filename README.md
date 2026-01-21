@@ -2,12 +2,14 @@
 
 [![R build status](https://github.com/martinctc/rwa/workflows/R-CMD-check/badge.svg)](https://github.com/martinctc/rwa/actions)
 [![CodeFactor](https://www.codefactor.io/repository/github/martinctc/rwa/badge)](https://www.codefactor.io/repository/github/martinctc/rwa)
+[![CRAN status](https://www.r-pkg.org/badges/version/rwa)](https://CRAN.R-project.org/package=rwa/)
+[![CRAN last month downloads](https://cranlogs.r-pkg.org/badges/last-month/rwa?color=green/)](https://cran.r-project.org/package=rwa/)
 
 Perform a Relative Weights Analysis in R
 
 
 ### Background
-**Relative Weights Analysis (RWA)** is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Toniandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), *A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression*. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella 'Relative Importance Analysis', where other members include the 'Shapley method' and 'dominance analysis'. This is often referred to as 'Key Drivers Analysis' within market research.
+**Relative Weights Analysis (RWA)** is a method of calculating relative importance of predictor variables in contributing to an outcome variable. The method implemented by this function is based on Tonidandel and LeBreton (2015), but the origin of this specific approach can be traced back to Johnson (2000), *A Heuristic Method for Estimating the Relative Weight of Predictor Variables in Multiple Regression*. Broadly speaking, RWA belongs to a family of techiques under the broad umbrella 'Relative Importance Analysis', where other members include the 'Shapley method' and 'dominance analysis'. This is often referred to as 'Key Drivers Analysis' within market research.
 
 This package is built around the main function `rwa()`, which takes in a data frame as an argument and allows you to specify the names of the input variables and the outcome variable as arguments.
 
@@ -40,12 +42,15 @@ RWA is a useful technique to calculate the relative importance of predictors (in
 See https://link.springer.com/content/pdf/10.1007%2Fs10869-014-9351-z.pdf. 
 
 ### Multicollinearity
+
 When independent variables are correlated, it is difficult to determine the correct prediction power of each variable. Hence, it is difficult to rank them as we are unable to estimate coefficients correctly. Statistically, multicollinearity can increase the standard error of the coefficient estimates and make the estimates very sensitive to minor changes in the model. It means the coefficients are biased and difficult to interpret.
 
 ### Signs
+
 Key Drivers Analysis methods do not conventionally include a score sign, which can make it difficult to interpret whether a variable is _positively_ or _negatively_ driving the outcome. The `applysigns` argument in `rwa::rwa()`, when set to `TRUE`, allows the application of positive or negative signs to the driver scores to match the signs of the corresponding linear regression coefficients from the model. This feature mimics the solution used in the [Q research software](https://wiki.q-researchsoftware.com/wiki/Driver_(Importance)_Analysis). The resulting column is labelled `Sign.Rescaled.RelWeight` to distinguish from the unsigned column.
 
 ### Estimating the statistical significance of relative weights
+
 As Tonidandel et al. (2009) noted, there is no default procedure for determining the statistical significance of individual relative weights: 
 
 > The difficulty in determining the statistical significance of relative weights stems from the fact that the exact (or small sample) sampling distribution of relative weights is unknown.
@@ -87,9 +92,36 @@ $n
 
 ---
 
+### Documentation
+
+For comprehensive examples and methodology explanations, see the package vignettes:
+
+```R
+# Main introduction to RWA
+vignette("introduction-to-rwa", package = "rwa")
+
+# Bootstrap confidence intervals for statistical significance
+vignette("bootstrap-confidence-intervals", package = "rwa")
+```
+
+**Online documentation**: Visit [https://martinctc.github.io/rwa/](https://martinctc.github.io/rwa/) for the full pkgdown site with:
+
+- [Getting Started Guide](https://martinctc.github.io/rwa/articles/introduction-to-rwa.html)
+- [Bootstrap Confidence Intervals](https://martinctc.github.io/rwa/articles/bootstrap-confidence-intervals.html)
+- [Function Reference](https://martinctc.github.io/rwa/reference/index.html)
+
+The vignettes cover:
+
+- **Introduction vignette**: Detailed methodology, basic examples, and when to use RWA
+- **Bootstrap vignette**: Statistical significance testing, confidence intervals, and advanced features
+- Real-world applications and best practices
+- Troubleshooting and interpretation guidance
+
+---
+
 ### Latest Status
 
-The main `rwa()` function is ready-to-use, but the intent is to develop additional functions for this package which supplement the use of this function, such as tidying outputs and visualisations.
+The main `rwa()` function is ready-to-use and now includes bootstrap confidence intervals for determining the statistical significance of relative weights. The package includes comprehensive documentation through vignettes and is designed to integrate seamlessly with tidyverse workflows.
 
 ---
 

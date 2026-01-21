@@ -1,9 +1,11 @@
 Package: rwa
 Type: Package
 Title: Perform a Relative Weights Analysis
-Version: 0.0.3
-Author: Martin Chan <martinchan53@gmail.com>
-Maintainer: Martin Chan <martinchan53@gmail.com>
+Version: 0.1.1
+Authors@R: person(given = "Martin",
+                  family = "Chan",
+                  role = c("aut", "cre"),
+                  email = "martinchan53@gmail.com")
 Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analysis) as per the method described 
     in Tonidandel & LeBreton (2015) <DOI:10.1007/s10869-014-9351-z>, with its original roots in Johnson (2000) <DOI:10.1207/S15327906MBR3501_1>. In essence, RWA decomposes
     the total variance predicted in a regression model into weights that accurately reflect the proportional 
@@ -12,13 +14,25 @@ Description: Perform a Relative Weights Analysis (RWA) (a.k.a. Key Drivers Analy
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-URL: https://github.com/martinctc/rwa
+URL: https://martinctc.github.io/rwa/, https://github.com/martinctc/rwa
 BugReports: https://github.com/martinctc/rwa/issues
-RoxygenNote: 7.1.1
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Imports:
 	dplyr,
 	magrittr,
 	stats,
 	tidyr,
-	ggplot2
+	ggplot2,
+	boot,
+	purrr,
+	utils
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0),
+    rlang,
+    spelling
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Language: en-US

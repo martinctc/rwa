@@ -4,7 +4,20 @@
 \alias{rwa}
 \title{Create a Relative Weights Analysis (RWA)}
 \usage{
-rwa(df, outcome, predictors, applysigns = FALSE, method = "auto", plot = TRUE)
+rwa(
+  df,
+  outcome,
+  predictors,
+  applysigns = FALSE,
+  method = "auto",
+  sort = TRUE,
+  bootstrap = FALSE,
+  n_bootstrap = 1000,
+  conf_level = 0.95,
+  focal = NULL,
+  comprehensive = FALSE,
+  include_rescaled_ci = FALSE
+)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
@@ -27,22 +40,50 @@ logistic regression based on the outcome variable provided.
 \item \code{"logistic"}: use logistic regression.
 }}
 
-\item{plot}{Logical value specifying whether to plot the rescaled importance
-metrics.}
+\item{sort}{Logical value specifying whether to sort results by rescaled
+relative weights in descending order. Defaults to \code{TRUE}.}
+
+\item{bootstrap}{Logical value specifying whether to calculate bootstrap
+confidence intervals. Defaults to \code{FALSE}. Currently only supported for
+multiple regression.}
+
+\item{n_bootstrap}{Number of bootstrap samples to use when bootstrap = TRUE.
+Defaults to 1000.}
+
+\item{conf_level}{Confidence level for bootstrap intervals. Defaults to 0.95.}
+
+\item{focal}{Focal variable for bootstrap comparisons (optional).}
+
+\item{comprehensive}{Whether to run comprehensive bootstrap analysis
+including random variable and focal comparisons.}
+
+\item{include_rescaled_ci}{Logical value specifying whether to include
+confidence intervals for rescaled weights. Defaults to \code{FALSE} due to
+compositional data constraints. Use with caution.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
 \itemize{
 \item \code{predictors}: character vector of names of the predictor variables used.
-\item \code{rsquare}: the rsquare value of the regression model.
-\item \code{result}: the final output of the importance metrics.
+\item \code{rsquare}: the rsquare value of the regression model (multiple regression only).
+\item \code{result}: the final output of the importance metrics (sorted by
+Rescaled.RelWeight in descending order by default).
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or
 negatively correlated with the outcome.
+\item When bootstrap = TRUE, includes confidence interval columns for raw weights.
+\item Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
+recommended for inference.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
-\item \code{lambda}:
+\item \code{bootstrap}: bootstrap results (only present when bootstrap = TRUE), containing:
+\itemize{
+\item \code{ci_results}: confidence intervals for weights
+\item \code{boot_object}: raw bootstrap object for advanced analysis
+\item \code{n_bootstrap}: number of bootstrap samples used
+}
+\item \code{lambda}: lambda matrix from the RWA calculation.
 \item \code{RXX}: Correlation matrix of all the predictor variables against each
 other. Not available for logistic regression.
 \item \code{RXY}: Correlation values of the predictor variables against the outcome
@@ -62,18 +103,52 @@ positive / negative signs for weights.
 \code{rwa()} produces raw relative weight values (epsilons) as well as rescaled
 weights (scaled as a percentage of predictable variance) for every predictor
 in the model. Signs are added to the weights when the \code{applysigns} argument
-is set to \code{TRUE}. See
-https://relativeimportance.davidson.edu/multipleregression.html for the
+is set to \code{TRUE}. See \url{https://www.scotttonidandel.com/rwa-web} for the
 original implementation that inspired this package.
+
+This function is a wrapper around \code{rwa_multiregress()} and \code{rwa_logit()},
+automatically selecting the appropriate method based on the outcome variable
+or the \code{method} argument.
 }
 \examples{
 library(ggplot2)
+# Basic RWA (results sorted by default)
+rwa(diamonds, "price", c("depth", "carat"))
 
-# Based on multiple regression
-rwa(diamonds,"price",c("depth","carat"))
+# RWA without sorting (preserves original predictor order)
+rwa(diamonds, "price", c("depth", "carat"), sort = FALSE)
 
-# Based on logistic regression
+# Plot results using plot_rwa()
+diamonds |>
+  rwa("price", c("depth", "carat", "x", "y")) |>
+  plot_rwa()
+
+\donttest{
+# For faster examples, use a subset of data for bootstrap
+diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+
+# RWA with bootstrap confidence intervals (raw weights only)
+rwa(diamonds_small, "price", c("depth", "carat"),
+    bootstrap = TRUE, n_bootstrap = 100)
+
+# Include rescaled weight CIs (use with caution for inference)
+rwa(diamonds_small, "price", c("depth", "carat"),
+    bootstrap = TRUE, include_rescaled_ci = TRUE, n_bootstrap = 100)
+
+# Comprehensive bootstrap analysis with focal variable
+result <- rwa(diamonds_small, "price", c("depth", "carat", "table"),
+              bootstrap = TRUE, comprehensive = TRUE, focal = "carat",
+              n_bootstrap = 100)
+# View confidence intervals
+result$bootstrap$ci_results
+}
+
+# Based on logistic regression (auto-detected from binary outcome)
 diamonds$IsIdeal <- as.numeric(diamonds$cut == "Ideal")
-rwa(diamonds,"IsIdeal",c("depth","carat"))
+rwa(diamonds, "IsIdeal", c("depth", "carat"))
 
+}
+\seealso{
+\code{\link[=plot_rwa]{plot_rwa()}} for plotting results, \code{\link[=rwa_multiregress]{rwa_multiregress()}} and
+\code{\link[=rwa_logit]{rwa_logit()}} for the underlying implementations.
 }
