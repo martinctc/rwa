@@ -71,7 +71,6 @@ rwa_core_calculation <- function(thedata, outcome, predictors, return_all = FALS
   }
   
   cor_matrix <- cor_matrix %>%
-    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
     remove_all_na_cols() %>%
     tidyr::drop_na()
 
