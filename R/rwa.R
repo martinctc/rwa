@@ -219,7 +219,7 @@ rwa <- function(df,
         weight_values <- weight_values[non_na_idx]
         analysis_data <- analysis_data[non_na_idx, ]
       } else {
-        stop("Weight variable contains NA values. Use use='complete.obs' for listwise deletion or remove NA weights from data.")
+        stop("Weight variable contains NA values. Set use = 'complete.obs' for listwise deletion or remove NA weights from data.")
       }
     }
     

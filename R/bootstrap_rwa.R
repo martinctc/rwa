@@ -33,15 +33,32 @@ rwa_core_calculation <- function(thedata, outcome, predictors, return_all = FALS
                                  use = "pairwise.complete.obs", weight = NULL) {
   
   # Compute correlation matrix (weighted or unweighted)
-  if (!is.null(weight) && weight %in% names(thedata)) {
+  if (!is.null(weight)) {
+    # Check if weight variable exists in thedata
+    if (!weight %in% names(thedata)) {
+      stop(sprintf("Weight variable '%s' not found in data.", weight))
+    }
+    
     # Extract weights and variables for analysis
     weight_values <- thedata[[weight]]
     analysis_data <- thedata %>% dplyr::select(dplyr::all_of(c(outcome, predictors)))
     
-    # Remove NA weights if present
-    non_na_idx <- !is.na(weight_values)
-    weight_values <- weight_values[non_na_idx]
-    analysis_data <- analysis_data[non_na_idx, ]
+    # Handle NA weights consistently with use parameter
+    if (any(is.na(weight_values))) {
+      if (use == "complete.obs" || use == "pairwise.complete.obs") {
+        # Remove rows with NA weights for complete/pairwise cases
+        non_na_idx <- !is.na(weight_values)
+        weight_values <- weight_values[non_na_idx]
+        analysis_data <- analysis_data[non_na_idx, ]
+      } else if (use == "all.obs") {
+        stop("Weight variable contains NA values and use = 'all.obs'. Set use = 'complete.obs' for listwise deletion.")
+      } else {
+        # For other use options, remove NA weights
+        non_na_idx <- !is.na(weight_values)
+        weight_values <- weight_values[non_na_idx]
+        analysis_data <- analysis_data[non_na_idx, ]
+      }
+    }
     
     # Require complete cases for cov.wt
     complete_cases_idx <- stats::complete.cases(analysis_data)
