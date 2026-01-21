@@ -1,5 +1,9 @@
 # rwa (development version)
 
+- Added `rwa_logit()` and `rwa_multiregress()` for support logistic regression and multiple regression. 
+- Added new vignette to cover the new regression methods. 
+- Improved test coverage and minor bugfixes.
+
 # rwa 0.1.1
 
 ## Improvements
