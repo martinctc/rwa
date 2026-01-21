@@ -4,7 +4,7 @@
 \alias{rwa_logit}
 \title{Create a Relative Weights Analysis with logistic regression}
 \usage{
-rwa_logit(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
+rwa_logit(df, outcome, predictors, applysigns = FALSE)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
@@ -17,9 +17,6 @@ string(s) or bare input(s). All variables must be numeric.}
 
 \item{applysigns}{Logical value specifying whether to show an estimate that
 applies the sign. Defaults to \code{FALSE}.}
-
-\item{plot}{Logical value specifying whether to plot the rescaled importance
-metrics.}
 }
 \description{
 This function creates a Relative Weights Analysis (RWA) and

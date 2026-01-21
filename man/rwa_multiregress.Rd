@@ -4,7 +4,7 @@
 \alias{rwa_multiregress}
 \title{Create a Relative Weights Analysis (RWA)}
 \usage{
-rwa_multiregress(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
+rwa_multiregress(df, outcome, predictors, applysigns = FALSE)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
@@ -14,11 +14,9 @@ rwa_multiregress(df, outcome, predictors, applysigns = FALSE, plot = TRUE)
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
 
 \item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
-
-\item{plot}{Logical value specifying whether to plot the rescaled importance metrics.}
 }
 \value{
-\code{rwa()} returns a list of outputs, as follows:
+\code{rwa_multiregress()} returns a list of outputs, as follows:
 \itemize{
 \item \code{predictors}: character vector of names of the predictor variables used.
 \item \code{rsquare}: the rsquare value of the regression model.

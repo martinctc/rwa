@@ -16,9 +16,8 @@
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
-#' @param plot Logical value specifying whether to plot the rescaled importance metrics.
 #'
-#' @return `rwa()` returns a list of outputs, as follows:
+#' @return `rwa_multiregress()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
 #' - `rsquare`: the rsquare value of the regression model.
 #' - `result`: the final output of the importance metrics.
@@ -41,8 +40,7 @@
 rwa_multiregress <- function(df,
                              outcome,
                              predictors,
-                             applysigns = FALSE,
-                             plot = TRUE){
+                             applysigns = FALSE){
 
   # Gets data frame in right order and form
   thedata <-

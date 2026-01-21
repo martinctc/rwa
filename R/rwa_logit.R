@@ -8,8 +8,7 @@
 rwa_logit <- function(df,
                       outcome,
                       predictors,
-                      applysigns = FALSE,
-                      plot = TRUE){
+                      applysigns = FALSE){
 
   # Gets data frame in right order and form
   thedata <-
