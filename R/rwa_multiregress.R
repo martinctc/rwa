@@ -48,8 +48,6 @@ rwa_multiregress <- function(df,
     dplyr::select(all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(all_of(outcome))
 
-  numVar <- NCOL(thedata) # Output - number of variables
-
   cor_matrix <-
     cor(thedata, use = "pairwise.complete.obs") %>%
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%

@@ -17,8 +17,6 @@ rwa_logit <- function(df,
     dplyr::select(all_of(c(outcome, predictors))) %>%
     tidyr::drop_na(all_of(outcome))
 
-  numVar <- NCOL(thedata) # Output - number of variables
-
   # Predictors
   Variables <-
     thedata %>%
