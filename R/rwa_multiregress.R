@@ -45,8 +45,8 @@ rwa_multiregress <- function(df,
   # Gets data frame in right order and form
   thedata <-
     df %>%
-    dplyr::select(outcome,predictors) %>%
-    tidyr::drop_na(outcome)
+    dplyr::select(all_of(c(outcome, predictors))) %>%
+    tidyr::drop_na(all_of(outcome))
 
   numVar <- NCOL(thedata) # Output - number of variables
 

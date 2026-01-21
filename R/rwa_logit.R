@@ -13,25 +13,25 @@ rwa_logit <- function(df,
   # Gets data frame in right order and form
   thedata <-
     df %>%
-    dplyr::select(outcome,predictors) %>%
-    tidyr::drop_na(outcome)
+    dplyr::select(all_of(c(outcome, predictors))) %>%
+    tidyr::drop_na(all_of(outcome))
 
   numVar <- NCOL(thedata) # Output - number of variables
 
   # Predictors
   Variables <-
     thedata %>%
-    select(predictors)
+    select(all_of(predictors))
 
   # Select outcome variable
   Y <-
     thedata %>%
-    pull(outcome)
+    pull(all_of(outcome))
 
   # Scaled predictors
   X <-
     thedata %>%
-    select(predictors) %>%
+    select(all_of(predictors)) %>%
     scale()
 
   X.svd <- svd(X) # Single-value decomposition
