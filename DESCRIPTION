@@ -1,7 +1,7 @@
 Package: rwa
 Type: Package
 Title: Perform a Relative Weights Analysis
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: person(given = "Martin",
                   family = "Chan",
                   role = c("aut", "cre"),
