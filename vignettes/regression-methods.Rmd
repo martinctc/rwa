@@ -159,10 +159,10 @@ cat("Sample size:", result_logit$n, "\n\n")
 cat("Relative Importance for Predicting High Fuel Efficiency:\n")
 result_logit$result %>%
   arrange(desc(Rescaled.RelWeight)) %>%
-  mutate(Rescaled.RelWeight = round(Rescaled.RelWeight, 4))
+  mutate(Rescaled.RelWeight = round(Rescaled.RelWeight, 2))
 ```
 
-Note that for logistic regression, the **Rescaled.RelWeight** values sum to 1 (rather than 100), representing the proportion of predictable variance attributed to each predictor.
+Like multiple regression, the **Rescaled.RelWeight** values sum to 100%, representing the percentage of predictable variance attributed to each predictor.
 
 ### Logistic RWA with Signs
 
@@ -312,7 +312,7 @@ logit_result <- rwa_logit(
 comparison <- data.frame(
   Variable = multi_result$result$Variables,
   Multiple_Pct = round(multi_result$result$Rescaled.RelWeight, 1),
-  Logistic_Pct = round(logit_result$result$Rescaled.RelWeight * 100, 1)
+  Logistic_Pct = round(logit_result$result$Rescaled.RelWeight, 1)
 )
 
 comparison %>%
@@ -368,8 +368,8 @@ result_boot$result
 | Function | Outcome Type | Key Output | Weights Sum To |
 |----------|--------------|------------|----------------|
 | `rwa_multiregress()` | Continuous | R², Raw & Rescaled Weights | 100% |
-| `rwa_logit()` | Binary (0/1) | Lambda, Raw & Rescaled Weights | 1 (100%) |
-| `rwa()` | Either | Auto-detects + sorting + bootstrap | Depends on method |
+| `rwa_logit()` | Binary (0/1) | R², Raw & Rescaled Weights | 100% |
+| `rwa()` | Either | Auto-detects + sorting + bootstrap | 100% |
 
 Both methods provide valuable insights into predictor importance while accounting for multicollinearity. Choose the appropriate method based on your outcome variable type, and consider using bootstrap confidence intervals for formal statistical inference.
 
