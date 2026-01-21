@@ -36,6 +36,10 @@
 #'   "na.or.complete" (error if some but not all missing),
 #'   "pairwise.complete.obs" (pairwise deletion, default).
 #'   See \code{\link[stats]{cor}} for more details.
+#' @param weight Optional name of a weight variable in the data frame. If provided,
+#'   a weighted correlation matrix will be computed using the specified weights.
+#'   The weight variable must be numeric and positive. Defaults to \code{NULL} 
+#'   (unweighted analysis).
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -97,7 +101,8 @@ rwa <- function(df,
                 focal = NULL,
                 comprehensive = FALSE,
                 include_rescaled_ci = FALSE,
-                use = "pairwise.complete.obs"){
+                use = "pairwise.complete.obs",
+                weight = NULL){
 
 
   # ---- Input validation ----
@@ -121,6 +126,22 @@ rwa <- function(df,
   if (!use %in% valid_use_options) {
     stop(sprintf("`use` must be one of: %s", 
                  paste(valid_use_options, collapse = ", ")))
+  }
+  
+  # Validate weight parameter if provided
+  if (!is.null(weight)) {
+    if (!is.character(weight) || length(weight) != 1) {
+      stop("`weight` must be a single character string specifying the weight variable name.")
+    }
+    if (!weight %in% names(df)) {
+      stop(sprintf("Weight variable '%s' not found in data.", weight))
+    }
+    if (!is.numeric(df[[weight]])) {
+      stop(sprintf("Weight variable '%s' must be numeric.", weight))
+    }
+    if (any(df[[weight]] < 0, na.rm = TRUE)) {
+      stop(sprintf("Weight variable '%s' must have non-negative values.", weight))
+    }
   }
   
   # Check that outcome and predictors exist in data
@@ -147,10 +168,17 @@ rwa <- function(df,
   }
 
   # Gets data frame in right order and form
-  thedata <-
-    df %>%
-    dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
-    tidyr::drop_na(dplyr::all_of(outcome))
+  if (!is.null(weight)) {
+    thedata <-
+      df %>%
+      dplyr::select(dplyr::all_of(c(outcome, predictors, weight))) %>%
+      tidyr::drop_na(dplyr::all_of(outcome))
+  } else {
+    thedata <-
+      df %>%
+      dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
+      tidyr::drop_na(dplyr::all_of(outcome))
+  }
 
   # Check for zero-variance outcome
   outcome_var <- stats::var(thedata[[outcome]], na.rm = TRUE)
@@ -166,9 +194,53 @@ rwa <- function(df,
                  paste(zero_var_predictors, collapse = ", ")))
   }
 
-  cor_matrix <-
-    cor(thedata, use = use) %>%
-    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
+  # Compute correlation matrix (weighted or unweighted)
+  if (!is.null(weight)) {
+    # Extract weights and variables for analysis
+    weight_values <- thedata[[weight]]
+    analysis_data <- thedata %>% dplyr::select(dplyr::all_of(c(outcome, predictors)))
+    
+    # Check for zero or NA weights
+    if (any(is.na(weight_values))) {
+      if (use == "complete.obs") {
+        # Remove rows with NA weights
+        non_na_idx <- !is.na(weight_values)
+        weight_values <- weight_values[non_na_idx]
+        analysis_data <- analysis_data[non_na_idx, ]
+      } else {
+        stop("Weight variable contains NA values. Use use='complete.obs' for listwise deletion or remove NA weights from data.")
+      }
+    }
+    
+    if (sum(weight_values) == 0) {
+      stop("Sum of weights is zero. Cannot compute weighted correlation.")
+    }
+    
+    # Compute weighted covariance matrix using cov.wt
+    # Note: cov.wt requires complete cases
+    complete_cases_idx <- stats::complete.cases(analysis_data)
+    if (sum(complete_cases_idx) == 0) {
+      stop("No complete cases available for weighted correlation computation.")
+    }
+    
+    cov_result <- stats::cov.wt(
+      x = analysis_data[complete_cases_idx, , drop = FALSE],
+      wt = weight_values[complete_cases_idx],
+      cor = TRUE,
+      method = "unbiased"
+    )
+    
+    cor_matrix <- cov_result$cor %>%
+      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
+    
+  } else {
+    # Unweighted correlation
+    cor_matrix <-
+      cor(thedata[, c(outcome, predictors)], use = use) %>%
+      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
+  }
+  
+  cor_matrix <- cor_matrix %>%
     remove_all_na_cols() %>%
     tidyr::drop_na()
 
@@ -253,7 +325,8 @@ rwa <- function(df,
       focal = focal,
       comprehensive = comprehensive,
       include_rescaled = include_rescaled_ci,  # Only include if explicitly requested
-      use = use  # Pass missing data handling method
+      use = use,  # Pass missing data handling method
+      weight = weight  # Pass weight variable
     )
     
     # Add confidence intervals to result dataframe
