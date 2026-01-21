@@ -113,7 +113,7 @@ rwa <- function(df,
                 comprehensive = FALSE,
                 include_rescaled_ci = FALSE,
                 use = "pairwise.complete.obs",
-                weight = NULL){
+                weight = NULL) {
 
 
   # ---- Input validation ----
