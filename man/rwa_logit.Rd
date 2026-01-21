@@ -22,13 +22,14 @@ applies the sign. Defaults to \code{FALSE}.}
 \code{rwa_logit()} returns a list of outputs, as follows:
 \itemize{
 \item \code{predictors}: character vector of names of the predictor variables used.
+\item \code{rsquare}: the pseudo R-squared value (sum of epsilon weights) for the logistic regression model.
 \item \code{result}: the final output of the importance metrics.
 \itemize{
-\item The \code{Rescaled.RelWeight} column sums up to 1.
+\item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or negatively associated with the outcome.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
-\item \code{lambda}: pseudo R-squared value for the logistic regression model.
+\item \code{lambda}: the Lambda transformation matrix from the analysis.
 }
 }
 \description{

@@ -37,6 +37,7 @@
 #' )
 #' result_signed$result
 #'
+#' @importFrom magrittr %>%
 #' @importFrom stats glm binomial coef predict sd lm
 #' @export
 rwa_logit <- function(df,
