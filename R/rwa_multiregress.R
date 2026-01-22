@@ -98,26 +98,27 @@ rwa_multiregress <- function(df,
   RawWgt <- lambdasq %*% beta ^ 2 # Raw Relative Weight
   import <- (RawWgt / rsquare) * 100 # Rescaled Relative Weight
 
-  beta %>% # Get signs from coefficients
+  sign <- beta %>% # Get signs from coefficients
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
     dplyr::mutate_all(~(dplyr::case_when(.>0~"+",
                                          .<0~"-",
                                          .==0~"0",
                            TRUE~NA_character_))) %>%
-    dplyr::rename(Sign="V1")-> sign
+    dplyr::rename(Sign="V1")
 
   result <- data.frame(Variables,
                        Raw.RelWeight = RawWgt,
                        Rescaled.RelWeight = import,
                        Sign = sign) # Output - results
 
-  nrow(tidyr::drop_na(thedata)) -> complete_cases
+  complete_cases <- nrow(tidyr::drop_na(thedata))
 
   if(applysigns == TRUE){
-    result %>%
+    result <-
+      result %>%
       dplyr::mutate(Sign.Rescaled.RelWeight = ifelse(Sign == "-",
                                               Rescaled.RelWeight * -1,
-                                              Rescaled.RelWeight)) -> result
+                                              Rescaled.RelWeight))
   }
 
   list("predictors" = Variables,
