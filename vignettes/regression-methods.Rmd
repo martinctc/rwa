@@ -1,0 +1,380 @@
+---
+title: "Regression Methods: Multiple and Logistic RWA"
+author: "Martin Chan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Regression Methods: Multiple and Logistic RWA}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  out.width = "100%",
+  error = FALSE,
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+```{r setup}
+library(rwa)
+library(dplyr)
+library(ggplot2)
+```
+
+## Introduction
+The `rwa` package provides two specialized functions for conducting Relative Weights Analysis depending on the nature of your outcome variable:
+
+- **`rwa_multiregress()`**: For continuous outcome variables (standard multiple regression)
+- **`rwa_logit()`**: For binary outcome variables (logistic regression)
+
+The main `rwa()` function acts as a convenient wrapper that can automatically detect which method to use, but understanding these underlying functions gives you more control and insight into your analysis.
+
+## When to Use Each Method
+
+| Outcome Type | Function | Example Use Cases |
+|--------------|----------|-------------------|
+| Continuous | `rwa_multiregress()` | Predicting prices, scores, measurements |
+| Binary (0/1) | `rwa_logit()` | Predicting yes/no, pass/fail, purchase/no purchase |
+
+## Multiple Regression with `rwa_multiregress()`
+
+### Basic Example with mtcars
+
+The `mtcars` dataset contains continuous variables ideal for demonstrating multiple regression RWA. Let's examine what factors most influence fuel efficiency (mpg):
+
+```{r multiregress-basic}
+# Direct use of rwa_multiregress()
+result_multi <- rwa_multiregress(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt")
+)
+
+# View results
+result_multi$result
+```
+
+### Interpreting Multiple Regression Results
+
+The output contains several key pieces of information:
+
+```{r multiregress-interpret}
+# R-squared: Total variance explained
+cat("R-squared:", round(result_multi$rsquare, 4), "\n")
+cat("This means", round(result_multi$rsquare * 100, 1), 
+    "% of variance in mpg is explained by these predictors.\n\n")
+
+# Number of observations
+cat("Sample size:", result_multi$n, "\n\n")
+
+# Relative importance breakdown
+cat("Relative Importance (Rescaled Weights sum to 100%):\n")
+result_multi$result %>%
+  arrange(desc(Rescaled.RelWeight)) %>%
+  mutate(Rescaled.RelWeight = round(Rescaled.RelWeight, 2)) %>%
+  select(Variables, Rescaled.RelWeight)
+```
+
+The **Rescaled.RelWeight** column shows the percentage of explainable variance attributed to each predictor. In this example, we can see that weight (`wt`) is the most important predictor of fuel efficiency, followed by displacement (`disp`).
+
+### Using the `applysigns` Parameter
+
+By default, relative weights are always positive (they represent variance contributions). Use `applysigns = TRUE` to see the direction of each relationship:
+
+```{r multiregress-signs}
+# With sign information
+result_signed <- rwa_multiregress(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  applysigns = TRUE
+)
+
+result_signed$result %>%
+  select(Variables, Raw.RelWeight, Sign.Rescaled.RelWeight, Sign)
+```
+
+The `Sign` column indicates whether each predictor has a positive (+) or negative (-) relationship with the outcome. Negative signs for `cyl`, `disp`, `hp`, and `wt` make intuitive sense: more cylinders, larger displacement, more horsepower, and heavier weight all tend to decrease fuel efficiency.
+
+### Examining Correlation Structures
+
+The function also returns the correlation matrices, which can help understand relationships between predictors:
+
+```{r multiregress-correlations}
+# Correlation between predictors
+cat("Predictor Correlation Matrix (RXX):\n")
+round(result_multi$RXX, 3)
+
+# Correlation of predictors with outcome
+cat("\nPredictor-Outcome Correlations (RXY):\n")
+round(result_multi$RXY, 3)
+```
+
+## Logistic Regression with `rwa_logit()`
+
+### Creating a Binary Outcome
+
+For logistic regression, we need a binary outcome variable. Let's create one from the `mtcars` dataset:
+
+```{r logit-setup}
+# Create binary outcome: high efficiency (1) vs low efficiency (0)
+mtcars_binary <- mtcars %>%
+  mutate(high_mpg = ifelse(mpg > median(mpg), 1, 0))
+
+# Check distribution
+table(mtcars_binary$high_mpg)
+```
+
+### Basic Logistic RWA
+
+```{r logit-basic}
+# Logistic regression RWA
+result_logit <- rwa_logit(
+  df = mtcars_binary,
+  outcome = "high_mpg",
+  predictors = c("cyl", "disp", "hp", "wt")
+)
+
+# View results
+result_logit$result
+```
+
+### Interpreting Logistic RWA Results
+
+The interpretation differs slightly from multiple regression:
+
+```{r logit-interpret}
+# Lambda (analogous to R-squared for logistic regression)
+cat("Lambda (pseudo R-squared):", round(result_logit$lambda, 4), "\n")
+cat("Sample size:", result_logit$n, "\n\n")
+
+# Relative importance
+cat("Relative Importance for Predicting High Fuel Efficiency:\n")
+result_logit$result %>%
+  arrange(desc(Rescaled.RelWeight)) %>%
+  mutate(Rescaled.RelWeight = round(Rescaled.RelWeight, 2))
+```
+
+Like multiple regression, the **Rescaled.RelWeight** values sum to 100%, representing the percentage of predictable variance attributed to each predictor.
+
+### Logistic RWA with Signs
+
+```{r logit-signs}
+# With direction information
+result_logit_signed <- rwa_logit(
+  df = mtcars_binary,
+  outcome = "high_mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  applysigns = TRUE
+)
+
+result_logit_signed$result %>%
+  select(Variables, Rescaled.RelWeight, Sign)
+```
+
+## Using the `rwa()` Wrapper Function
+
+The main `rwa()` function provides a convenient interface that can automatically detect whether to use multiple or logistic regression based on your outcome variable.
+
+### Auto-Detection of Binary Outcomes
+
+```{r rwa-auto}
+# For continuous outcome - automatically uses multiple regression
+result_auto_multi <- rwa(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt")
+)
+
+# For binary outcome - automatically uses logistic regression
+result_auto_logit <- rwa(
+  df = mtcars_binary,
+  outcome = "high_mpg",
+  predictors = c("cyl", "disp", "hp", "wt")
+)
+```
+
+### Explicit Method Selection
+
+You can also explicitly specify the method using the `method` parameter:
+
+```{r rwa-explicit}
+# Force multiple regression
+result_explicit_multi <- rwa(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  method = "multiple"
+)
+
+# Force logistic regression (requires binary outcome)
+result_explicit_logit <- rwa(
+  df = mtcars_binary,
+  outcome = "high_mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  method = "logistic"
+)
+```
+
+### Additional Features in `rwa()`
+
+The wrapper function also provides sorting and visualization options:
+
+```{r rwa-features}
+# Sort results by importance
+result_sorted <- rwa(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  sort = TRUE
+)
+
+result_sorted$result
+
+# Visualize with plot_rwa()
+plot_rwa(result_sorted)
+```
+
+## Real-World Example: Iris Dataset
+
+Let's apply these methods to the classic `iris` dataset.
+
+### Multiple Regression: Predicting Petal Length
+
+```{r iris-multi}
+# Predict petal length from other measurements
+iris_result <- rwa_multiregress(
+  df = iris,
+  outcome = "Petal.Length",
+  predictors = c("Sepal.Length", "Sepal.Width", "Petal.Width"),
+  applysigns = TRUE
+)
+
+cat("R-squared:", round(iris_result$rsquare, 4), "\n\n")
+iris_result$result
+
+# Visualize
+plot_rwa(iris_result)
+```
+
+### Logistic Regression: Predicting Species
+
+For logistic regression, we need a binary outcome. Let's predict whether a flower is *Iris setosa* or not:
+
+```{r iris-logit}
+# Create binary outcome for setosa classification
+iris_binary <- iris %>%
+  mutate(is_setosa = ifelse(Species == "setosa", 1, 0))
+
+# Logistic RWA
+iris_logit <- rwa_logit(
+  df = iris_binary,
+  outcome = "is_setosa",
+  predictors = c("Sepal.Length", "Sepal.Width", "Petal.Length", "Petal.Width"),
+  applysigns = TRUE
+)
+
+cat("Pseudo R-squared:", round(iris_logit$rsquare, 4), "\n\n")
+iris_logit$result
+```
+
+This analysis reveals which measurements are most important for distinguishing *Iris setosa* from the other species.
+
+## Comparing Methods
+
+Let's demonstrate how the same predictors can yield different importance rankings depending on the outcome type:
+
+```{r compare-methods}
+# Create comparison dataset
+comparison_data <- mtcars %>%
+  mutate(high_mpg = ifelse(mpg > median(mpg), 1, 0))
+
+# Multiple regression on continuous mpg
+multi_result <- rwa_multiregress(
+  comparison_data, "mpg", 
+  c("cyl", "disp", "hp", "wt")
+)
+
+# Logistic regression on binary high_mpg
+logit_result <- rwa_logit(
+  comparison_data, "high_mpg", 
+  c("cyl", "disp", "hp", "wt")
+)
+
+# Compare rankings
+comparison <- data.frame(
+  Variable = multi_result$result$Variables,
+  Multiple_Pct = round(multi_result$result$Rescaled.RelWeight, 1),
+  Logistic_Pct = round(logit_result$result$Rescaled.RelWeight, 1)
+)
+
+comparison %>%
+  arrange(desc(Multiple_Pct))
+```
+
+The relative importance of predictors may differ between continuous and binary outcomes because:
+
+1. **Different relationships**: A predictor's linear relationship with the continuous outcome may differ from its relationship with the probability of the binary outcome.
+2. **Threshold effects**: Binary outcomes are sensitive to whether predictors help distinguish cases near the classification boundary.
+
+## Best Practices
+
+### 1. Choose the Right Method
+
+- Use `rwa_multiregress()` for continuous outcomes
+- Use `rwa_logit()` for binary (0/1) outcomes
+- Let `rwa()` auto-detect when unsure
+
+### 2. Check Your Data
+
+```{r best-practices}
+# Always check outcome distribution for binary variables
+table(mtcars_binary$high_mpg)
+
+# Ensure reasonable sample size
+cat("Sample size:", nrow(mtcars), "\n")
+cat("Predictors:", 4, "\n")
+cat("Observations per predictor:", nrow(mtcars) / 4, "\n")
+```
+
+A general guideline is to have at least 10-20 observations per predictor.
+
+### 3. Consider Bootstrap for Inference
+
+For statistical significance testing, combine with bootstrap methods (note: currently only available for multiple regression):
+
+```{r bootstrap-multi}
+# Bootstrap with multiple regression
+result_boot <- rwa(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp", "hp", "wt"),
+  bootstrap = TRUE,
+  n_bootstrap = 1000
+)
+
+result_boot$result
+```
+
+## Summary
+
+| Function | Outcome Type | Key Output | Weights Sum To |
+|----------|--------------|------------|----------------|
+| `rwa_multiregress()` | Continuous | R², Raw & Rescaled Weights | 100% |
+| `rwa_logit()` | Binary (0/1) | R², Raw & Rescaled Weights | 100% |
+| `rwa()` | Either | Auto-detects + sorting + bootstrap | 100% |
+
+Both methods provide valuable insights into predictor importance while accounting for multicollinearity. Choose the appropriate method based on your outcome variable type, and consider using bootstrap confidence intervals for formal statistical inference.
+
+## References
+
+* Johnson, J. W. (2000). A heuristic method for estimating the relative weight of predictor variables in multiple regression. *Multivariate Behavioral Research*, 35(1), 1-19.
+
+* Tonidandel, S., & LeBreton, J. M. (2011). Relative importance analysis: A useful supplement to regression analysis. *Journal of Business and Psychology*, 26(1), 1-9.
+
+* Tonidandel, S., & LeBreton, J. M. (2015). RWA Web: A free, comprehensive, web-based, and user-friendly tool for relative weight analyses. *Journal of Business and Psychology*, 30(2), 207-216.
