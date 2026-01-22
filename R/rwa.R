@@ -148,7 +148,6 @@ rwa <- function(df,
                 use = "pairwise.complete.obs",
                 weight = NULL) {
 
-
   # ---- Input validation ----
 
   # Validate method

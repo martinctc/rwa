@@ -10,7 +10,7 @@
 #' `rwa_multiregress()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 #' for every predictor in the model.
 #' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
-#' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+#' See <https://www.scotttonidandel.com/rwa-web> for the original implementation that inspired this package.
 #'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
@@ -62,6 +62,24 @@
 #'   applysigns = TRUE
 #' )
 #' result_signed$result
+#'
+#' # Using listwise deletion for missing data
+#' rwa_multiregress(
+#'   df = mtcars,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp"),
+#'   use = "complete.obs"
+#' )
+#'
+#' # With observation weights
+#' mtcars_weighted <- mtcars
+#' mtcars_weighted$w <- runif(nrow(mtcars), 0.5, 2)
+#' rwa_multiregress(
+#'   df = mtcars_weighted,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp"),
+#'   weight = "w"
+#' )
 #'
 #' @export
 rwa_multiregress <- function(df,
@@ -118,6 +136,9 @@ rwa_multiregress <- function(df,
       stop("No complete cases available for weighted correlation computation.")
     }
 
+    # Track actual n used for weighted analysis
+    n_used <- sum(complete_cases_idx)
+
     cov_result <- stats::cov.wt(
       x = analysis_data[complete_cases_idx, , drop = FALSE],
       wt = weight_values[complete_cases_idx],
@@ -133,6 +154,9 @@ rwa_multiregress <- function(df,
     cor_matrix <-
       stats::cor(thedata[, c(outcome, predictors)], use = use) %>%
       as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
+
+    # Track n for unweighted analysis (complete cases on all variables)
+    n_used <- nrow(tidyr::drop_na(thedata))
   }
 
   cor_matrix <- cor_matrix %>%
@@ -180,8 +204,6 @@ rwa_multiregress <- function(df,
                        Rescaled.RelWeight = import,
                        Sign = sign) # Output - results
 
-  complete_cases <- nrow(tidyr::drop_na(thedata))
-
   if(applysigns == TRUE){
     result <-
       result %>%
@@ -193,7 +215,7 @@ rwa_multiregress <- function(df,
   list("predictors" = Variables,
        "rsquare" = rsquare,
        "result" = result,
-       "n" = complete_cases,
+       "n" = n_used,
        "lambda" = lambda,
        "RXX" = RXX,
        "RXY" = RXY)

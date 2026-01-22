@@ -586,3 +586,69 @@ test_that("rwa() warns when weight/use used with logistic regression", {
     "Weight and use parameters are only applicable for multiple regression"
   )
 })
+
+# --- Parameter combination tests --------------------------------------------
+
+test_that("rwa() works with bootstrap and weight combined", {
+  skip_on_cran()
+
+  mtcars_weighted <- mtcars
+  mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
+
+  result <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"),
+                weight = "weights", bootstrap = TRUE, n_bootstrap = 50,
+                method = "multiple")
+
+  # Should have bootstrap results
+  expect_true("bootstrap" %in% names(result))
+  expect_true("Raw.RelWeight.CI.Lower" %in% names(result$result))
+  expect_true("Raw.RelWeight.CI.Upper" %in% names(result$result))
+
+  # Results should be valid
+  expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-10)
+})
+
+test_that("rwa() works with bootstrap and use combined", {
+  skip_on_cran()
+
+  # Create data with some NA values
+  mtcars_na <- mtcars
+  mtcars_na$cyl[1:2] <- NA
+
+  result <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"),
+                use = "complete.obs", bootstrap = TRUE, n_bootstrap = 50,
+                method = "multiple")
+
+  # Should have bootstrap results
+  expect_true("bootstrap" %in% names(result))
+  expect_true("Raw.RelWeight.CI.Lower" %in% names(result$result))
+
+  # Sample size should reflect listwise deletion
+  expect_equal(result$n, nrow(mtcars) - 2)
+})
+
+test_that("rwa() works with all multiple regression parameters combined", {
+  skip_on_cran()
+
+  mtcars_weighted <- mtcars
+  mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
+
+  # Test with weight + use + bootstrap + sort + applysigns
+  result <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp", "wt"),
+                weight = "weights",
+                use = "complete.obs",
+                bootstrap = TRUE,
+                n_bootstrap = 50,
+                sort = TRUE,
+                applysigns = TRUE,
+                method = "multiple")
+
+  # Should have all expected components
+  expect_true("bootstrap" %in% names(result))
+  expect_true("Sign.Rescaled.RelWeight" %in% names(result$result))
+  expect_true("Raw.RelWeight.CI.Lower" %in% names(result$result))
+
+  # Results should be sorted by Rescaled.RelWeight in descending order
+  weights <- result$result$Rescaled.RelWeight
+  expect_true(all(diff(weights) <= 0))
+})
