@@ -1,6 +1,10 @@
 #' @title Create a Relative Weights Analysis with logistic regression
 #'
-#' @inherit rwa description
+#' @description This function performs Relative Weights Analysis (RWA) for binary
+#'   outcome variables using logistic regression. RWA provides a method for
+#'   estimating the relative importance of predictor variables by transforming
+#'   them into orthogonal variables while preserving their relationship to the
+#'   outcome. This implementation follows Johnson (2000) for logistic regression.
 #'
 #' @inheritParams rwa
 #'
@@ -54,7 +58,7 @@ rwa_logit <- function(df,
   # Get variable names for output
   Variables <-
     thedata %>%
-    select(all_of(predictors)) %>%
+    dplyr::select(all_of(predictors)) %>%
     names()
 
   # Select outcome variable
@@ -65,7 +69,7 @@ rwa_logit <- function(df,
   # Scaled predictors
   X <-
     thedata %>%
-    select(all_of(predictors)) %>%
+    dplyr::select(all_of(predictors)) %>%
     scale()
 
   X.svd <- svd(X) # Single-value decomposition
@@ -97,11 +101,21 @@ rwa_logit <- function(df,
       newdata = thedata,
       type="response")
 
+  # Clamp predictions to avoid Inf/-Inf in logit transformation
+  # This can occur with perfect separation in logistic regression
+  LpredY <- pmax(pmin(LpredY, 1 - 1e-10), 1e-10)
+
   # Creating logit-Y-hat
   lYhat <- log(LpredY/(1-LpredY))
 
   # Getting st dev of logit-Y-hat
-  stdlYhat <- sd(lYhat)
+  stdlYhat <- stats::sd(lYhat)
+
+  # Check for zero standard deviation (can occur with perfect separation)
+  if (stdlYhat == 0 || is.na(stdlYhat)) {
+    warning("Perfect or near-perfect separation detected. Results may be unreliable.")
+    stdlYhat <- 1e-10  # Avoid division by zero
+  }
 
   # Getting R-sq
   getting.Rsq <- lm(LpredY ~ Y)
@@ -129,7 +143,7 @@ rwa_logit <- function(df,
     data.frame(Variables,
                Raw.RelWeight = epsilon,
                Rescaled.RelWeight = PropWeights) %>%
-    mutate(Sign = sign)
+    dplyr::mutate(Sign = sign)
 
   complete_cases <- nrow(tidyr::drop_na(thedata))
 

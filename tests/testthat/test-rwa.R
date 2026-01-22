@@ -269,7 +269,6 @@ test_that("rwa() validates method parameter", {
   expect_error(
     rwa(mtcars, "mpg", "cyl", method = "invalid"),
     "Invalid input for `method`"
-
   )
   
   expect_error(
@@ -296,7 +295,6 @@ test_that("rwa() respects method = 'multiple' for continuous outcome", {
 test_that("rwa() auto-detects binary outcome for logistic regression", {
   # Create binary outcome
   mtcars_binary <- mtcars
-
   mtcars_binary$high_mpg <- as.numeric(mtcars_binary$mpg > 20)
   
   expect_message(
