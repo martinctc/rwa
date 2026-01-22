@@ -9,6 +9,7 @@ utils::globalVariables(
     "Sign",
     "Rescaled.RelWeight",
     "Variables",
-    "Sign.Rescaled.RelWeight"
+    "Sign.Rescaled.RelWeight",
+    "variable_name"
   )
 )

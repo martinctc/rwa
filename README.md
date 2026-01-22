@@ -152,5 +152,3 @@ Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the statis
 
 Wang, X., Duverger, P., Bansal, H. S. (2013). Bayesian Inference of Predictors Relative Importance in Linear Regression Model using Dominance Hierarchies. *International Journal of Pure and Applied Mathematics*, Vol. 88, No. 3, 321-339.
 
-Also see [Kovalyshyn](https://medium.com/analytics-vidhya/johnsons-relative-weights-analysis-implementation-with-javascript-d85393c0bbb4) for a similar implementation but in Javascript.
-
