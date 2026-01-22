@@ -7,15 +7,15 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/martinctc/rwa/blob/v0.1.1/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/martinctc/rwa/blob/master/DESCRIPTION)
 
 Chan M (2026). *rwa: Perform a Relative Weights Analysis*. R package
-version 0.1.1, <https://martinctc.github.io/rwa/>.
+version 0.1.2.9000, <https://martinctc.github.io/rwa/>.
 
     @Manual{,
       title = {rwa: Perform a Relative Weights Analysis},
       author = {Martin Chan},
       year = {2026},
-      note = {R package version 0.1.1},
+      note = {R package version 0.1.2.9000},
       url = {https://martinctc.github.io/rwa/},
     }

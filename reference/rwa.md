@@ -16,6 +16,7 @@ rwa(
   outcome,
   predictors,
   applysigns = FALSE,
+  method = "auto",
   sort = TRUE,
   bootstrap = FALSE,
   n_bootstrap = 1000,
@@ -47,6 +48,18 @@ rwa(
   Logical value specifying whether to show an estimate that applies the
   sign. Defaults to `FALSE`.
 
+- method:
+
+  String to specify the method of regression to apply. Valid values
+  include:
+
+  - `"auto"`: automatically detect whether to use multiple regression or
+    logistic regression based on the outcome variable provided.
+
+  - `"multiple"`: use multiple regression.
+
+  - `"logistic"`: use logistic regression.
+
 - sort:
 
   Logical value specifying whether to sort results by rescaled relative
@@ -55,7 +68,8 @@ rwa(
 - bootstrap:
 
   Logical value specifying whether to calculate bootstrap confidence
-  intervals. Defaults to `FALSE`.
+  intervals. Defaults to `FALSE`. Currently only supported for multiple
+  regression.
 
 - n_bootstrap:
 
@@ -88,7 +102,8 @@ rwa(
 - `predictors`: character vector of names of the predictor variables
   used.
 
-- `rsquare`: the rsquare value of the regression model.
+- `rsquare`: the rsquare value of the regression model (multiple
+  regression only).
 
 - `result`: the final output of the importance metrics (sorted by
   Rescaled.RelWeight in descending order by default).
@@ -115,13 +130,13 @@ rwa(
 
   - `n_bootstrap`: number of bootstrap samples used
 
-- `lambda`:
+- `lambda`: lambda matrix from the RWA calculation.
 
 - `RXX`: Correlation matrix of all the predictor variables against each
-  other.
+  other. Not available for logistic regression.
 
 - `RXY`: Correlation values of the predictor variables against the
-  outcome variable.
+  outcome variable. Not available for logistic regression.
 
 ## Details
 
@@ -129,15 +144,33 @@ rwa(
 rescaled weights (scaled as a percentage of predictable variance) for
 every predictor in the model. Signs are added to the weights when the
 `applysigns` argument is set to `TRUE`. See
-https://www.scotttonidandel.com/rwa-web for the original implementation
-that inspired this package.
+<https://www.scotttonidandel.com/rwa-web> for the original
+implementation that inspired this package.
+
+This function is a wrapper around
+[`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md)
+and
+[`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md),
+automatically selecting the appropriate method based on the outcome
+variable or the `method` argument.
+
+## See also
+
+[`plot_rwa()`](https://martinctc.github.io/rwa/reference/plot_rwa.md)
+for plotting results,
+[`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md)
+and
+[`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md)
+for the underlying implementations.
 
 ## Examples
 
 ``` r
 library(ggplot2)
 # Basic RWA (results sorted by default)
-rwa(diamonds,"price",c("depth","carat"))
+rwa(diamonds, "price", c("depth", "carat"))
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
 #> $predictors
 #> [1] "depth" "carat"
 #> 
@@ -168,7 +201,9 @@ rwa(diamonds,"price",c("depth","carat"))
 #> 
 
 # RWA without sorting (preserves original predictor order)
-rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
+rwa(diamonds, "price", c("depth", "carat"), sort = FALSE)
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
 #> $predictors
 #> [1] "depth" "carat"
 #> 
@@ -198,12 +233,23 @@ rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
 #> -0.0106474  0.9215913 
 #> 
 
+# Plot results using plot_rwa()
+diamonds |>
+  rwa("price", c("depth", "carat", "x", "y")) |>
+  plot_rwa()
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
+
+
 # \donttest{
 # For faster examples, use a subset of data for bootstrap
 diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
 
 # RWA with bootstrap confidence intervals (raw weights only)
-rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 100)
+rwa(diamonds_small, "price", c("depth", "carat"),
+    bootstrap = TRUE, n_bootstrap = 100)
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
 #> Running bootstrap analysis with 100 samples...
 #> $predictors
 #> [1] "depth" "carat"
@@ -221,6 +267,20 @@ rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 1
 #> 
 #> $n
 #> [1] 1000
+#> 
+#> $lambda
+#>           [,1]      [,2]
+#> [1,] 0.9998984 0.0142579
+#> [2,] 0.0142579 0.9998984
+#> 
+#> $RXX
+#>           depth     carat
+#> depth 1.0000000 0.0285129
+#> carat 0.0285129 1.0000000
+#> 
+#> $RXY
+#>       depth       carat 
+#> -0.01473139  0.92099482 
 #> 
 #> $bootstrap
 #> $bootstrap$boot_object
@@ -260,24 +320,12 @@ rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, n_bootstrap = 1
 #> NULL
 #> 
 #> 
-#> $lambda
-#>           [,1]      [,2]
-#> [1,] 0.9998984 0.0142579
-#> [2,] 0.0142579 0.9998984
-#> 
-#> $RXX
-#>           depth     carat
-#> depth 1.0000000 0.0285129
-#> carat 0.0285129 1.0000000
-#> 
-#> $RXY
-#>       depth       carat 
-#> -0.01473139  0.92099482 
-#> 
 
 # Include rescaled weight CIs (use with caution for inference)
-rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE, 
-    include_rescaled_ci = TRUE, n_bootstrap = 100)
+rwa(diamonds_small, "price", c("depth", "carat"),
+    bootstrap = TRUE, include_rescaled_ci = TRUE, n_bootstrap = 100)
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
 #> Running bootstrap analysis with 100 samples...
 #> Warning: Rescaled weight confidence intervals should be interpreted with caution due to compositional data constraints. Use for descriptive purposes only, not formal statistical inference.
 #> $predictors
@@ -299,6 +347,20 @@ rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE,
 #> 
 #> $n
 #> [1] 1000
+#> 
+#> $lambda
+#>           [,1]      [,2]
+#> [1,] 0.9998984 0.0142579
+#> [2,] 0.0142579 0.9998984
+#> 
+#> $RXX
+#>           depth     carat
+#> depth 1.0000000 0.0285129
+#> carat 0.0285129 1.0000000
+#> 
+#> $RXY
+#>       depth       carat 
+#> -0.01473139  0.92099482 
 #> 
 #> $bootstrap
 #> $bootstrap$boot_object
@@ -360,25 +422,13 @@ rwa(diamonds_small,"price",c("depth","carat"), bootstrap = TRUE,
 #> NULL
 #> 
 #> 
-#> $lambda
-#>           [,1]      [,2]
-#> [1,] 0.9998984 0.0142579
-#> [2,] 0.0142579 0.9998984
-#> 
-#> $RXX
-#>           depth     carat
-#> depth 1.0000000 0.0285129
-#> carat 0.0285129 1.0000000
-#> 
-#> $RXY
-#>       depth       carat 
-#> -0.01473139  0.92099482 
-#> 
 
 # Comprehensive bootstrap analysis with focal variable
-result <- rwa(diamonds_small,"price",c("depth","carat","table"), 
-              bootstrap = TRUE, comprehensive = TRUE, focal = "carat", 
+result <- rwa(diamonds_small, "price", c("depth", "carat", "table"),
+              bootstrap = TRUE, comprehensive = TRUE, focal = "carat",
               n_bootstrap = 100)
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
 #> Running bootstrap analysis with 100 samples...
 # View confidence intervals
 result$bootstrap$ci_results
@@ -406,4 +456,29 @@ result$bootstrap$ci_results
 #> 2 Var8                2   -0.865   -0.805 basic     focal_diff
 #> 
 # }
+
+# Based on logistic regression (auto-detected from binary outcome)
+diamonds$IsIdeal <- as.numeric(diamonds$cut == "Ideal")
+rwa(diamonds, "IsIdeal", c("depth", "carat"))
+#> Parsing `IsIdeal` as a binary variable.
+#> Applying logistic regression to calculate relative weights...
+#> $predictors
+#> [1] "depth" "carat"
+#> 
+#> $rsquare
+#> [1] 0.02835802
+#> 
+#> $result
+#>   Variables Raw.RelWeight Rescaled.RelWeight Sign
+#> 1     carat  0.0279360368          98.511958    -
+#> 2     depth  0.0004219793           1.488042    -
+#> 
+#> $n
+#> [1] 53940
+#> 
+#> $lambda
+#>           depth      carat
+#> [1,] 0.99990040 0.01411356
+#> [2,] 0.01411356 0.99990040
+#> 
 ```

@@ -238,10 +238,6 @@ Predictors Relative Importance in Linear Regression Model using
 Dominance Hierarchies. *International Journal of Pure and Applied
 Mathematics*, Vol. 88, No. 3, 321-339.
 
-Also see
-[Kovalyshyn](https://medium.com/analytics-vidhya/johnsons-relative-weights-analysis-implementation-with-javascript-d85393c0bbb4)
-for a similar implementation but in Javascript.
-
 # Package index
 
 ## Main Functions
@@ -250,6 +246,12 @@ Core functions for relative weights analysis
 
 - [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md) : Create a
   Relative Weights Analysis (RWA)
+
+- [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md)
+  : Create a Relative Weights Analysis (RWA)
+
+- [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md)
+  : Create a Relative Weights Analysis with logistic regression
 
 - [`plot_rwa()`](https://martinctc.github.io/rwa/reference/plot_rwa.md)
   :
@@ -273,6 +275,8 @@ Helper functions and utilities
 
 ### Advanced Methods
 
+- [Regression Methods: Multiple and Logistic
+  RWA](https://martinctc.github.io/rwa/articles/regression-methods.md):
 - [Bootstrap Confidence Intervals for Relative Weights
   Analysis](https://martinctc.github.io/rwa/articles/bootstrap-confidence-intervals.md):
 - [Evaluating the Tonidandel & LeBreton Relative Weights Analysis

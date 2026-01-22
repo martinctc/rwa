@@ -4,14 +4,14 @@ returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors.
-rwa() is optimised for dplyr pipes and shows positive / negative signs for weights."><meta property="og:description" content="This function creates a Relative Weights Analysis (RWA) and
+original set of predictors. rwa() is optimised for dplyr pipes and shows
+positive / negative signs for weights."><meta property="og:description" content="This function creates a Relative Weights Analysis (RWA) and
 returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors.
-rwa() is optimised for dplyr pipes and shows positive / negative signs for weights."><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
+original set of predictors. rwa() is optimised for dplyr pipes and shows
+positive / negative signs for weights."><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
@@ -25,7 +25,7 @@ rwa() is optimised for dplyr pipes and shows positive / negative signs for weigh
 
     <a class="navbar-brand me-2" href="../index.html">rwa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,7 +48,7 @@ rwa() is optimised for dplyr pipes and shows positive / negative signs for weigh
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Create a Relative Weights Analysis (RWA)</h1>
-      <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/v0.1.1/R/rwa.R" class="external-link"><code>R/rwa.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/R/rwa.R" class="external-link"><code>R/rwa.R</code></a></small>
       <div class="d-none name"><code>rwa.Rd</code></div>
     </div>
 
@@ -58,8 +58,8 @@ returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors.
-<code>rwa()</code> is optimised for dplyr pipes and shows positive / negative signs for weights.</p>
+original set of predictors. <code>rwa()</code> is optimised for dplyr pipes and shows
+positive / negative signs for weights.</p>
     </div>
 
     <div class="section level2">
@@ -69,6 +69,7 @@ original set of predictors.
 <span>  <span class="va">outcome</span>,</span>
 <span>  <span class="va">predictors</span>,</span>
 <span>  applysigns <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"auto"</span>,</span>
 <span>  sort <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  bootstrap <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  n_bootstrap <span class="op">=</span> <span class="fl">1000</span>,</span>
@@ -98,19 +99,33 @@ string(s) or bare input(s). All variables must be numeric.</p></dd>
 
 
 <dt id="arg-applysigns">applysigns<a class="anchor" aria-label="anchor" href="#arg-applysigns"></a></dt>
-<dd><p>Logical value specifying whether to show an estimate that applies the sign. Defaults to <code>FALSE</code>.</p></dd>
+<dd><p>Logical value specifying whether to show an estimate that
+applies the sign. Defaults to <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
+<dd><p>String to specify the method of regression to apply. Valid
+values include:</p><ul><li><p><code>"auto"</code>: automatically detect whether to use multiple regression or
+logistic regression based on the outcome variable provided.</p></li>
+<li><p><code>"multiple"</code>: use multiple regression.</p></li>
+<li><p><code>"logistic"</code>: use logistic regression.</p></li>
+</ul></dd>
 
 
 <dt id="arg-sort">sort<a class="anchor" aria-label="anchor" href="#arg-sort"></a></dt>
-<dd><p>Logical value specifying whether to sort results by rescaled relative weights in descending order. Defaults to <code>TRUE</code>.</p></dd>
+<dd><p>Logical value specifying whether to sort results by rescaled
+relative weights in descending order. Defaults to <code>TRUE</code>.</p></dd>
 
 
 <dt id="arg-bootstrap">bootstrap<a class="anchor" aria-label="anchor" href="#arg-bootstrap"></a></dt>
-<dd><p>Logical value specifying whether to calculate bootstrap confidence intervals. Defaults to <code>FALSE</code>.</p></dd>
+<dd><p>Logical value specifying whether to calculate bootstrap
+confidence intervals. Defaults to <code>FALSE</code>. Currently only supported for
+multiple regression.</p></dd>
 
 
 <dt id="arg-n-bootstrap">n_bootstrap<a class="anchor" aria-label="anchor" href="#arg-n-bootstrap"></a></dt>
-<dd><p>Number of bootstrap samples to use when bootstrap = TRUE. Defaults to 1000.</p></dd>
+<dd><p>Number of bootstrap samples to use when bootstrap = TRUE.
+Defaults to 1000.</p></dd>
 
 
 <dt id="arg-conf-level">conf_level<a class="anchor" aria-label="anchor" href="#arg-conf-level"></a></dt>
@@ -122,46 +137,63 @@ string(s) or bare input(s). All variables must be numeric.</p></dd>
 
 
 <dt id="arg-comprehensive">comprehensive<a class="anchor" aria-label="anchor" href="#arg-comprehensive"></a></dt>
-<dd><p>Whether to run comprehensive bootstrap analysis including random variable and focal comparisons.</p></dd>
+<dd><p>Whether to run comprehensive bootstrap analysis
+including random variable and focal comparisons.</p></dd>
 
 
 <dt id="arg-include-rescaled-ci">include_rescaled_ci<a class="anchor" aria-label="anchor" href="#arg-include-rescaled-ci"></a></dt>
-<dd><p>Logical value specifying whether to include confidence intervals for rescaled weights. Defaults to <code>FALSE</code> due to compositional data constraints. Use with caution.</p></dd>
+<dd><p>Logical value specifying whether to include
+confidence intervals for rescaled weights. Defaults to <code>FALSE</code> due to
+compositional data constraints. Use with caution.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>rwa()</code> returns a list of outputs, as follows:</p><ul><li><p><code>predictors</code>: character vector of names of the predictor variables used.</p></li>
-<li><p><code>rsquare</code>: the rsquare value of the regression model.</p></li>
-<li><p><code>result</code>: the final output of the importance metrics (sorted by Rescaled.RelWeight in descending order by default).</p><ul><li><p>The <code>Rescaled.RelWeight</code> column sums up to 100.</p></li>
-<li><p>The <code>Sign</code> column indicates whether a predictor is positively or negatively correlated with the outcome.</p></li>
+<li><p><code>rsquare</code>: the rsquare value of the regression model (multiple regression only).</p></li>
+<li><p><code>result</code>: the final output of the importance metrics (sorted by
+Rescaled.RelWeight in descending order by default).</p><ul><li><p>The <code>Rescaled.RelWeight</code> column sums up to 100.</p></li>
+<li><p>The <code>Sign</code> column indicates whether a predictor is positively or
+negatively correlated with the outcome.</p></li>
 <li><p>When bootstrap = TRUE, includes confidence interval columns for raw weights.</p></li>
-<li><p>Rescaled weight CIs are available via include_rescaled_ci = TRUE but not recommended for inference.</p></li>
+<li><p>Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
+recommended for inference.</p></li>
 </ul></li>
 <li><p><code>n</code>: indicates the number of observations used in the analysis.</p></li>
 <li><p><code>bootstrap</code>: bootstrap results (only present when bootstrap = TRUE), containing:</p><ul><li><p><code>ci_results</code>: confidence intervals for weights</p></li>
 <li><p><code>boot_object</code>: raw bootstrap object for advanced analysis</p></li>
 <li><p><code>n_bootstrap</code>: number of bootstrap samples used</p></li>
 </ul></li>
-<li><p><code>lambda</code>:</p></li>
-<li><p><code>RXX</code>: Correlation matrix of all the predictor variables against each other.</p></li>
-<li><p><code>RXY</code>: Correlation values of the predictor variables against the outcome variable.</p></li>
+<li><p><code>lambda</code>: lambda matrix from the RWA calculation.</p></li>
+<li><p><code>RXX</code>: Correlation matrix of all the predictor variables against each
+other. Not available for logistic regression.</p></li>
+<li><p><code>RXY</code>: Correlation values of the predictor variables against the outcome
+variable. Not available for logistic regression.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p><code>rwa()</code> produces raw relative weight values (epsilons) as well as rescaled
 weights (scaled as a percentage of predictable variance) for every predictor
 in the model. Signs are added to the weights when the <code>applysigns</code> argument
-is set to <code>TRUE</code>.
-See https://www.scotttonidandel.com/rwa-web for the
+is set to <code>TRUE</code>. See <a href="https://www.scotttonidandel.com/rwa-web" class="external-link">https://www.scotttonidandel.com/rwa-web</a> for the
 original implementation that inspired this package.</p>
+<p>This function is a wrapper around <code><a href="rwa_multiregress.html">rwa_multiregress()</a></code> and <code><a href="rwa_logit.html">rwa_logit()</a></code>,
+automatically selecting the appropriate method based on the outcome variable
+or the <code>method</code> argument.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p><code><a href="plot_rwa.html">plot_rwa()</a></code> for plotting results, <code><a href="rwa_multiregress.html">rwa_multiregress()</a></code> and
+<code><a href="rwa_logit.html">rwa_logit()</a></code> for the underlying implementations.</p></div>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="co"># Basic RWA (results sorted by default)</span></span></span>
-<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds</span>,<span class="st">"price"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>,<span class="st">"carat"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "depth" "carat"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -192,7 +224,9 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># RWA without sorting (preserves original predictor order)</span></span></span>
-<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds</span>,<span class="st">"price"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>,<span class="st">"carat"</span><span class="op">)</span>, sort <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span>, sort <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "depth" "carat"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -222,12 +256,23 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> -0.0106474  0.9215913 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Plot results using plot_rwa()</span></span></span>
+<span class="r-in"><span><span class="va">diamonds</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu">rwa</span><span class="op">(</span><span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span>, <span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
+<span class="r-in"><span>  <span class="fu"><a href="plot_rwa.html">plot_rwa</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
+<span class="r-plt img"><img src="rwa-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="co"># For faster examples, use a subset of data for bootstrap</span></span></span>
 <span class="r-in"><span><span class="va">diamonds_small</span> <span class="op">&lt;-</span> <span class="va">diamonds</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">diamonds</span><span class="op">)</span>, <span class="fl">1000</span><span class="op">)</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># RWA with bootstrap confidence intervals (raw weights only)</span></span></span>
-<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>,<span class="st">"price"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>,<span class="st">"carat"</span><span class="op">)</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, n_bootstrap <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, n_bootstrap <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Running bootstrap analysis with 100 samples...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] "depth" "carat"</span>
@@ -245,6 +290,20 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9998984 0.0142579</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.0142579 0.9998984</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           depth     carat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> depth 1.0000000 0.0285129</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> carat 0.0285129 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       depth       carat </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.01473139  0.92099482 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$boot_object</span>
@@ -284,24 +343,12 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9998984 0.0142579</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.0142579 0.9998984</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           depth     carat</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> depth 1.0000000 0.0285129</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> carat 0.0285129 1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       depth       carat </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.01473139  0.92099482 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Include rescaled weight CIs (use with caution for inference)</span></span></span>
-<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>,<span class="st">"price"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>,<span class="st">"carat"</span><span class="op">)</span>, bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, </span></span>
-<span class="r-in"><span>    include_rescaled_ci <span class="op">=</span> <span class="cn">TRUE</span>, n_bootstrap <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>    bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, include_rescaled_ci <span class="op">=</span> <span class="cn">TRUE</span>, n_bootstrap <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Running bootstrap analysis with 100 samples...</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Rescaled weight confidence intervals should be interpreted with caution due to compositional data constraints. Use for descriptive purposes only, not formal statistical inference.</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
@@ -323,6 +370,20 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9998984 0.0142579</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.0142579 0.9998984</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           depth     carat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> depth 1.0000000 0.0285129</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> carat 0.0285129 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       depth       carat </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.01473139  0.92099482 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$boot_object</span>
@@ -384,25 +445,13 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9998984 0.0142579</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.0142579 0.9998984</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           depth     carat</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> depth 1.0000000 0.0285129</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> carat 0.0285129 1.0000000</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       depth       carat </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.01473139  0.92099482 </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Comprehensive bootstrap analysis with focal variable</span></span></span>
-<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>,<span class="st">"price"</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>,<span class="st">"carat"</span>,<span class="st">"table"</span><span class="op">)</span>, </span></span>
-<span class="r-in"><span>              bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, comprehensive <span class="op">=</span> <span class="cn">TRUE</span>, focal <span class="op">=</span> <span class="st">"carat"</span>, </span></span>
+<span class="r-in"><span><span class="va">result</span> <span class="op">&lt;-</span> <span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span>, <span class="st">"table"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>              bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, comprehensive <span class="op">=</span> <span class="cn">TRUE</span>, focal <span class="op">=</span> <span class="st">"carat"</span>,</span></span>
 <span class="r-in"><span>              n_bootstrap <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Running bootstrap analysis with 100 samples...</span>
 <span class="r-in"><span><span class="co"># View confidence intervals</span></span></span>
 <span class="r-in"><span><span class="va">result</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span></span></span>
@@ -430,6 +479,31 @@ original implementation that inspired this package.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> Var8                2   -<span style="color: #BB0000;">0.865</span>   -<span style="color: #BB0000;">0.805</span> basic     focal_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Based on logistic regression (auto-detected from binary outcome)</span></span></span>
+<span class="r-in"><span><span class="va">diamonds</span><span class="op">$</span><span class="va">IsIdeal</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">diamonds</span><span class="op">$</span><span class="va">cut</span> <span class="op">==</span> <span class="st">"Ideal"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds</span>, <span class="st">"IsIdeal"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `IsIdeal` as a binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying logistic regression to calculate relative weights...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "depth" "carat"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $rsquare</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.02835802</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.0279360368          98.511958    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0004219793           1.488042    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 53940</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           depth      carat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.99990040 0.01411356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.01411356 0.99990040</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

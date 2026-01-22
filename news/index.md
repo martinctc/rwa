@@ -1,5 +1,15 @@
 # Changelog
 
+## rwa (development version)
+
+- Added
+  [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md)
+  and
+  [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md)
+  to support logistic regression and multiple regression.
+- Added new vignette to cover the new regression methods.
+- Improved test coverage and minor bugfixes.
+
 ## rwa 0.1.1
 
 CRAN release: 2026-01-20

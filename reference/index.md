@@ -7,6 +7,12 @@ Core functions for relative weights analysis
 - [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md) : Create a
   Relative Weights Analysis (RWA)
 
+- [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md)
+  : Create a Relative Weights Analysis (RWA)
+
+- [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md)
+  : Create a Relative Weights Analysis with logistic regression
+
 - [`plot_rwa()`](https://martinctc.github.io/rwa/reference/plot_rwa.md)
   :
 
