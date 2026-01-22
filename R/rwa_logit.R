@@ -155,9 +155,11 @@ rwa_logit <- function(df,
                                               Rescaled.RelWeight))
   }
 
+  lambda <- Lambda
+
   list("predictors" = predictors,
        "rsquare" = R.sq,
        "result" = result,
        "n" = complete_cases,
-       "lambda" = Lambda)
+       "lambda" = lambda)
 }
