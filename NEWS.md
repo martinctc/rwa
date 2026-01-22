@@ -1,21 +1,20 @@
-# rwa 0.1.2 (Development)
+# rwa (development version)
+
+- Added `rwa_logit()` and `rwa_multiregress()` to support logistic regression and multiple regression. 
+- Added new vignette to cover the new regression methods. 
+- Improved test coverage and minor bugfixes.
+
+# rwa (Development)
 
 ## New Features
 
-- **Missing data handling**: Added `use` parameter to `rwa()` function to control how missing data is handled when computing correlations. Options include "pairwise.complete.obs" (default, pairwise deletion), "complete.obs" (listwise deletion), and other standard options from `cor()`. This addresses issue #8.
-- **Weight variable support**: Added `weight` parameter to `rwa()` function to perform weighted Relative Weights Analysis. When a weight variable is specified, the function computes a weighted correlation matrix using `cov.wt()`. This feature allows for proper handling of survey weights or importance weights in the analysis. This addresses issue #8.
+- **Missing data handling**: Added `use` parameter to `rwa()` and `rwa_multiregress()` functions to control how missing data is handled when computing correlations. Options include "pairwise.complete.obs" (default, pairwise deletion), "complete.obs" (listwise deletion), and other standard options from `cor()`. This addresses issue #8.
+- **Weight variable support**: Added `weight` parameter to `rwa()` and `rwa_multiregress()` functions to perform weighted Relative Weights Analysis. When a weight variable is specified, the function computes a weighted correlation matrix using `cov.wt()`. This feature allows for proper handling of survey weights or importance weights in the analysis. This addresses issue #8.
 
 ## Improvements
 
-- Updated all bootstrap functions to support the new `use` and `weight` parameters
-- Enhanced input validation to check weight variable properties (numeric, non-negative)
-- Added comprehensive examples demonstrating the new features
-
-## Tests
-
-- Added tests for different missing data handling methods
-- Added tests for weighted RWA analysis
-- Added validation tests for weight parameter
+- Updated bootstrap functions to support the new `use` and `weight` parameters
+- Enhanced input validation to check weight variable properties (numeric, positive)
 
 ---
 
