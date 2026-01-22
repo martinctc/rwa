@@ -73,136 +73,6 @@ test_that("rwa() handles missing data by listwise deletion", {
   expect_equal(result$n, nrow(mtcars) - 3)
 })
 
-# --- Missing data handling options ------------------------------------------
-
-test_that("rwa() accepts different use parameter values", {
-  # Test with complete.obs (listwise deletion)
-  result_complete <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), 
-                         use = "complete.obs")
-  expect_type(result_complete, "list")
-  expect_equal(result_complete$n, nrow(mtcars))
-  
-  # Test with pairwise.complete.obs (default)
-  result_pairwise <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), 
-                         use = "pairwise.complete.obs")
-  expect_type(result_pairwise, "list")
-  expect_equal(result_pairwise$n, nrow(mtcars))
-})
-
-test_that("rwa() validates use parameter", {
-  expect_error(
-    rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), use = "invalid"),
-    "use.*must be one of"
-  )
-})
-
-test_that("rwa() handles pairwise vs complete deletion differently with missing data", {
-  # Create data with missing values in predictors
-  mtcars_na <- mtcars
-  mtcars_na$cyl[1:2] <- NA
-  mtcars_na$hp[3:4] <- NA
-  
-  # With pairwise deletion, it should use all available pairwise correlations
-  result_pairwise <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"), 
-                         use = "pairwise.complete.obs")
-  
-  # With complete.obs, it should only use rows with no missing values
-  result_complete <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"), 
-                         use = "complete.obs")
-  
-  # Both should return valid results
-  expect_type(result_pairwise, "list")
-  expect_type(result_complete, "list")
-  
-  # The n should be different (pairwise uses more data for outcome)
-  # Both use listwise deletion on outcome, so n should be based on complete outcome
-  expect_true(result_pairwise$n <= nrow(mtcars_na))
-  expect_true(result_complete$n <= result_pairwise$n)
-})
-
-# --- Weight variable support ------------------------------------------------
-
-test_that("rwa() accepts weight parameter", {
-  # Add a weight variable
-  mtcars_weighted <- mtcars
-  mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
-  
-  result <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), 
-                weight = "weights")
-  
-  expect_type(result, "list")
-  expect_named(result, c("predictors", "rsquare", "result", "n", "lambda", "RXX", "RXY"))
-  
-  # Rescaled weights should still sum to 100
-  expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-10)
-})
-
-test_that("rwa() validates weight parameter", {
-  mtcars_weighted <- mtcars
-  mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
-  mtcars_weighted$char_weight <- as.character(mtcars_weighted$weights)
-  mtcars_weighted$neg_weight <- -1 * mtcars_weighted$weights
-  mtcars_weighted$zero_weight <- rep(0, nrow(mtcars))
-  
-  # Non-existent weight variable
-  expect_error(
-    rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), weight = "nonexistent"),
-    "Weight variable.*not found"
-  )
-  
-  # Non-numeric weight variable
-  expect_error(
-    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "char_weight"),
-    "Weight variable.*must be numeric"
-  )
-  
-  # Negative weight values
-  expect_error(
-    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "neg_weight"),
-    "Weight variable.*must have positive values"
-  )
-  
-  # Zero weight values (should also be rejected as they're not positive)
-  expect_error(
-    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "zero_weight"),
-    "Weight variable.*must have positive values"
-  )
-})
-
-test_that("rwa() produces different results with and without weights", {
-  # Create data with weights that emphasize certain observations
-  mtcars_weighted <- mtcars
-  mtcars_weighted$weights <- rep(1, nrow(mtcars))
-  mtcars_weighted$weights[1:10] <- 5  # Give more weight to first 10 observations
-  
-  result_unweighted <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"))
-  result_weighted <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), 
-                         weight = "weights")
-  
-  # Both should return valid results
-  expect_type(result_unweighted, "list")
-  expect_type(result_weighted, "list")
-  
-  # Results should be different (weights should affect the analysis)
-  expect_false(isTRUE(all.equal(result_unweighted$result$Raw.RelWeight, 
-                                 result_weighted$result$Raw.RelWeight)))
-})
-
-test_that("rwa() handles weights with equal values (equivalent to unweighted)", {
-  # All equal weights should give same result as unweighted
-  mtcars_weighted <- mtcars
-  mtcars_weighted$weights <- rep(1, nrow(mtcars))
-  
-  result_unweighted <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"))
-  result_weighted <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), 
-                         weight = "weights")
-  
-  # Results should be very similar (allowing for numerical precision)
-  expect_equal(result_unweighted$result$Raw.RelWeight, 
-               result_weighted$result$Raw.RelWeight, 
-               tolerance = 1e-6)
-})
-
 # --- Sorting behavior -------------------------------------------------------
 
 test_that("rwa() sorts results by default", {
@@ -567,4 +437,152 @@ test_that("rwa_logit() handles applysigns parameter", {
   
   expect_false("Sign.Rescaled.RelWeight" %in% names(result_no_sign$result))
   expect_true("Sign.Rescaled.RelWeight" %in% names(result_with_sign$result))
+})
+
+# --- Missing data handling options ------------------------------------------
+
+test_that("rwa() accepts different use parameter values", {
+  # Test with complete.obs (listwise deletion)
+  result_complete <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"),
+                         use = "complete.obs", method = "multiple")
+  expect_type(result_complete, "list")
+  expect_equal(result_complete$n, nrow(mtcars))
+
+  # Test with pairwise.complete.obs (default)
+  result_pairwise <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"),
+                         use = "pairwise.complete.obs", method = "multiple")
+  expect_type(result_pairwise, "list")
+  expect_equal(result_pairwise$n, nrow(mtcars))
+})
+
+test_that("rwa() validates use parameter", {
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), use = "invalid"),
+    "use.*must be one of"
+  )
+})
+
+test_that("rwa() handles pairwise vs complete deletion differently with missing data", {
+  # Create data with missing values in predictors
+  mtcars_na <- mtcars
+  mtcars_na$cyl[1:2] <- NA
+  mtcars_na$hp[3:4] <- NA
+
+  # With pairwise deletion, it should use all available pairwise correlations
+  result_pairwise <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"),
+                         use = "pairwise.complete.obs", method = "multiple")
+
+  # With complete.obs, it should only use rows with no missing values
+  result_complete <- rwa(mtcars_na, outcome = "mpg", predictors = c("cyl", "hp"),
+                         use = "complete.obs", method = "multiple")
+
+  # Both should return valid results
+  expect_type(result_pairwise, "list")
+  expect_type(result_complete, "list")
+
+  # The n should be different (pairwise uses more data for outcome)
+  # Both use listwise deletion on outcome, so n should be based on complete outcome
+  expect_true(result_pairwise$n <= nrow(mtcars_na))
+  expect_true(result_complete$n <= result_pairwise$n)
+})
+
+# --- Weight variable support ------------------------------------------------
+
+test_that("rwa() accepts weight parameter", {
+  # Add a weight variable
+  mtcars_weighted <- mtcars
+  mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
+
+  result <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"),
+                weight = "weights", method = "multiple")
+
+  expect_type(result, "list")
+  expect_named(result, c("predictors", "rsquare", "result", "n", "lambda", "RXX", "RXY"))
+
+  # Rescaled weights should still sum to 100
+  expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-10)
+})
+
+test_that("rwa() validates weight parameter", {
+  mtcars_weighted <- mtcars
+  mtcars_weighted$weights <- runif(nrow(mtcars), 0.5, 2)
+  mtcars_weighted$char_weight <- as.character(mtcars_weighted$weights)
+  mtcars_weighted$neg_weight <- -1 * mtcars_weighted$weights
+  mtcars_weighted$zero_weight <- rep(0, nrow(mtcars))
+
+  # Non-existent weight variable
+  expect_error(
+    rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), weight = "nonexistent"),
+    "Weight variable.*not found"
+  )
+
+  # Non-numeric weight variable
+  expect_error(
+    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "char_weight"),
+    "Weight variable.*must be numeric"
+  )
+
+  # Negative weight values
+  expect_error(
+    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "neg_weight"),
+    "Weight variable.*must have positive values"
+  )
+
+  # Zero weight values (should also be rejected as they're not positive)
+  expect_error(
+    rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"), weight = "zero_weight"),
+    "Weight variable.*must have positive values"
+  )
+})
+
+test_that("rwa() produces different results with and without weights", {
+  # Create data with weights that emphasize certain observations
+  mtcars_weighted <- mtcars
+  mtcars_weighted$weights <- rep(1, nrow(mtcars))
+  mtcars_weighted$weights[1:10] <- 5  # Give more weight to first 10 observations
+
+  result_unweighted <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), method = "multiple")
+  result_weighted <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"),
+                         weight = "weights", method = "multiple")
+
+  # Both should return valid results
+  expect_type(result_unweighted, "list")
+  expect_type(result_weighted, "list")
+
+  # Results should be different (weights should affect the analysis)
+  expect_false(isTRUE(all.equal(result_unweighted$result$Raw.RelWeight,
+                                 result_weighted$result$Raw.RelWeight)))
+})
+
+test_that("rwa() handles weights with equal values (equivalent to unweighted)", {
+  # All equal weights should give same result as unweighted
+  mtcars_weighted <- mtcars
+  mtcars_weighted$weights <- rep(1, nrow(mtcars))
+
+  result_unweighted <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"), method = "multiple")
+  result_weighted <- rwa(mtcars_weighted, outcome = "mpg", predictors = c("cyl", "hp"),
+                         weight = "weights", method = "multiple")
+
+  # Results should be very similar (allowing for numerical precision)
+  expect_equal(result_unweighted$result$Raw.RelWeight,
+               result_weighted$result$Raw.RelWeight,
+               tolerance = 1e-6)
+})
+
+test_that("rwa() warns when weight/use used with logistic regression", {
+  mtcars_binary <- mtcars
+  mtcars_binary$high_mpg <- as.numeric(mtcars_binary$mpg > 20)
+  mtcars_binary$weights <- runif(nrow(mtcars), 0.5, 2)
+
+  # Weight parameter with logistic regression should warn
+  expect_warning(
+    rwa(mtcars_binary, "high_mpg", c("cyl", "hp"), weight = "weights", method = "logistic"),
+    "Weight and use parameters are only applicable for multiple regression"
+  )
+
+  # use parameter with logistic regression should warn
+  expect_warning(
+    rwa(mtcars_binary, "high_mpg", c("cyl", "hp"), use = "complete.obs", method = "logistic"),
+    "Weight and use parameters are only applicable for multiple regression"
+  )
 })

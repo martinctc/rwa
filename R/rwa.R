@@ -41,19 +41,22 @@
 #'   Defaults to 1000.
 #' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
 #' @param focal Focal variable for bootstrap comparisons (optional).
-#' @param comprehensive Whether to run comprehensive bootstrap analysis including random variable and focal comparisons.
-#' @param include_rescaled_ci Logical value specifying whether to include confidence intervals for rescaled weights. Defaults to `FALSE` due to compositional data constraints. Use with caution.
-#' @param use Method for handling missing data when computing correlations. Options are: 
-#'   "everything" (missing values in correlations propagate), 
+#' @param comprehensive Whether to run comprehensive bootstrap analysis
+#'   including random variable and focal comparisons.
+#' @param include_rescaled_ci Logical value specifying whether to include
+#'   confidence intervals for rescaled weights. Defaults to `FALSE` due to
+#'   compositional data constraints. Use with caution.
+#' @param use Method for handling missing data when computing correlations. Options are:
+#'   "everything" (missing values in correlations propagate),
 #'   "all.obs" (error if missing values present),
 #'   "complete.obs" (listwise deletion),
 #'   "na.or.complete" (error if some but not all missing),
 #'   "pairwise.complete.obs" (pairwise deletion, default).
-#'   See \code{\link[stats]{cor}} for more details.
+#'   See \code{\link[stats]{cor}} for more details. Only applicable for multiple regression.
 #' @param weight Optional name of a weight variable in the data frame. If provided,
 #'   a weighted correlation matrix will be computed using the specified weights.
-#'   The weight variable must be numeric and positive. Defaults to \code{NULL} 
-#'   (unweighted analysis).
+#'   The weight variable must be numeric and positive. Defaults to \code{NULL}
+#'   (unweighted analysis). Only applicable for multiple regression.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -90,22 +93,7 @@
 #' rwa(diamonds, "price", c("depth", "carat"))
 #'
 #' # RWA without sorting (preserves original predictor order)
-#' rwa(diamonds,"price",c("depth","carat"), sort = FALSE)
-#' 
-#' # RWA with different missing data handling
-#' # Use complete.obs for listwise deletion
-#' rwa(diamonds,"price",c("depth","carat"), use = "complete.obs")
-#' 
-#' # Use pairwise.complete.obs for pairwise deletion (default)
-#' rwa(diamonds,"price",c("depth","carat"), use = "pairwise.complete.obs")
-#' 
-#' \donttest{
-#' # For faster examples, use a subset of data for bootstrap
-#' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
-#' 
-#' # RWA with weights
-#' diamonds_small$sample_weight <- runif(nrow(diamonds_small), 0.5, 2)
-#' rwa(diamonds_small,"price",c("depth","carat"), weight = "sample_weight")
+#' rwa(diamonds, "price", c("depth", "carat"), sort = FALSE)
 #'
 #' # Plot results using plot_rwa()
 #' diamonds |>
@@ -115,6 +103,14 @@
 #' \donttest{
 #' # For faster examples, use a subset of data for bootstrap
 #' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+#'
+#' # RWA with different missing data handling
+#' # Use complete.obs for listwise deletion
+#' rwa(diamonds_small, "price", c("depth", "carat"), use = "complete.obs")
+#'
+#' # RWA with weights
+#' diamonds_small$sample_weight <- runif(nrow(diamonds_small), 0.5, 2)
+#' rwa(diamonds_small, "price", c("depth", "carat"), weight = "sample_weight")
 #'
 #' # RWA with bootstrap confidence intervals (raw weights only)
 #' rwa(diamonds_small, "price", c("depth", "carat"),
@@ -172,15 +168,15 @@ rwa <- function(df,
       n_bootstrap < 1 || n_bootstrap != floor(n_bootstrap)) {
     stop("`n_bootstrap` must be a positive integer.")
   }
-  
+
   # Validate use parameter
-  valid_use_options <- c("everything", "all.obs", "complete.obs", 
+  valid_use_options <- c("everything", "all.obs", "complete.obs",
                          "na.or.complete", "pairwise.complete.obs")
   if (!use %in% valid_use_options) {
-    stop(sprintf("`use` must be one of: %s", 
+    stop(sprintf("`use` must be one of: %s",
                  paste(valid_use_options, collapse = ", ")))
   }
-  
+
   # Validate weight parameter if provided
   if (!is.null(weight)) {
     if (!is.character(weight) || length(weight) != 1) {
@@ -196,7 +192,6 @@ rwa <- function(df,
       stop(sprintf("Weight variable '%s' must have positive values.", weight))
     }
   }
-  
 
   # Check that outcome and predictors exist in data
   if (!outcome %in% names(df)) {
@@ -221,18 +216,6 @@ rwa <- function(df,
                  paste(non_numeric_predictors, collapse = ", ")))
   }
 
-  # Gets data frame in right order and form
-  if (!is.null(weight)) {
-    thedata <-
-      df %>%
-      dplyr::select(dplyr::all_of(c(outcome, predictors, weight))) %>%
-      tidyr::drop_na(dplyr::all_of(outcome))
-  } else {
-    thedata <-
-      df %>%
-      dplyr::select(dplyr::all_of(c(outcome, predictors))) %>%
-      tidyr::drop_na(dplyr::all_of(outcome))
-  }
   # ---- Determine regression method ----
 
   outcome_values <- unique(df[[outcome]])
@@ -255,61 +238,19 @@ rwa <- function(df,
     }
   }
 
-  # Compute correlation matrix (weighted or unweighted)
-  if (!is.null(weight)) {
-    # Extract weights and variables for analysis
-    weight_values <- thedata[[weight]]
-    analysis_data <- thedata %>% dplyr::select(dplyr::all_of(c(outcome, predictors)))
-    
-    # Check for zero or NA weights
-    if (any(is.na(weight_values))) {
-      if (use %in% c("complete.obs", "pairwise.complete.obs")) {
-        # Remove rows with NA weights for complete/pairwise cases
-        non_na_idx <- !is.na(weight_values)
-        weight_values <- weight_values[non_na_idx]
-        analysis_data <- analysis_data[non_na_idx, ]
-      } else {
-        stop("Weight variable contains NA values. Set use = 'complete.obs' or 'pairwise.complete.obs' for automatic removal of NA weights.")
-      }
-    }
-    
-    if (sum(weight_values) == 0) {
-      stop("Sum of weights is zero. Cannot compute weighted correlation.")
-    }
-    
-    # Compute weighted covariance matrix using cov.wt
-    # Note: cov.wt requires complete cases
-    complete_cases_idx <- stats::complete.cases(analysis_data)
-    if (sum(complete_cases_idx) == 0) {
-      stop("No complete cases available for weighted correlation computation.")
-    }
-    
-    cov_result <- stats::cov.wt(
-      x = analysis_data[complete_cases_idx, , drop = FALSE],
-      wt = weight_values[complete_cases_idx],
-      cor = TRUE,
-      method = "unbiased"
-    )
-    
-    cor_matrix <- cov_result$cor %>%
-      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
-    
-  } else {
-    # Unweighted correlation
-    cor_matrix <-
-      cor(thedata[, c(outcome, predictors)], use = use) %>%
-      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
-  }
-  
-  cor_matrix <- cor_matrix %>%
-    remove_all_na_cols() %>%
-    tidyr::drop_na()
   # ---- Handle bootstrap for logistic regression ----
 
   if (bootstrap && use_logistic) {
     warning("Bootstrap confidence intervals are not yet implemented for logistic regression. ",
             "Proceeding without bootstrap.")
     bootstrap <- FALSE
+  }
+
+  # ---- Handle weight/use parameters for logistic regression ----
+
+  if (use_logistic && (!is.null(weight) || use != "pairwise.complete.obs")) {
+    warning("Weight and use parameters are only applicable for multiple regression. ",
+            "They will be ignored for logistic regression.")
   }
 
   # ---- Call appropriate sub-function ----
@@ -326,7 +267,9 @@ rwa <- function(df,
       df = df,
       outcome = outcome,
       predictors = predictors,
-      applysigns = applysigns
+      applysigns = applysigns,
+      use = use,
+      weight = weight
     )
   }
 
@@ -350,9 +293,9 @@ rwa <- function(df,
       conf_level = conf_level,
       focal = focal,
       comprehensive = comprehensive,
-      include_rescaled = include_rescaled_ci,  # Only include if explicitly requested
-      use = use,  # Pass missing data handling method
-      weight = weight  # Pass weight variable
+      include_rescaled = include_rescaled_ci,
+      use = use,
+      weight = weight
     )
 
     # Add confidence intervals to result dataframe
