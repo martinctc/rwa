@@ -27,7 +27,6 @@ library(ggplot2)
 ```
 
 ## Introduction
- 
 The `rwa` package provides two specialized functions for conducting Relative Weights Analysis depending on the nature of your outcome variable:
 
 - **`rwa_multiregress()`**: For continuous outcome variables (standard multiple regression)
