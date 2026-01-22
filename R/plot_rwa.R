@@ -27,14 +27,11 @@ plot_rwa <- function(rwa){
                                                    Rescaled.RelWeight * -1,
                                                    Rescaled.RelWeight))
  
-  # Handle different column names: 'Variables' (multiple regression) vs 'predictors' (logistic)
-  if ("Variables" %in% names(result)) {
-    result$variable_name <- result$Variables
-  } else if ("predictors" %in% names(result)) {
-    result$variable_name <- result$predictors
-  } else {
-    stop("Could not find variable names in result. Expected 'Variables' or 'predictors' column.")
+  # Get variable names from the Variables column
+  if (!"Variables" %in% names(result)) {
+    stop("Could not find 'Variables' column in result.")
   }
+  result$variable_name <- result$Variables
 
   # Calculate appropriate axis limits for both positive and negative values
   max_abs_weight <- max(abs(result$Sign.Rescaled.RelWeight))

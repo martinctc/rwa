@@ -33,13 +33,11 @@ applies the sign. Defaults to \code{FALSE}.}
 }
 }
 \description{
-This function creates a Relative Weights Analysis (RWA) and
-returns a list of outputs. RWA provides a heuristic method for estimating
-the relative weight of predictor variables in multiple regression, which
-involves creating a multiple regression with on a set of transformed
-predictors which are orthogonal to each other but maximally related to the
-original set of predictors. \code{rwa()} is optimised for dplyr pipes and shows
-positive / negative signs for weights.
+This function performs Relative Weights Analysis (RWA) for binary
+outcome variables using logistic regression. RWA provides a method for
+estimating the relative importance of predictor variables by transforming
+them into orthogonal variables while preserving their relationship to the
+outcome. This implementation follows Johnson (2000) for logistic regression.
 }
 \examples{
 # Create a binary outcome variable
