@@ -16,7 +16,9 @@ rwa(
   conf_level = 0.95,
   focal = NULL,
   comprehensive = FALSE,
-  include_rescaled_ci = FALSE
+  include_rescaled_ci = FALSE,
+  use = "pairwise.complete.obs",
+  weight = NULL
 )
 }
 \arguments{
@@ -60,6 +62,19 @@ including random variable and focal comparisons.}
 \item{include_rescaled_ci}{Logical value specifying whether to include
 confidence intervals for rescaled weights. Defaults to \code{FALSE} due to
 compositional data constraints. Use with caution.}
+
+\item{use}{Method for handling missing data when computing correlations. Options are:
+"everything" (missing values in correlations propagate),
+"all.obs" (error if missing values present),
+"complete.obs" (listwise deletion),
+"na.or.complete" (error if some but not all missing),
+"pairwise.complete.obs" (pairwise deletion, default).
+See \code{\link[stats]{cor}} for more details. Only applicable for multiple regression.}
+
+\item{weight}{Optional name of a weight variable in the data frame. If provided,
+a weighted correlation matrix will be computed using the specified weights.
+The weight variable must be numeric and positive. Defaults to \code{NULL}
+(unweighted analysis). Only applicable for multiple regression.}
 }
 \value{
 \code{rwa()} returns a list of outputs, as follows:
@@ -126,6 +141,14 @@ diamonds |>
 \donttest{
 # For faster examples, use a subset of data for bootstrap
 diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
+
+# RWA with different missing data handling
+# Use complete.obs for listwise deletion
+rwa(diamonds_small, "price", c("depth", "carat"), use = "complete.obs")
+
+# RWA with weights
+diamonds_small$sample_weight <- runif(nrow(diamonds_small), 0.5, 2)
+rwa(diamonds_small, "price", c("depth", "carat"), weight = "sample_weight")
 
 # RWA with bootstrap confidence intervals (raw weights only)
 rwa(diamonds_small, "price", c("depth", "carat"),

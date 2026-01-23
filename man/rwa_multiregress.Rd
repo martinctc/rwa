@@ -4,7 +4,14 @@
 \alias{rwa_multiregress}
 \title{Create a Relative Weights Analysis (RWA)}
 \usage{
-rwa_multiregress(df, outcome, predictors, applysigns = FALSE)
+rwa_multiregress(
+  df,
+  outcome,
+  predictors,
+  applysigns = FALSE,
+  use = "pairwise.complete.obs",
+  weight = NULL
+)
 }
 \arguments{
 \item{df}{Data frame or tibble to be passed through.}
@@ -14,6 +21,19 @@ rwa_multiregress(df, outcome, predictors, applysigns = FALSE)
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
 
 \item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+
+\item{use}{Method for handling missing data when computing correlations. Options are:
+"everything" (missing values in correlations propagate),
+"all.obs" (error if missing values present),
+"complete.obs" (listwise deletion),
+"na.or.complete" (error if some but not all missing),
+"pairwise.complete.obs" (pairwise deletion, default).
+See \code{\link[stats]{cor}} for more details.}
+
+\item{weight}{Optional name of a weight variable in the data frame. If provided,
+a weighted correlation matrix will be computed using the specified weights.
+The weight variable must be numeric and positive. Defaults to \code{NULL}
+(unweighted analysis).}
 }
 \value{
 \code{rwa_multiregress()} returns a list of outputs, as follows:
@@ -42,7 +62,7 @@ maximally related to the original set of predictors.
 \code{rwa_multiregress()} produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 for every predictor in the model.
 Signs are added to the weights when the \code{applysigns} argument is set to \code{TRUE}.
-See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+See \url{https://www.scotttonidandel.com/rwa-web} for the original implementation that inspired this package.
 }
 \examples{
 # Basic multiple regression RWA
@@ -63,5 +83,23 @@ result_signed <- rwa_multiregress(
   applysigns = TRUE
 )
 result_signed$result
+
+# Using listwise deletion for missing data
+rwa_multiregress(
+  df = mtcars,
+  outcome = "mpg",
+  predictors = c("cyl", "disp"),
+  use = "complete.obs"
+)
+
+# With observation weights
+mtcars_weighted <- mtcars
+mtcars_weighted$w <- runif(nrow(mtcars), 0.5, 2)
+rwa_multiregress(
+  df = mtcars_weighted,
+  outcome = "mpg",
+  predictors = c("cyl", "disp"),
+  weight = "w"
+)
 
 }
