@@ -10,12 +10,23 @@
 #' `rwa_multiregress()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 #' for every predictor in the model.
 #' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
-#' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+#' See <https://www.scotttonidandel.com/rwa-web> for the original implementation that inspired this package.
 #'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @param use Method for handling missing data when computing correlations. Options are:
+#'   "everything" (missing values in correlations propagate),
+#'   "all.obs" (error if missing values present),
+#'   "complete.obs" (listwise deletion),
+#'   "na.or.complete" (error if some but not all missing),
+#'   "pairwise.complete.obs" (pairwise deletion, default).
+#'   See \code{\link[stats]{cor}} for more details.
+#' @param weight Optional name of a weight variable in the data frame. If provided,
+#'   a weighted correlation matrix will be computed using the specified weights.
+#'   The weight variable must be numeric and positive. Defaults to \code{NULL}
+#'   (unweighted analysis).
 #'
 #' @return `rwa_multiregress()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -30,7 +41,7 @@
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyr drop_na
-#' @importFrom stats cor
+#' @importFrom stats cor cov.wt complete.cases
 #' @import dplyr
 #' @examples
 #' # Basic multiple regression RWA
@@ -52,21 +63,103 @@
 #' )
 #' result_signed$result
 #'
+#' # Using listwise deletion for missing data
+#' rwa_multiregress(
+#'   df = mtcars,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp"),
+#'   use = "complete.obs"
+#' )
+#'
+#' # With observation weights
+#' mtcars_weighted <- mtcars
+#' mtcars_weighted$w <- runif(nrow(mtcars), 0.5, 2)
+#' rwa_multiregress(
+#'   df = mtcars_weighted,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp"),
+#'   weight = "w"
+#' )
+#'
 #' @export
 rwa_multiregress <- function(df,
                              outcome,
                              predictors,
-                             applysigns = FALSE){
+                             applysigns = FALSE,
+                             use = "pairwise.complete.obs",
+                             weight = NULL){
 
   # Gets data frame in right order and form
-  thedata <-
-    df %>%
-    dplyr::select(all_of(c(outcome, predictors))) %>%
-    tidyr::drop_na(all_of(outcome))
+  if (!is.null(weight)) {
+    thedata <-
+      df %>%
+      dplyr::select(all_of(c(outcome, predictors, weight))) %>%
+      tidyr::drop_na(all_of(outcome))
+  } else {
+    thedata <-
+      df %>%
+      dplyr::select(all_of(c(outcome, predictors))) %>%
+      tidyr::drop_na(all_of(outcome))
+  }
 
-  cor_matrix <-
-    cor(thedata, use = "pairwise.complete.obs") %>%
-    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
+  # Compute correlation matrix (weighted or unweighted)
+  if (!is.null(weight)) {
+    # Extract weights and variables for analysis
+    weight_values <- thedata[[weight]]
+    analysis_data <- thedata %>% dplyr::select(all_of(c(outcome, predictors)))
+
+    # Handle NA weights consistently with use parameter
+    if (any(is.na(weight_values))) {
+      if (use %in% c("complete.obs", "pairwise.complete.obs")) {
+        # Remove rows with NA weights for complete/pairwise cases
+        non_na_idx <- !is.na(weight_values)
+        weight_values <- weight_values[non_na_idx]
+        analysis_data <- analysis_data[non_na_idx, ]
+      } else if (use == "all.obs") {
+        stop("Weight variable contains NA values and use = 'all.obs'. Set use = 'complete.obs' for listwise deletion.")
+      } else {
+        # For other use options, remove NA weights
+        non_na_idx <- !is.na(weight_values)
+        weight_values <- weight_values[non_na_idx]
+        analysis_data <- analysis_data[non_na_idx, ]
+      }
+    }
+
+    if (sum(weight_values) == 0) {
+      stop("Sum of weights is zero. Cannot compute weighted correlation.")
+    }
+
+    # Compute weighted covariance matrix using cov.wt
+    # Note: cov.wt requires complete cases
+    complete_cases_idx <- stats::complete.cases(analysis_data)
+    if (sum(complete_cases_idx) == 0) {
+      stop("No complete cases available for weighted correlation computation.")
+    }
+
+    # Track actual n used for weighted analysis
+    n_used <- sum(complete_cases_idx)
+
+    cov_result <- stats::cov.wt(
+      x = analysis_data[complete_cases_idx, , drop = FALSE],
+      wt = weight_values[complete_cases_idx],
+      cor = TRUE,
+      method = "unbiased"
+    )
+
+    cor_matrix <- cov_result$cor %>%
+      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
+
+  } else {
+    # Unweighted correlation
+    cor_matrix <-
+      stats::cor(thedata[, c(outcome, predictors)], use = use) %>%
+      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
+
+    # Track n for unweighted analysis (complete cases on all variables)
+    n_used <- nrow(tidyr::drop_na(thedata))
+  }
+
+  cor_matrix <- cor_matrix %>%
     remove_all_na_cols() %>%
     tidyr::drop_na()
 
@@ -111,8 +204,6 @@ rwa_multiregress <- function(df,
                        Rescaled.RelWeight = import,
                        Sign = sign) # Output - results
 
-  complete_cases <- nrow(tidyr::drop_na(thedata))
-
   if(applysigns == TRUE){
     result <-
       result %>%
@@ -124,7 +215,7 @@ rwa_multiregress <- function(df,
   list("predictors" = Variables,
        "rsquare" = rsquare,
        "result" = result,
-       "n" = complete_cases,
+       "n" = n_used,
        "lambda" = lambda,
        "RXX" = RXX,
        "RXY" = RXY)

@@ -46,6 +46,17 @@
 #' @param include_rescaled_ci Logical value specifying whether to include
 #'   confidence intervals for rescaled weights. Defaults to `FALSE` due to
 #'   compositional data constraints. Use with caution.
+#' @param use Method for handling missing data when computing correlations. Options are:
+#'   "everything" (missing values in correlations propagate),
+#'   "all.obs" (error if missing values present),
+#'   "complete.obs" (listwise deletion),
+#'   "na.or.complete" (error if some but not all missing),
+#'   "pairwise.complete.obs" (pairwise deletion, default).
+#'   See \code{\link[stats]{cor}} for more details. Only applicable for multiple regression.
+#' @param weight Optional name of a weight variable in the data frame. If provided,
+#'   a weighted correlation matrix will be computed using the specified weights.
+#'   The weight variable must be numeric and positive. Defaults to \code{NULL}
+#'   (unweighted analysis). Only applicable for multiple regression.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -93,6 +104,14 @@
 #' # For faster examples, use a subset of data for bootstrap
 #' diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
 #'
+#' # RWA with different missing data handling
+#' # Use complete.obs for listwise deletion
+#' rwa(diamonds_small, "price", c("depth", "carat"), use = "complete.obs")
+#'
+#' # RWA with weights
+#' diamonds_small$sample_weight <- runif(nrow(diamonds_small), 0.5, 2)
+#' rwa(diamonds_small, "price", c("depth", "carat"), weight = "sample_weight")
+#'
 #' # RWA with bootstrap confidence intervals (raw weights only)
 #' rwa(diamonds_small, "price", c("depth", "carat"),
 #'     bootstrap = TRUE, n_bootstrap = 100)
@@ -125,8 +144,9 @@ rwa <- function(df,
                 conf_level = 0.95,
                 focal = NULL,
                 comprehensive = FALSE,
-                include_rescaled_ci = FALSE) {
-
+                include_rescaled_ci = FALSE,
+                use = "pairwise.complete.obs",
+                weight = NULL) {
 
   # ---- Input validation ----
 
@@ -146,6 +166,30 @@ rwa <- function(df,
   if (!is.numeric(n_bootstrap) || length(n_bootstrap) != 1 ||
       n_bootstrap < 1 || n_bootstrap != floor(n_bootstrap)) {
     stop("`n_bootstrap` must be a positive integer.")
+  }
+
+  # Validate use parameter
+  valid_use_options <- c("everything", "all.obs", "complete.obs",
+                         "na.or.complete", "pairwise.complete.obs")
+  if (!use %in% valid_use_options) {
+    stop(sprintf("`use` must be one of: %s",
+                 paste(valid_use_options, collapse = ", ")))
+  }
+
+  # Validate weight parameter if provided
+  if (!is.null(weight)) {
+    if (!is.character(weight) || length(weight) != 1) {
+      stop("`weight` must be a single character string specifying the weight variable name.")
+    }
+    if (!weight %in% names(df)) {
+      stop(sprintf("Weight variable '%s' not found in data.", weight))
+    }
+    if (!is.numeric(df[[weight]])) {
+      stop(sprintf("Weight variable '%s' must be numeric.", weight))
+    }
+    if (any(df[[weight]] <= 0, na.rm = TRUE)) {
+      stop(sprintf("Weight variable '%s' must have positive values.", weight))
+    }
   }
 
   # Check that outcome and predictors exist in data
@@ -201,6 +245,13 @@ rwa <- function(df,
     bootstrap <- FALSE
   }
 
+  # ---- Handle weight/use parameters for logistic regression ----
+
+  if (use_logistic && (!is.null(weight) || use != "pairwise.complete.obs")) {
+    warning("Weight and use parameters are only applicable for multiple regression. ",
+            "They will be ignored for logistic regression.")
+  }
+
   # ---- Call appropriate sub-function ----
 
   if (use_logistic) {
@@ -215,7 +266,9 @@ rwa <- function(df,
       df = df,
       outcome = outcome,
       predictors = predictors,
-      applysigns = applysigns
+      applysigns = applysigns,
+      use = use,
+      weight = weight
     )
   }
 
@@ -239,7 +292,9 @@ rwa <- function(df,
       conf_level = conf_level,
       focal = focal,
       comprehensive = comprehensive,
-      include_rescaled = include_rescaled_ci
+      include_rescaled = include_rescaled_ci,
+      use = use,
+      weight = weight
     )
 
     # Add confidence intervals to result dataframe
