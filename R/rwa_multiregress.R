@@ -152,7 +152,10 @@ rwa_multiregress <- function(df,
       stats::cor(thedata[, c(outcome, predictors)], use = use) %>%
       as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
 
-    # Track n for unweighted analysis (complete cases on all variables)
+    # Track n for unweighted analysis (complete cases on all variables).
+    # Note: When use = "pairwise.complete.obs", individual correlations may
+    # use more observations than reported here. n reflects the most
+    # conservative count (complete cases across all variables).
     n_used <- nrow(tidyr::drop_na(thedata))
   }
 
