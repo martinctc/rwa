@@ -23,6 +23,8 @@
 #'   "na.or.complete" (error if some but not all missing),
 #'   "pairwise.complete.obs" (pairwise deletion, default).
 #'   See \code{\link[stats]{cor}} for more details.
+#'   Note: When \code{weight} is specified, complete cases (listwise deletion) is
+#'   always used for weighted correlation computation regardless of \code{use}.
 #' @param weight Optional name of a weight variable in the data frame. If provided,
 #'   a weighted correlation matrix will be computed using the specified weights.
 #'   The weight variable must be numeric and positive. Defaults to \code{NULL}
