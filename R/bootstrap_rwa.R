@@ -45,15 +45,10 @@ rwa_core_calculation <- function(thedata, outcome, predictors, return_all = FALS
     
     # Handle NA weights consistently with use parameter
     if (any(is.na(weight_values))) {
-      if (use == "complete.obs" || use == "pairwise.complete.obs") {
-        # Remove rows with NA weights for complete/pairwise cases
-        non_na_idx <- !is.na(weight_values)
-        weight_values <- weight_values[non_na_idx]
-        analysis_data <- analysis_data[non_na_idx, ]
-      } else if (use == "all.obs") {
+      if (use == "all.obs") {
         stop("Weight variable contains NA values and use = 'all.obs'. Set use = 'complete.obs' for listwise deletion.")
       } else {
-        # For other use options, remove NA weights
+        # Remove rows with NA weights
         non_na_idx <- !is.na(weight_values)
         weight_values <- weight_values[non_na_idx]
         analysis_data <- analysis_data[non_na_idx, ]
