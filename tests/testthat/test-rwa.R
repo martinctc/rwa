@@ -480,8 +480,9 @@ test_that("rwa() handles pairwise vs complete deletion differently with missing 
   expect_type(result_pairwise, "list")
   expect_type(result_complete, "list")
 
-  # The n should be different (pairwise uses more data for outcome)
-  # Both use listwise deletion on outcome, so n should be based on complete outcome
+  # Both methods use listwise deletion on the outcome variable.
+  # They differ in how predictor missingness is handled during correlation computation.
+  # n reports complete cases across all variables (conservative estimate for pairwise).
   expect_true(result_pairwise$n <= nrow(mtcars_na))
   expect_true(result_complete$n <= result_pairwise$n)
 })
