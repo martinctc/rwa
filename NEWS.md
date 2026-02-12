@@ -4,13 +4,13 @@
 
 - Added `rwa_logit()` and `rwa_multiregress()` to support logistic regression and multiple regression.
 - Added new vignette to cover the new regression methods.
-- Added `use` parameter to `rwa()` function to control how missing data is handled when computing correlations. Options include "pairwise.complete.obs" (default, pairwise deletion), "complete.obs" (listwise deletion), and other standard options from `cor()`. This addresses issue #8.
-- Added `weight` parameter to `rwa()` function to perform weighted Relative Weights Analysis. When a weight variable is specified, the function computes a weighted correlation matrix using `cov.wt()`. This feature allows for proper handling of survey weights or importance weights in the analysis. This addresses issue #8.
+- Added `use` parameter to `rwa()` function to control how missing data is handled when computing correlations. Options include "pairwise.complete.obs" (default, pairwise deletion), "complete.obs" (listwise deletion), and other standard options from `cor()`. (#12)
+- Added `weight` parameter to `rwa()` function to perform weighted Relative Weights Analysis (#12). When a weight variable is specified, the function computes a weighted correlation matrix using `cov.wt()`. This feature allows for proper handling of survey weights or importance weights in the analysis.
 
 ## Improvements
 
 - Updated all bootstrap functions to support the new `use` and `weight` parameters
-- Enhanced input validation to check weight variable properties (numeric, non-negative)
+- Enhanced input validation to check weight variable properties (numeric, positive)
 - Improved test coverage and minor bugfixes
 
 ---
