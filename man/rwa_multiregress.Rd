@@ -28,7 +28,9 @@ rwa_multiregress(
 "complete.obs" (listwise deletion),
 "na.or.complete" (error if some but not all missing),
 "pairwise.complete.obs" (pairwise deletion, default).
-See \code{\link[stats]{cor}} for more details.}
+See \code{\link[stats]{cor}} for more details.
+Note: When \code{weight} is specified, complete cases (listwise deletion) is
+always used for weighted correlation computation regardless of \code{use}.}
 
 \item{weight}{Optional name of a weight variable in the data frame. If provided,
 a weighted correlation matrix will be computed using the specified weights.
