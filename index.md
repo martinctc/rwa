@@ -39,6 +39,7 @@ operations to enable cleaner and more readable code.
 You can install the stable CRAN version of **rwa** with:
 
 ``` r
+
 install.packages("rwa")
 ```
 
@@ -46,6 +47,7 @@ Alternatively, you can install the latest development version from
 GitHub with:
 
 ``` r
+
 install.packages("devtools")
 devtools::install_github("martinctc/rwa")
 ```
@@ -118,6 +120,7 @@ having to first compute a correlation matrix. The below example is with
 Code:
 
 ``` r
+
 library(rwa)
 library(tidyverse)
 
@@ -155,6 +158,7 @@ For comprehensive examples and methodology explanations, see the package
 vignettes:
 
 ``` r
+
 # Main introduction to RWA
 vignette("introduction-to-rwa", package = "rwa")
 

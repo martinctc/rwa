@@ -255,32 +255,32 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> [1] "depth" "carat"
 #> 
 #> $rsquare
-#> [1] 0.8499131
+#> [1] 0.8506213
 #> 
 #> $result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower
-#> 1     carat  0.8489637953         99.8883007    +            0.821172909
-#> 2     depth  0.0009493473          0.1116993    -           -0.002577354
+#> 1     carat  0.8496668919         99.8878042    +            0.824022309
+#> 2     depth  0.0009543612          0.1121958    -           -0.001540754
 #>   Raw.RelWeight.CI.Upper Raw.Significant
-#> 1            0.878932350            TRUE
-#> 2            0.001598172           FALSE
+#> 1            0.881784349            TRUE
+#> 2            0.001733768           FALSE
 #> 
 #> $n
 #> [1] 1000
 #> 
 #> $lambda
 #>           [,1]      [,2]
-#> [1,] 0.9998984 0.0142579
-#> [2,] 0.0142579 0.9998984
+#> [1,] 0.9999021 0.0139908
+#> [2,] 0.0139908 0.9999021
 #> 
 #> $RXX
-#>           depth     carat
-#> depth 1.0000000 0.0285129
-#> carat 0.0285129 1.0000000
+#>            depth      carat
+#> depth 1.00000000 0.02797885
+#> carat 0.02797885 1.00000000
 #> 
 #> $RXY
 #>       depth       carat 
-#> -0.01473139  0.92099482 
+#> -0.01517396  0.92138091 
 #> 
 #> $bootstrap
 #> $bootstrap$boot_object
@@ -294,17 +294,17 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> 
 #> Bootstrap Statistics :
-#>         original        bias    std. error
-#> t1* 0.0009493473  0.0006083043 0.001005676
-#> t2* 0.8489637953 -0.0009349687 0.014284910
+#>         original        bias     std. error
+#> t1* 0.0009543612  0.0003949415 0.0007799469
+#> t2* 0.8496668919 -0.0004819075 0.0143948740
 #> 
 #> $bootstrap$ci_results
 #> $bootstrap$ci_results$raw_weights
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>  
-#> 1 depth               1 -0.00258  0.00160 basic     raw    
-#> 2 carat               2  0.821    0.879   basic     raw    
+#> 1 depth               1 -0.00154  0.00173 basic     raw    
+#> 2 carat               2  0.824    0.882   basic     raw    
 #> 
 #> 
 #> $bootstrap$n_bootstrap
@@ -332,35 +332,35 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> [1] "depth" "carat"
 #> 
 #> $rsquare
-#> [1] 0.8499131
+#> [1] 0.8506213
 #> 
 #> $result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower
-#> 1     carat  0.8489637953         99.8883007    +            0.820116111
-#> 2     depth  0.0009493473          0.1116993    -           -0.001621699
+#> 1     carat  0.8496668919         99.8878042    +            0.825024090
+#> 2     depth  0.0009543612          0.1121958    -           -0.002254679
 #>   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower
-#> 1            0.874260240            TRUE                  99.8007012
-#> 2            0.001587324           FALSE                  -0.2253907
+#> 1            0.877405690            TRUE                  99.8011875
+#> 2            0.001630586           FALSE                  -0.3064536
 #>   Rescaled.RelWeight.CI.Upper
-#> 1                 100.2253907
-#> 2                   0.1992988
+#> 1                 100.3064536
+#> 2                   0.1988125
 #> 
 #> $n
 #> [1] 1000
 #> 
 #> $lambda
 #>           [,1]      [,2]
-#> [1,] 0.9998984 0.0142579
-#> [2,] 0.0142579 0.9998984
+#> [1,] 0.9999021 0.0139908
+#> [2,] 0.0139908 0.9999021
 #> 
 #> $RXX
-#>           depth     carat
-#> depth 1.0000000 0.0285129
-#> carat 0.0285129 1.0000000
+#>            depth      carat
+#> depth 1.00000000 0.02797885
+#> carat 0.02797885 1.00000000
 #> 
 #> $RXY
 #>       depth       carat 
-#> -0.01473139  0.92099482 
+#> -0.01517396  0.92138091 
 #> 
 #> $bootstrap
 #> $bootstrap$boot_object
@@ -374,9 +374,9 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> 
 #> Bootstrap Statistics :
-#>         original       bias     std. error
-#> t1* 0.0009493473 0.0006033209 0.0009143211
-#> t2* 0.8489637953 0.0037448894 0.0127520755
+#>         original       bias    std. error
+#> t1* 0.0009543612 0.0004856361 0.000959869
+#> t2* 0.8496668919 0.0029880917 0.013125677
 #> 
 #> $bootstrap$boot_object_rescaled
 #> 
@@ -390,22 +390,22 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> Bootstrap Statistics :
 #>       original      bias    std. error
-#> t1*  0.1116993  0.05818349   0.1031148
-#> t2* 99.8883007 -0.05818349   0.1031148
+#> t1*  0.1121958  0.05019607   0.1224042
+#> t2* 99.8878042 -0.05019607   0.1224042
 #> 
 #> $bootstrap$ci_results
 #> $bootstrap$ci_results$raw_weights
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>  
-#> 1 depth               1 -0.00162  0.00159 basic     raw    
-#> 2 carat               2  0.820    0.874   basic     raw    
+#> 1 depth               1 -0.00225  0.00163 basic     raw    
+#> 2 carat               2  0.825    0.877   basic     raw    
 #> 
 #> $bootstrap$ci_results$rescaled_weights
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type 
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>   
-#> 1 depth               1   -0.225    0.199 basic     rescaled
+#> 1 depth               1   -0.306    0.199 basic     rescaled
 #> 2 carat               2   99.8    100.    basic     rescaled
 #> 
 #> 
@@ -434,26 +434,26 @@ result <- rwa(diamonds_small, "price", c("depth", "carat", "table"),
 result$bootstrap$ci_results
 #> $raw_weights
 #> # A tibble: 3 × 6
-#>   variable weight_index ci_lower ci_upper ci_method ci_type
-#>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>  
-#> 1 depth               1 -0.00147  0.00180 basic     raw    
-#> 2 carat               2  0.817    0.872   basic     raw    
-#> 3 table               3 -0.00381  0.0148  basic     raw    
+#>   variable weight_index  ci_lower ci_upper ci_method ci_type
+#>   <chr>           <int>     <dbl>    <dbl> <chr>     <chr>  
+#> 1 depth               1 -0.00141   0.00180 basic     raw    
+#> 2 carat               2  0.822     0.871   basic     raw    
+#> 3 table               3 -0.000124  0.0145  basic     raw    
 #> 
 #> $random_comparison
 #> # A tibble: 3 × 6
-#>   variable weight_index ci_lower ci_upper ci_method ci_type  
-#>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>    
-#> 1 Var4                1 -0.00134  0.00416 basic     rand_diff
-#> 2 Var5                2  0.816    0.870   basic     rand_diff
-#> 3 Var6                3 -0.00120  0.0156  basic     rand_diff
+#>   variable weight_index  ci_lower ci_upper ci_method ci_type  
+#>   <chr>           <int>     <dbl>    <dbl> <chr>     <chr>    
+#> 1 Var4                1 -0.00138   0.00288 basic     rand_diff
+#> 2 Var5                2  0.818     0.879   basic     rand_diff
+#> 3 Var6                3 -0.000360  0.0161  basic     rand_diff
 #> 
 #> $focal_comparison
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type   
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>     
-#> 1 Var7                1   -0.869   -0.813 basic     focal_diff
-#> 2 Var8                2   -0.865   -0.805 basic     focal_diff
+#> 1 Var7                1   -0.877   -0.818 basic     focal_diff
+#> 2 Var8                2   -0.872   -0.806 basic     focal_diff
 #> 
 # }
 

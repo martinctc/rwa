@@ -1,6 +1,7 @@
 # Bootstrap Confidence Intervals for Relative Weights Analysis
 
 ``` r
+
 library(rwa)
 library(dplyr)
 library(ggplot2)
@@ -42,6 +43,7 @@ include zero
 ### Simple Bootstrap Example
 
 ``` r
+
 # Bootstrap analysis with 1000 samples
 result_bootstrap <- mtcars %>%
   rwa(outcome = "mpg",
@@ -74,6 +76,7 @@ The bootstrap analysis enhances the standard RWA output with:
   include zero)
 
 ``` r
+
 # Bootstrap-specific information
 cat("Bootstrap samples used:", result_bootstrap$bootstrap$n_bootstrap, "\n")
 #> Bootstrap samples used: 1000
@@ -104,6 +107,7 @@ cat("Significant predictors:", paste(significant_vars, collapse = ", "))
 For detailed analysis including focal variable comparisons:
 
 ``` r
+
 # Comprehensive bootstrap with focal variable comparison
 result_comprehensive <- mtcars %>%
   rwa(outcome = "mpg",
@@ -128,6 +132,7 @@ Key parameters for bootstrap analysis:
 - **`comprehensive`**: Enable additional bootstrap tests
 
 ``` r
+
 # Example with different parameters
 custom_bootstrap <- mtcars %>%
   rwa(outcome = "mpg",
@@ -154,6 +159,7 @@ caution** due to compositional data constraints. They are not
 recommended for formal statistical inference.
 
 ``` r
+
 # Rescaled CIs (use with caution)
 result_rescaled_ci <- mtcars %>%
   rwa(outcome = "mpg",
@@ -192,6 +198,7 @@ statistical inference.
 ### Diamond Price Analysis
 
 ``` r
+
 # Analyze diamond price drivers
 diamonds_subset <- diamonds %>%
   select(price, carat, depth, table, x, y, z) %>%
@@ -224,6 +231,7 @@ print(diamond_rwa$result)
 ### Interpreting Results
 
 ``` r
+
 # Focus on significant predictors (results are already sorted by importance)
 significant_drivers <- diamond_rwa$result %>%
   filter(Raw.Significant == TRUE) %>%
@@ -249,6 +257,7 @@ cat("\nModel R-squared:", round(diamond_rwa$rsquare, 3))
 ### 1. Sample Size Guidelines
 
 ``` r
+
 # Check your sample size
 n_obs <- mtcars %>% 
   select(mpg, cyl, disp, hp, gear) %>% 
@@ -267,6 +276,7 @@ cat("\nRecommended bootstrap samples:", min(2000, n_obs * 10))
 ### 2. Confidence Interval Interpretation
 
 ``` r
+
 # Examine CI characteristics
 ci_data <- result_bootstrap$bootstrap$ci_results$raw_weights
 print(head(ci_data))
@@ -311,6 +321,7 @@ method:
 3.  **Basic bootstrap** - Final fallback option
 
 ``` r
+
 # Check which methods were used
 ci_methods <- result_bootstrap$bootstrap$ci_results$raw_weights %>%
   count(ci_method)
@@ -327,6 +338,7 @@ print(ci_methods)
 ### Bootstrap Speed Tips
 
 ``` r
+
 # For large datasets or many predictors, consider:
 
 # 1. Reduce bootstrap samples for initial exploration
@@ -346,6 +358,7 @@ quick_result <- mtcars %>%
 ### Memory Usage
 
 ``` r
+
 # Bootstrap objects can be large - access specific components
 str(result_bootstrap$bootstrap, max.level = 1)
 #> List of 6
@@ -377,6 +390,7 @@ print(ci_summary)
 ### Common Bootstrap Issues
 
 ``` r
+
 # 1. Check for perfect multicollinearity
 cor_check <- mtcars %>%
   select(cyl, disp, hp, gear) %>%
@@ -419,6 +433,7 @@ When reporting bootstrap RWA results, include:
 ### Example Report
 
 ``` r
+
 # Generate a summary report
 report_data <- result_bootstrap$result %>%
   filter(Raw.Significant == TRUE) %>%

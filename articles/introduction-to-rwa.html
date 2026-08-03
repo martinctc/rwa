@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Introduction to Relative Weights Analysis with the rwa Package • rwa</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Introduction to Relative Weights Analysis with the rwa Package">
 <!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
@@ -17,7 +17,7 @@
   gtag('js', new Date());
 
   gtag('config', 'UA-138721086-1');
-</script>
+</script><script defer src="https://ca-umami-prod.lemonglacier-6a5930b7.uksouth.azurecontainerapps.io/script.js" data-website-id="0b91ce54-0c0c-4906-89c6-312165ce001b" data-domains="martinctc.github.io" data-do-not-track="true" data-exclude-search="true" data-exclude-hash="true"></script>
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2026-01-22</h4>
+            <h4 data-toc-skip class="date">2026-08-03</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/introduction-to-rwa.Rmd" class="external-link"><code>vignettes/introduction-to-rwa.Rmd</code></a></small>
       <div class="d-none name"><code>introduction-to-rwa.Rmd</code></div>
@@ -598,7 +598,7 @@ intervals and significance tests</li>
 <span><span class="va">rwa_speed_test</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>, predictors <span class="op">=</span> <span class="va">predictors</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"RWA computation time:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"seconds\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; RWA computation time: 0.0079 seconds</span></span></code></pre></div>
+<span><span class="co">#&gt; RWA computation time: 0.0061 seconds</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -878,7 +878,7 @@ see:</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

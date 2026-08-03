@@ -1,6 +1,7 @@
 # Introduction to Relative Weights Analysis with the rwa Package
 
 ``` r
+
 library(rwa)
 library(dplyr)
 library(ggplot2)
@@ -84,6 +85,7 @@ Let’s demonstrate this with a controlled example where we know the true
 relationships:
 
 ``` r
+
 # Create controlled scenario to demonstrate RWA's theoretical properties
 set.seed(123)
 n <- 200
@@ -175,6 +177,7 @@ Let’s start with a basic example using the built-in `mtcars` dataset to
 predict fuel efficiency (`mpg`):
 
 ``` r
+
 # Basic RWA
 result_basic <- mtcars %>%
   rwa(outcome = "mpg",
@@ -194,6 +197,7 @@ result_basic$result
 The basic output includes several key components:
 
 ``` r
+
 # Predictor variables used
 result_basic$predictors
 #> [1] "cyl"  "disp" "hp"   "gear"
@@ -231,6 +235,7 @@ weights in descending order, making it easy to identify the most
 important predictors:
 
 ``` r
+
 # Results are sorted by default (most important first)
 result_basic$result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign
@@ -255,6 +260,7 @@ sum(result_basic$result$Rescaled.RelWeight)
 You can control whether results are sorted using the `sort` parameter:
 
 ``` r
+
 # Default behavior: sorted by importance (descending)
 result_sorted <- mtcars %>%
   rwa(outcome = "mpg", predictors = c("cyl", "disp", "hp", "gear"))
@@ -287,6 +293,7 @@ interpret whether variables positively or negatively influence the
 outcome:
 
 ``` r
+
 result_signs <- mtcars %>%
   rwa(outcome = "mpg",
       predictors = c("cyl", "disp", "hp", "gear"),
@@ -307,6 +314,7 @@ the results to
 [`plot_rwa()`](https://martinctc.github.io/rwa/reference/plot_rwa.md):
 
 ``` r
+
 # Generate RWA results 
 rwa_result <- mtcars %>%
   rwa(outcome = "mpg",
@@ -319,6 +327,7 @@ rwa_result %>% plot_rwa()
 ![](reference/figures/README-visualization-1.png)
 
 ``` r
+
 
 # The rescaled relative weights
 rwa_result$result
@@ -337,12 +346,14 @@ determining the statistical significance of relative weights. For
 detailed coverage of bootstrap methods, see the dedicated vignette:
 
 ``` r
+
 vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
 ### Quick Bootstrap Example
 
 ``` r
+
 # Basic bootstrap analysis
 bootstrap_result <- mtcars %>%
   rwa(outcome = "mpg",
@@ -368,6 +379,7 @@ best practices, consult the bootstrap vignette.
 Let’s explore a more complex example using the `diamonds` dataset:
 
 ``` r
+
 # Analyze diamond price drivers
 diamonds_subset <- diamonds %>%
   select(price, carat, depth, table, x, y, z) %>%
@@ -391,6 +403,7 @@ diamond_rwa$result
 For bootstrap analysis of this example with confidence intervals, see:
 
 ``` r
+
 vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
@@ -400,6 +413,7 @@ Let’s compare RWA results with traditional multiple regression to
 highlight the differences:
 
 ``` r
+
 # Traditional regression
 lm_model <- lm(mpg ~ cyl + disp + hp + gear, data = mtcars)
 lm_summary <- summary(lm_model)
@@ -484,6 +498,7 @@ dominance analysis but far more efficiently**. Research shows:
   significance tests
 
 ``` r
+
 # Demonstrate computational considerations
 predictors <- c("cyl", "disp", "hp", "gear")
 n_predictors <- length(predictors)
@@ -500,7 +515,7 @@ start_time <- Sys.time()
 rwa_speed_test <- mtcars %>% rwa(outcome = "mpg", predictors = predictors)
 end_time <- Sys.time()
 cat("RWA computation time:", round(as.numeric(end_time - start_time, units = "secs"), 4), "seconds\n")
-#> RWA computation time: 0.0079 seconds
+#> RWA computation time: 0.0061 seconds
 ```
 
 ## Critical Limitations and When to Exercise Caution
@@ -524,6 +539,7 @@ construct, RWA will split the contribution between them, potentially
 making each appear less important individually.
 
 ``` r
+
 # Demonstrate the redundancy limitation
 set.seed(456)
 x1_orig <- rnorm(100)
@@ -572,6 +588,7 @@ limitations associated with a small sample size.”
 ### 1. Sample Size Considerations
 
 ``` r
+
 # Check your sample size
 n_obs <- mtcars %>% 
   select(mpg, cyl, disp, hp, gear) %>% 
@@ -624,6 +641,7 @@ For bootstrap confidence intervals and advanced statistical
 considerations, see:
 
 ``` r
+
 vignette("bootstrap-confidence-intervals", package = "rwa")
 ```
 
@@ -634,6 +652,7 @@ vignette("bootstrap-confidence-intervals", package = "rwa")
 If you encounter extreme multicollinearity:
 
 ``` r
+
 # Check correlation matrix
 cor_matrix <- mtcars %>%
   select(cyl, disp, hp, gear) %>%
@@ -652,6 +671,7 @@ if(nrow(high_cor) > 0) {
 RWA handles missing data through listwise deletion:
 
 ``` r
+
 # Check for missing data patterns
 missing_summary <- mtcars %>%
   select(mpg, cyl, disp, hp, gear) %>%
@@ -748,5 +768,6 @@ For advanced bootstrap methods and statistical significance testing,
 see:
 
 ``` r
+
 vignette("bootstrap-confidence-intervals", package = "rwa")
 ```

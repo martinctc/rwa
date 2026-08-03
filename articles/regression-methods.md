@@ -1,6 +1,7 @@
 # Regression Methods: Multiple and Logistic RWA
 
 ``` r
+
 library(rwa)
 library(dplyr)
 library(ggplot2)
@@ -24,10 +25,10 @@ you more control and insight into your analysis.
 
 ## When to Use Each Method
 
-| Outcome Type | Function                                                                              | Example Use Cases                                  |
-|--------------|---------------------------------------------------------------------------------------|----------------------------------------------------|
-| Continuous   | [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md) | Predicting prices, scores, measurements            |
-| Binary (0/1) | [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md)               | Predicting yes/no, pass/fail, purchase/no purchase |
+| Outcome Type | Function | Example Use Cases |
+|----|----|----|
+| Continuous | [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md) | Predicting prices, scores, measurements |
+| Binary (0/1) | [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md) | Predicting yes/no, pass/fail, purchase/no purchase |
 
 ## Multiple Regression with `rwa_multiregress()`
 
@@ -38,6 +39,7 @@ demonstrating multiple regression RWA. Let’s examine what factors most
 influence fuel efficiency (mpg):
 
 ``` r
+
 # Direct use of rwa_multiregress()
 result_multi <- rwa_multiregress(
   df = mtcars,
@@ -59,6 +61,7 @@ result_multi$result
 The output contains several key pieces of information:
 
 ``` r
+
 # R-squared: Total variance explained
 cat("R-squared:", round(result_multi$rsquare, 4), "\n")
 #> R-squared: 0.8486
@@ -96,6 +99,7 @@ variance contributions). Use `applysigns = TRUE` to see the direction of
 each relationship:
 
 ``` r
+
 # With sign information
 result_signed <- rwa_multiregress(
   df = mtcars,
@@ -125,6 +129,7 @@ The function also returns the correlation matrices, which can help
 understand relationships between predictors:
 
 ``` r
+
 # Correlation between predictors
 cat("Predictor Correlation Matrix (RXX):\n")
 #> Predictor Correlation Matrix (RXX):
@@ -152,6 +157,7 @@ For logistic regression, we need a binary outcome variable. Let’s create
 one from the `mtcars` dataset:
 
 ``` r
+
 # Create binary outcome: high efficiency (1) vs low efficiency (0)
 mtcars_binary <- mtcars %>%
   mutate(high_mpg = ifelse(mpg > median(mpg), 1, 0))
@@ -166,6 +172,7 @@ table(mtcars_binary$high_mpg)
 ### Basic Logistic RWA
 
 ``` r
+
 # Logistic regression RWA
 result_logit <- rwa_logit(
   df = mtcars_binary,
@@ -187,6 +194,7 @@ result_logit$result
 The interpretation differs slightly from multiple regression:
 
 ``` r
+
 # Lambda (analogous to R-squared for logistic regression)
 cat("Lambda (pseudo R-squared):", round(result_logit$lambda, 4), "\n")
 #> Lambda (pseudo R-squared): 0.7481 0.4305 0.3884 0.3227 0.4305 0.7102 0.3386 0.4423 0.3884 0.3386 0.8239 0.2358 0.3227 0.4423 0.2358 0.8029
@@ -213,6 +221,7 @@ predictor.
 ### Logistic RWA with Signs
 
 ``` r
+
 # With direction information
 result_logit_signed <- rwa_logit(
   df = mtcars_binary,
@@ -240,6 +249,7 @@ variable.
 ### Auto-Detection of Binary Outcomes
 
 ``` r
+
 # For continuous outcome - automatically uses multiple regression
 result_auto_multi <- rwa(
   df = mtcars,
@@ -260,6 +270,7 @@ result_auto_logit <- rwa(
 You can also explicitly specify the method using the `method` parameter:
 
 ``` r
+
 # Force multiple regression
 result_explicit_multi <- rwa(
   df = mtcars,
@@ -282,6 +293,7 @@ result_explicit_logit <- rwa(
 The wrapper function also provides sorting and visualization options:
 
 ``` r
+
 # Sort results by importance
 result_sorted <- rwa(
   df = mtcars,
@@ -310,6 +322,7 @@ Let’s apply these methods to the classic `iris` dataset.
 ### Multiple Regression: Predicting Petal Length
 
 ``` r
+
 # Predict petal length from other measurements
 iris_result <- rwa_multiregress(
   df = iris,
@@ -338,6 +351,7 @@ For logistic regression, we need a binary outcome. Let’s predict whether
 a flower is *Iris setosa* or not:
 
 ``` r
+
 # Create binary outcome for setosa classification
 iris_binary <- iris %>%
   mutate(is_setosa = ifelse(Species == "setosa", 1, 0))
@@ -369,6 +383,7 @@ Let’s demonstrate how the same predictors can yield different importance
 rankings depending on the outcome type:
 
 ``` r
+
 # Create comparison dataset
 comparison_data <- mtcars %>%
   mutate(high_mpg = ifelse(mpg > median(mpg), 1, 0))
@@ -426,6 +441,7 @@ binary outcomes because:
 ### 2. Check Your Data
 
 ``` r
+
 # Always check outcome distribution for binary variables
 table(mtcars_binary$high_mpg)
 #> 
@@ -450,6 +466,7 @@ For statistical significance testing, combine with bootstrap methods
 (note: currently only available for multiple regression):
 
 ``` r
+
 # Bootstrap with multiple regression
 result_boot <- rwa(
   df = mtcars,
@@ -474,11 +491,11 @@ result_boot$result
 
 ## Summary
 
-| Function                                                                              | Outcome Type | Key Output                         | Weights Sum To |
-|---------------------------------------------------------------------------------------|--------------|------------------------------------|----------------|
-| [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md) | Continuous   | R², Raw & Rescaled Weights         | 100%           |
-| [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md)               | Binary (0/1) | R², Raw & Rescaled Weights         | 100%           |
-| [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md)                           | Either       | Auto-detects + sorting + bootstrap | 100%           |
+| Function | Outcome Type | Key Output | Weights Sum To |
+|----|----|----|----|
+| [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md) | Continuous | R², Raw & Rescaled Weights | 100% |
+| [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md) | Binary (0/1) | R², Raw & Rescaled Weights | 100% |
+| [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md) | Either | Auto-detects + sorting + bootstrap | 100% |
 
 Both methods provide valuable insights into predictor importance while
 accounting for multicollinearity. Choose the appropriate method based on

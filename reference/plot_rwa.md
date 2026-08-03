@@ -23,6 +23,7 @@ plot_rwa(rwa)
 ## Examples
 
 ``` r
+
 library(ggplot2)
 # Use a smaller sample for faster execution
 diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]

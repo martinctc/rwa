@@ -1,12 +1,12 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.8.3
+pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   bootstrap-confidence-intervals: bootstrap-confidence-intervals.html
   evaluating-rwa-method-reference: evaluating-rwa-method-reference.html
   introduction-to-rwa: introduction-to-rwa.html
   regression-methods: regression-methods.html
-last_built: 2026-01-22T12:19Z
+last_built: 2026-08-03T16:49Z
 urls:
   reference: https://martinctc.github.io/rwa/reference
   article: https://martinctc.github.io/rwa/articles
