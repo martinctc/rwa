@@ -4,6 +4,16 @@ template:
   bootstrap: 5
   params:
     ganalytics: UA-138721086-1
+  includes:
+    in_header: |
+      <script
+        defer
+        src="https://ca-umami-prod.lemonglacier-6a5930b7.uksouth.azurecontainerapps.io/script.js"
+        data-website-id="0b91ce54-0c0c-4906-89c6-312165ce001b"
+        data-domains="martinctc.github.io"
+        data-do-not-track="true"
+        data-exclude-search="true"
+        data-exclude-hash="true"></script>
 
 navbar:
   structure:
