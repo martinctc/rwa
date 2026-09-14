@@ -32,4 +32,5 @@ articles:
   contents:
   - regression-methods
   - bootstrap-confidence-intervals
+  - weighted-missing-data
   - evaluating-rwa-method-reference
