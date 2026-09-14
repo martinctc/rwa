@@ -15,6 +15,10 @@
 - Shared numeric, finite, strictly positive weight validation across point estimates and bootstrap calculations; missing-weight filtering remains mode-dependent.
 - Validate the full joint correlation matrix and predictor invertibility with documented numerical tolerances and actionable errors for missing-data-induced indefinite matrices, constant variables, singularity, and insufficient data (#24). Exact fits remain valid when predictors are not collinear.
 - Preserve legacy missing-data preprocessing, including outcome removal before every correlation mode and weighted predictor-completeness filtering even for `all.obs`; corrected `na.or.complete` documentation.
+- `plot_rwa()` now reports the sum of weights and the effective sample size in the caption for weighted analyses, so weighted charts are distinguishable from unweighted ones.
+- Weighted results return `n_weighted` and `n_effective` immediately after `n`, making them easier to find. Field names and unweighted output are unchanged.
+- Datasets with fewer usable observations than predictors now name the sample-size problem in the singular-matrix error, instead of reporting only an eigenvalue (relevant to the rank-deficient data discussed in #10). Models that were previously estimable, including pairwise-deletion models with few complete cases, are unaffected.
+- Added a plain-English summary of the weighting and missing-data behavior to `?rwa`, including guidance on when to use survey weights.
 - Improved test coverage and minor bug fixes
 
 ## Bug Fixes

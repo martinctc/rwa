@@ -129,8 +129,13 @@ rwa_multiregress <- function(df,
        "RXY" = calculation$RXY)
   if (!is.null(weight)) {
     normalized_weights <- prepared$weights / max(prepared$weights)
-    output$n_weighted <- sum(prepared$weights)
-    output$n_effective <- sum(normalized_weights)^2 / sum(normalized_weights^2)
+    # Keep the weighted sample diagnostics next to `n` so they are discoverable.
+    output <- append(
+      output,
+      list("n_weighted" = sum(prepared$weights),
+           "n_effective" = sum(normalized_weights)^2 / sum(normalized_weights^2)),
+      after = which(names(output) == "n")
+    )
   }
   output
 }

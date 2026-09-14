@@ -19,6 +19,18 @@
 #' automatically selecting the appropriate method based on the outcome variable
 #' or the `method` argument.
 #'
+#' In brief, for the two missing-data and weighting arguments:
+#' * Without `weight`, missing values are handled by `use`, which defaults to
+#'   pairwise deletion when correlating predictors.
+#' * With `weight`, the analysis always uses complete cases across the outcome,
+#'   the predictors, and the weight. Weighted pairwise deletion is not
+#'   implemented, so `use` does not change a weighted result.
+#' * In both cases, rows with a missing outcome are dropped first.
+#'
+#' Use weights when the analysis should represent a target population rather
+#' than the achieved sample. Comparing weighted with unweighted results is
+#' informative: a large difference indicates that sample composition matters.
+#'
 #' Multiple-regression estimates require a finite joint correlation matrix.
 #' Its smallest eigenvalue must be at least minus
 #' `sqrt(.Machine$double.eps) * max(1, max(abs(eigenvalues)))`. The predictor

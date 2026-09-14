@@ -494,8 +494,8 @@ test_that("rwa() accepts weight parameter", {
                 weight = "weights", method = "multiple")
 
   expect_type(result, "list")
-  expect_named(result, c("predictors", "rsquare", "result", "n", "lambda", "RXX", "RXY",
-                         "n_weighted", "n_effective"))
+  expect_named(result, c("predictors", "rsquare", "result", "n",
+                         "n_weighted", "n_effective", "lambda", "RXX", "RXY"))
 
   # Rescaled weights should still sum to 100
   expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-10)

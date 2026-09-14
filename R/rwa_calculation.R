@@ -98,7 +98,7 @@ prepare_rwa_data <- function(df, outcome, predictors, use, weight = NULL) {
 
 #' @keywords internal
 #' @noRd
-validate_rwa_matrix <- function(matrix_data, outcome, predictors) {
+validate_rwa_matrix <- function(matrix_data, outcome, predictors, n_obs = NULL) {
   variables <- c(outcome, predictors)
   if (!is.matrix(matrix_data) || !is.numeric(matrix_data) ||
       !identical(dim(matrix_data), rep(length(variables), 2L)) ||
@@ -125,9 +125,17 @@ validate_rwa_matrix <- function(matrix_data, outcome, predictors) {
   RXX <- matrix_data[-1L, -1L, drop = FALSE]
   predictor_eigen <- eigen(RXX, symmetric = TRUE)
   if (min(predictor_eigen$values) <= 0) {
-    stop(sprintf("Predictor correlation matrix is singular or numerically non-positive-definite for: %s. Check collinearity and sample size (minimum eigenvalue %.3g).",
+    # Too few observations is a common cause of a rank-deficient predictor
+    # block, so name it explicitly rather than leaving only a matrix diagnosis.
+    # This annotates an existing failure; it never rejects an estimable model.
+    sample_size_hint <- ""
+    if (!is.null(n_obs) && n_obs <= length(predictors)) {
+      sample_size_hint <- sprintf(" Only %d usable observation(s) remain for %d predictor(s) after missing-data filtering; RWA generally needs more observations than predictors. Reduce the number of predictors, inspect missingness in the outcome, predictors, and weight, or collect more data.",
+                                  n_obs, length(predictors))
+    }
+    stop(sprintf("Predictor correlation matrix is singular or numerically non-positive-definite for: %s. Check collinearity and sample size (minimum eigenvalue %.3g).%s",
                  paste(predictors, collapse = ", "),
-                 min(predictor_eigen$values)))
+                 min(predictor_eigen$values), sample_size_hint))
   }
   predictor_eigen
 }
@@ -144,7 +152,8 @@ calculate_rwa <- function(prepared, outcome, predictors, use) {
     matrix_data <- stats::cov.wt(prepared$data, wt = normalized_weights,
                                 cor = TRUE, method = "ML")$cor
   }
-  predictor_eigen <- validate_rwa_matrix(matrix_data, outcome, predictors)
+  predictor_eigen <- validate_rwa_matrix(matrix_data, outcome, predictors,
+                                         n_obs = nrow(prepared$data))
   delta <- diag(sqrt(predictor_eigen$values), nrow = length(predictors))
   lambda <- predictor_eigen$vectors %*% delta %*% t(predictor_eigen$vectors)
   RXY <- matrix_data[-1L, 1L]
