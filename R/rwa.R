@@ -19,6 +19,31 @@
 #' automatically selecting the appropriate method based on the outcome variable
 #' or the `method` argument.
 #'
+#' Multiple-regression estimates require a finite joint correlation matrix.
+#' Its smallest eigenvalue must be at least minus
+#' `sqrt(.Machine$double.eps) * max(1, max(abs(eigenvalues)))`. The predictor
+#' block must have strictly positive computed eigenvalues and the transformation
+#' must be solvable. No additional conditioning cutoff is imposed on previously
+#' estimable models; highly correlated predictors can still yield sensitive
+#' estimates. Calculated R-squared must not exceed one by
+#' more than `sqrt(.Machine$double.eps)`; the fit is checked separately because
+#' small matrix errors can be amplified by nearly collinear predictors.
+#' An exactly fitted outcome (a singular joint matrix) is
+#' allowed when the predictor block is positive definite. Invalid matrices,
+#' constant variables, and insufficient observations cause informative errors;
+#' variables are not dropped and matrices are not silently repaired.
+#'
+#' Weighted analysis is observation-weighted RWA. Bootstrap intervals use
+#' independent, identically distributed (iid) individual-row resampling, with
+#' each row's original weight carried along, not sampling proportional to weights.
+#' Rows with missing outcomes are removed before resampling; other missing-data
+#' filters are applied within each sample, preserving the outcome-complete
+#' sampling frame. A degenerate sample stops the bootstrap with an error:
+#' samples are not skipped, retried, or allowed to lose predictors.
+#' Clusters, strata, and replicate-weight survey designs are not supported;
+#' a weight column alone does not provide general complex-survey variance.
+#' See `vignette("weighted-missing-data")` for examples and limitations.
+#'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input.
 #'   Must be a numeric variable.
@@ -42,22 +67,31 @@
 #' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
 #' @param focal Focal variable for bootstrap comparisons (optional).
 #' @param comprehensive Whether to run comprehensive bootstrap analysis
-#'   including random variable and focal comparisons.
+#'   including random variable comparisons and, when `focal` is supplied,
+#'   comparisons against that predictor.
 #' @param include_rescaled_ci Logical value specifying whether to include
 #'   confidence intervals for rescaled weights. Defaults to `FALSE` due to
 #'   compositional data constraints. Use with caution.
 #' @param use Method for handling missing data when computing correlations. Options are:
-#'   "everything" (missing values in correlations propagate),
-#'   "all.obs" (error if missing values present),
+#'   "everything" (remaining missing values propagate, causing a non-finite
+#'   correlation matrix error if correlations cannot be estimated),
+#'   "all.obs" (error for remaining missing predictors in unweighted analysis),
 #'   "complete.obs" (listwise deletion),
-#'   "na.or.complete" (error if some but not all missing),
+#'   "na.or.complete" (listwise deletion; no complete cases produces an
+#'   insufficient-data error rather than an unusable matrix of NAs),
 #'   "pairwise.complete.obs" (pairwise deletion, default).
 #'   See \code{\link[stats]{cor}} for more details. Only applicable for multiple regression.
-#'   Note: When \code{weight} is specified, complete cases (listwise deletion) is
-#'   always used for weighted correlation computation regardless of \code{use}.
+#'   Rows with missing outcomes are always removed first, including for
+#'   "all.obs". When \code{weight} is specified, remaining missing weights
+#'   cause an error for "all.obs" and are removed otherwise. Missing predictors
+#'   are then removed by listwise deletion for every weighted mode, including
+#'   "all.obs". Thus weighted correlations always use complete cases, regardless
+#'   of \code{use}; weighted pairwise correlation is not implemented.
 #' @param weight Optional name of a weight variable in the data frame. If provided,
 #'   a weighted correlation matrix will be computed using the specified weights.
-#'   The weight variable must be numeric and positive. Defaults to \code{NULL}
+#'   Non-missing weights must be numeric, finite, and strictly positive (zero
+#'   weights are not supported). Missing weights follow the \code{use} rules.
+#'   Defaults to \code{NULL}
 #'   (unweighted analysis). Only applicable for multiple regression.
 #'
 #' @return `rwa()` returns a list of outputs, as follows:
@@ -71,7 +105,17 @@
 #'   - When bootstrap = TRUE, includes confidence interval columns for raw weights.
 #'   - Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 #'     recommended for inference.
-#' - `n`: indicates the number of observations used in the analysis.
+#' - `n`: complete-case observation count for the selected analysis variables
+#'   (and weight, if supplied). Unweighted pairwise correlations may use more
+#'   observations than this conservative count.
+#' - `n_weighted`: weighted results only; sum of original weights after all
+#'   analysis filters. This is a population-size estimate only for appropriately
+#'   calibrated weights and the retained population scope.
+#' - `n_effective`: weighted results only; Kish's unequal-weighting effective
+#'   sample size, `(sum(w)^2) / sum(w^2)`, calculated using scaled weights for
+#'   numerical stability. This diagnostic ignores clustering, stratification,
+#'   and weight/outcome relationships; it is not model degrees of freedom or
+#'   the exact precision of RWA.
 #' - `bootstrap`: bootstrap results (only present when bootstrap = TRUE), containing:
 #'   - `ci_results`: confidence intervals for weights
 #'   - `boot_object`: raw bootstrap object for advanced analysis
@@ -179,20 +223,7 @@ rwa <- function(df,
   }
 
   # Validate weight parameter if provided
-  if (!is.null(weight)) {
-    if (!is.character(weight) || length(weight) != 1) {
-      stop("`weight` must be a single character string specifying the weight variable name.")
-    }
-    if (!weight %in% names(df)) {
-      stop(sprintf("Weight variable '%s' not found in data.", weight))
-    }
-    if (!is.numeric(df[[weight]])) {
-      stop(sprintf("Weight variable '%s' must be numeric.", weight))
-    }
-    if (any(df[[weight]] <= 0, na.rm = TRUE)) {
-      stop(sprintf("Weight variable '%s' must have positive values.", weight))
-    }
-  }
+  validate_rwa_weights(df, weight)
 
   # Check that outcome and predictors exist in data
   if (!outcome %in% names(df)) {

@@ -23,19 +23,27 @@ rwa_multiregress(
 \item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
 
 \item{use}{Method for handling missing data when computing correlations. Options are:
-"everything" (missing values in correlations propagate),
-"all.obs" (error if missing values present),
+"everything" (remaining missing values propagate, causing a non-finite
+correlation matrix error if correlations cannot be estimated),
+"all.obs" (error for remaining missing predictors in unweighted analysis),
 "complete.obs" (listwise deletion),
-"na.or.complete" (error if some but not all missing),
+"na.or.complete" (listwise deletion; no complete cases produces an
+insufficient-data error rather than an unusable matrix of NAs),
 "pairwise.complete.obs" (pairwise deletion, default).
-See \code{\link[stats]{cor}} for more details.
-Note: When \code{weight} is specified, complete cases (listwise deletion) is
-always used for weighted correlation computation regardless of \code{use}.}
+See \code{\link[stats]{cor}} for more details. Only applicable for multiple regression.
+Rows with missing outcomes are always removed first, including for
+"all.obs". When \code{weight} is specified, remaining missing weights
+cause an error for "all.obs" and are removed otherwise. Missing predictors
+are then removed by listwise deletion for every weighted mode, including
+"all.obs". Thus weighted correlations always use complete cases, regardless
+of \code{use}; weighted pairwise correlation is not implemented.}
 
 \item{weight}{Optional name of a weight variable in the data frame. If provided,
 a weighted correlation matrix will be computed using the specified weights.
-The weight variable must be numeric and positive. Defaults to \code{NULL}
-(unweighted analysis).}
+Non-missing weights must be numeric, finite, and strictly positive (zero
+weights are not supported). Missing weights follow the \code{use} rules.
+Defaults to \code{NULL}
+(unweighted analysis). Only applicable for multiple regression.}
 }
 \value{
 \code{rwa_multiregress()} returns a list of outputs, as follows:
@@ -47,7 +55,15 @@ The weight variable must be numeric and positive. Defaults to \code{NULL}
 \item The \code{Rescaled.RelWeight} column sums up to 100.
 \item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
 }
-\item \code{n}: indicates the number of observations used in the analysis.
+\item \code{n}: complete-case observation count for the selected variables and weight,
+if supplied. Unweighted pairwise correlations may use more observations.
+\item \code{n_weighted}: weighted results only; sum of original weights after outcome,
+missing-weight, and predictor-completeness filters. Population-size meaning
+requires appropriately calibrated weights and retained population scope.
+\item \code{n_effective}: weighted results only; Kish's unequal-weighting effective
+sample size, \code{(sum(w)^2) / sum(w^2)}, evaluated using scaled weights.
+This is not model degrees of freedom or exact RWA precision and ignores
+clustering, stratification, and weight/outcome relationships.
 \item \code{lambda}: the transformation matrix that maps the original correlated predictors to orthogonal variables while preserving their relationship to the outcome. Used internally to compute relative weights.
 \item \code{RXX}: Correlation matrix of all the predictor variables against each other.
 \item \code{RXY}: Correlation values of the predictor variables against the outcome variable.
@@ -65,6 +81,11 @@ maximally related to the original set of predictors.
 for every predictor in the model.
 Signs are added to the weights when the \code{applysigns} argument is set to \code{TRUE}.
 See \url{https://www.scotttonidandel.com/rwa-web} for the original implementation that inspired this package.
+
+This is observation-weighted RWA when \code{weight} is provided, not a
+complex-survey variance estimator. See \code{\link[=rwa]{rwa()}} for joint-matrix and predictor
+positive-definiteness tolerances, bootstrap sampling assumptions, and
+diagnostics. See \code{vignette("weighted-missing-data")} for worked examples.
 }
 \examples{
 # Basic multiple regression RWA

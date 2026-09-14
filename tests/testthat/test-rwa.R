@@ -217,22 +217,18 @@ test_that("rwa() errors for non-numeric predictors", {
 test_that("rwa() errors for zero-variance outcome", {
   test_data <- create_test_data()
   
-  # Zero-variance outcome produces warning (from cor()) and may error depending on data
-  # Use method = "multiple" to avoid binary auto-detection
-  expect_warning(
+  expect_error(
     rwa(test_data, outcome = "constant", predictors = c("cyl", "hp"), method = "multiple"),
-    "standard deviation is zero"
+    "zero variance.*constant"
   )
 })
 
 test_that("rwa() errors for zero-variance predictor", {
   test_data <- create_test_data()
   
-  # Zero-variance predictor produces warning (from cor())
-  # Use method = "multiple" to avoid binary auto-detection
-  expect_warning(
+  expect_error(
     rwa(test_data, outcome = "mpg", predictors = c("cyl", "constant"), method = "multiple"),
-    "standard deviation is zero"
+    "zero variance.*constant"
   )
 })
 
@@ -498,7 +494,8 @@ test_that("rwa() accepts weight parameter", {
                 weight = "weights", method = "multiple")
 
   expect_type(result, "list")
-  expect_named(result, c("predictors", "rsquare", "result", "n", "lambda", "RXX", "RXY"))
+  expect_named(result, c("predictors", "rsquare", "result", "n", "lambda", "RXX", "RXY",
+                         "n_weighted", "n_effective"))
 
   # Rescaled weights should still sum to 100
   expect_equal(sum(result$result$Rescaled.RelWeight), 100, tolerance = 1e-10)

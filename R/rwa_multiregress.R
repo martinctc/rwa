@@ -12,23 +12,16 @@
 #' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
 #' See <https://www.scotttonidandel.com/rwa-web> for the original implementation that inspired this package.
 #'
+#' This is observation-weighted RWA when `weight` is provided, not a
+#' complex-survey variance estimator. See [rwa()] for joint-matrix and predictor
+#' positive-definiteness tolerances, bootstrap sampling assumptions, and
+#' diagnostics. See `vignette("weighted-missing-data")` for worked examples.
+#'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
-#' @param use Method for handling missing data when computing correlations. Options are:
-#'   "everything" (missing values in correlations propagate),
-#'   "all.obs" (error if missing values present),
-#'   "complete.obs" (listwise deletion),
-#'   "na.or.complete" (error if some but not all missing),
-#'   "pairwise.complete.obs" (pairwise deletion, default).
-#'   See \code{\link[stats]{cor}} for more details.
-#'   Note: When \code{weight} is specified, complete cases (listwise deletion) is
-#'   always used for weighted correlation computation regardless of \code{use}.
-#' @param weight Optional name of a weight variable in the data frame. If provided,
-#'   a weighted correlation matrix will be computed using the specified weights.
-#'   The weight variable must be numeric and positive. Defaults to \code{NULL}
-#'   (unweighted analysis).
+#' @inheritParams rwa
 #'
 #' @return `rwa_multiregress()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -36,7 +29,15 @@
 #' - `result`: the final output of the importance metrics.
 #'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively correlated with the outcome.
-#' - `n`: indicates the number of observations used in the analysis.
+#' - `n`: complete-case observation count for the selected variables and weight,
+#'   if supplied. Unweighted pairwise correlations may use more observations.
+#' - `n_weighted`: weighted results only; sum of original weights after outcome,
+#'   missing-weight, and predictor-completeness filters. Population-size meaning
+#'   requires appropriately calibrated weights and retained population scope.
+#' - `n_effective`: weighted results only; Kish's unequal-weighting effective
+#'   sample size, `(sum(w)^2) / sum(w^2)`, evaluated using scaled weights.
+#'   This is not model degrees of freedom or exact RWA precision and ignores
+#'   clustering, stratification, and weight/outcome relationships.
 #' - `lambda`: the transformation matrix that maps the original correlated predictors to orthogonal variables while preserving their relationship to the outcome. Used internally to compute relative weights.
 #' - `RXX`: Correlation matrix of all the predictor variables against each other.
 #' - `RXY`: Correlation values of the predictor variables against the outcome variable.
@@ -91,105 +92,12 @@ rwa_multiregress <- function(df,
                              use = "pairwise.complete.obs",
                              weight = NULL){
 
-  # Gets data frame in right order and form
-  if (!is.null(weight)) {
-    thedata <-
-      df %>%
-      dplyr::select(all_of(c(outcome, predictors, weight))) %>%
-      tidyr::drop_na(all_of(outcome))
-  } else {
-    thedata <-
-      df %>%
-      dplyr::select(all_of(c(outcome, predictors))) %>%
-      tidyr::drop_na(all_of(outcome))
-  }
-
-  # Compute correlation matrix (weighted or unweighted)
-  if (!is.null(weight)) {
-    # Extract weights and variables for analysis
-    weight_values <- thedata[[weight]]
-    analysis_data <- thedata %>% dplyr::select(all_of(c(outcome, predictors)))
-
-    # Handle NA weights consistently with use parameter
-    if (any(is.na(weight_values))) {
-      if (use == "all.obs") {
-        stop("Weight variable contains NA values and use = 'all.obs'. Set use = 'complete.obs' for listwise deletion.")
-      } else {
-        # Remove rows with NA weights
-        non_na_idx <- !is.na(weight_values)
-        weight_values <- weight_values[non_na_idx]
-        analysis_data <- analysis_data[non_na_idx, ]
-      }
-    }
-
-    if (sum(weight_values) == 0) {
-      stop("Sum of weights is zero. Cannot compute weighted correlation.")
-    }
-
-    # Compute weighted covariance matrix using cov.wt
-    # Note: cov.wt requires complete cases
-    complete_cases_idx <- stats::complete.cases(analysis_data)
-    if (sum(complete_cases_idx) == 0) {
-      stop("No complete cases available for weighted correlation computation.")
-    }
-
-    # Track actual n used for weighted analysis
-    n_used <- sum(complete_cases_idx)
-
-    cov_result <- stats::cov.wt(
-      x = analysis_data[complete_cases_idx, , drop = FALSE],
-      wt = weight_values[complete_cases_idx],
-      cor = TRUE,
-      method = "unbiased"
-    )
-
-    cor_matrix <- cov_result$cor %>%
-      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
-
-  } else {
-    # Unweighted correlation
-    cor_matrix <-
-      stats::cor(thedata[, c(outcome, predictors)], use = use) %>%
-      as.data.frame(stringsAsFactors = FALSE, row.names = NULL)
-
-    # Track n for unweighted analysis (complete cases on all variables).
-    # Note: When use = "pairwise.complete.obs", individual correlations may
-    # use more observations than reported here. n reflects the most
-    # conservative count (complete cases across all variables).
-    n_used <- nrow(tidyr::drop_na(thedata))
-  }
-
-  cor_matrix <- cor_matrix %>%
-    remove_all_na_cols() %>%
-    tidyr::drop_na()
-
-  matrix_data <-
-    cor_matrix %>%
-    as.matrix()
-
-  RXX <- matrix_data[2:ncol(matrix_data), 2:ncol(matrix_data)] # Only take the correlations with the predictor variables
-  RXY <- matrix_data[2:ncol(matrix_data), 1] # Take the correlations of each of the predictors with the outcome variable
-
-  # Get all the 'genuine' predictor variables
-  Variables <-
-    cor_matrix %>%
-    names() %>%
-    .[.!=outcome]
-
-  RXX.eigen <- eigen(RXX) # Compute eigenvalues and eigenvectors of matrix
-  D <- diag(RXX.eigen$val) # Run diag() on the values of eigen - construct diagonal matrix
-  delta <- sqrt(D) # Take square root of the created diagonal matrix
-
-  lambda <- RXX.eigen$vec %*% delta %*% t(RXX.eigen$vec) # Matrix multiplication
-  lambdasq <- lambda ^ 2 # Square the result
-
-  # To get partial effect of each independent variable on the dependent variable
-  # We multiply the inverse matrix (RXY) on the correlation matrix between dependent and independent variables
-  beta <- solve(lambda) %*% RXY # Solve numeric matrix containing coefficients of equation (Ax=B)
-  rsquare <- sum(beta ^ 2) # Output - R Square, sum of squared values
-
-  RawWgt <- lambdasq %*% beta ^ 2 # Raw Relative Weight
-  import <- (RawWgt / rsquare) * 100 # Rescaled Relative Weight
+  prepared <- prepare_rwa_data(df, outcome, predictors, use, weight)
+  calculation <- calculate_rwa(prepared, outcome, predictors, use)
+  Variables <- predictors
+  beta <- calculation$beta
+  RawWgt <- calculation$raw_weights
+  import <- calculation$rescaled_weights
 
   sign <- beta %>% # Get signs from coefficients
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
@@ -212,11 +120,17 @@ rwa_multiregress <- function(df,
                                               Rescaled.RelWeight))
   }
 
-  list("predictors" = Variables,
-       "rsquare" = rsquare,
+  output <- list("predictors" = Variables,
+       "rsquare" = calculation$rsquare,
        "result" = result,
-       "n" = n_used,
-       "lambda" = lambda,
-       "RXX" = RXX,
-       "RXY" = RXY)
+       "n" = prepared$n,
+       "lambda" = calculation$lambda,
+       "RXX" = calculation$RXX,
+       "RXY" = calculation$RXY)
+  if (!is.null(weight)) {
+    normalized_weights <- prepared$weights / max(prepared$weights)
+    output$n_weighted <- sum(prepared$weights)
+    output$n_effective <- sum(normalized_weights)^2 / sum(normalized_weights^2)
+  }
+  output
 }
