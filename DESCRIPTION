@@ -16,8 +16,9 @@ Encoding: UTF-8
 LazyData: true
 URL: https://martinctc.github.io/rwa/, https://github.com/martinctc/rwa
 BugReports: https://github.com/martinctc/rwa/issues
-RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.1.0)
 Imports:
 	dplyr,
 	magrittr,
@@ -36,3 +37,4 @@ Suggests:
 VignetteBuilder: knitr
 Config/testthat/edition: 3
 Language: en-US
+Config/roxygen2/version: 8.0.0

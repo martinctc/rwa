@@ -10,12 +10,18 @@
 #' `rwa_multiregress()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 #' for every predictor in the model.
 #' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
-#' See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.
+#' See <https://www.scotttonidandel.com/rwa-web> for the original implementation that inspired this package.
+#'
+#' This is observation-weighted RWA when `weight` is provided, not a
+#' complex-survey variance estimator. See [rwa()] for joint-matrix and predictor
+#' positive-definiteness tolerances, bootstrap sampling assumptions, and
+#' diagnostics. See `vignette("weighted-missing-data")` for worked examples.
 #'
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
 #' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @inheritParams rwa
 #'
 #' @return `rwa_multiregress()` returns a list of outputs, as follows:
 #' - `predictors`: character vector of names of the predictor variables used.
@@ -23,14 +29,22 @@
 #' - `result`: the final output of the importance metrics.
 #'   - The `Rescaled.RelWeight` column sums up to 100.
 #'   - The `Sign` column indicates whether a predictor is positively or negatively correlated with the outcome.
-#' - `n`: indicates the number of observations used in the analysis.
+#' - `n`: complete-case observation count for the selected variables and weight,
+#'   if supplied. Unweighted pairwise correlations may use more observations.
+#' - `n_weighted`: weighted results only; sum of original weights after outcome,
+#'   missing-weight, and predictor-completeness filters. Population-size meaning
+#'   requires appropriately calibrated weights and retained population scope.
+#' - `n_effective`: weighted results only; Kish's unequal-weighting effective
+#'   sample size, `(sum(w)^2) / sum(w^2)`, evaluated using scaled weights.
+#'   This is not model degrees of freedom or exact RWA precision and ignores
+#'   clustering, stratification, and weight/outcome relationships.
 #' - `lambda`: the transformation matrix that maps the original correlated predictors to orthogonal variables while preserving their relationship to the outcome. Used internally to compute relative weights.
 #' - `RXX`: Correlation matrix of all the predictor variables against each other.
 #' - `RXY`: Correlation values of the predictor variables against the outcome variable.
 #'
 #' @importFrom magrittr %>%
 #' @importFrom tidyr drop_na
-#' @importFrom stats cor
+#' @importFrom stats cor cov.wt complete.cases
 #' @import dplyr
 #' @examples
 #' # Basic multiple regression RWA
@@ -52,51 +66,38 @@
 #' )
 #' result_signed$result
 #'
+#' # Using listwise deletion for missing data
+#' rwa_multiregress(
+#'   df = mtcars,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp"),
+#'   use = "complete.obs"
+#' )
+#'
+#' # With observation weights
+#' mtcars_weighted <- mtcars
+#' mtcars_weighted$w <- runif(nrow(mtcars), 0.5, 2)
+#' rwa_multiregress(
+#'   df = mtcars_weighted,
+#'   outcome = "mpg",
+#'   predictors = c("cyl", "disp"),
+#'   weight = "w"
+#' )
+#'
 #' @export
 rwa_multiregress <- function(df,
                              outcome,
                              predictors,
-                             applysigns = FALSE){
+                             applysigns = FALSE,
+                             use = "pairwise.complete.obs",
+                             weight = NULL){
 
-  # Gets data frame in right order and form
-  thedata <-
-    df %>%
-    dplyr::select(all_of(c(outcome, predictors))) %>%
-    tidyr::drop_na(all_of(outcome))
-
-  cor_matrix <-
-    cor(thedata, use = "pairwise.complete.obs") %>%
-    as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
-    remove_all_na_cols() %>%
-    tidyr::drop_na()
-
-  matrix_data <-
-    cor_matrix %>%
-    as.matrix()
-
-  RXX <- matrix_data[2:ncol(matrix_data), 2:ncol(matrix_data)] # Only take the correlations with the predictor variables
-  RXY <- matrix_data[2:ncol(matrix_data), 1] # Take the correlations of each of the predictors with the outcome variable
-
-  # Get all the 'genuine' predictor variables
-  Variables <-
-    cor_matrix %>%
-    names() %>%
-    .[.!=outcome]
-
-  RXX.eigen <- eigen(RXX) # Compute eigenvalues and eigenvectors of matrix
-  D <- diag(RXX.eigen$val) # Run diag() on the values of eigen - construct diagonal matrix
-  delta <- sqrt(D) # Take square root of the created diagonal matrix
-
-  lambda <- RXX.eigen$vec %*% delta %*% t(RXX.eigen$vec) # Matrix multiplication
-  lambdasq <- lambda ^ 2 # Square the result
-
-  # To get partial effect of each independent variable on the dependent variable
-  # We multiply the inverse matrix (RXY) on the correlation matrix between dependent and independent variables
-  beta <- solve(lambda) %*% RXY # Solve numeric matrix containing coefficients of equation (Ax=B)
-  rsquare <- sum(beta ^ 2) # Output - R Square, sum of squared values
-
-  RawWgt <- lambdasq %*% beta ^ 2 # Raw Relative Weight
-  import <- (RawWgt / rsquare) * 100 # Rescaled Relative Weight
+  prepared <- prepare_rwa_data(df, outcome, predictors, use, weight)
+  calculation <- calculate_rwa(prepared, outcome, predictors, use)
+  Variables <- predictors
+  beta <- calculation$beta
+  RawWgt <- calculation$raw_weights
+  import <- calculation$rescaled_weights
 
   sign <- beta %>% # Get signs from coefficients
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
@@ -111,8 +112,6 @@ rwa_multiregress <- function(df,
                        Rescaled.RelWeight = import,
                        Sign = sign) # Output - results
 
-  complete_cases <- nrow(tidyr::drop_na(thedata))
-
   if(applysigns == TRUE){
     result <-
       result %>%
@@ -121,11 +120,22 @@ rwa_multiregress <- function(df,
                                               Rescaled.RelWeight))
   }
 
-  list("predictors" = Variables,
-       "rsquare" = rsquare,
+  output <- list("predictors" = Variables,
+       "rsquare" = calculation$rsquare,
        "result" = result,
-       "n" = complete_cases,
-       "lambda" = lambda,
-       "RXX" = RXX,
-       "RXY" = RXY)
+       "n" = prepared$n,
+       "lambda" = calculation$lambda,
+       "RXX" = calculation$RXX,
+       "RXY" = calculation$RXY)
+  if (!is.null(weight)) {
+    normalized_weights <- prepared$weights / max(prepared$weights)
+    # Keep the weighted sample diagnostics next to `n` so they are discoverable.
+    output <- append(
+      output,
+      list("n_weighted" = sum(prepared$weights),
+           "n_effective" = sum(normalized_weights)^2 / sum(normalized_weights^2)),
+      after = which(names(output) == "n")
+    )
+  }
+  output
 }

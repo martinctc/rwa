@@ -21,6 +21,7 @@ Grömping
 Interpretable
 JSTOR
 Javascript
+Kish's
 Kovalyshyn
 Ladd
 LeBreton
@@ -30,6 +31,8 @@ MBR
 Merenda
 Multicollinear
 Multicollinearity
+NA
+na
 Nagelkerke
 PTAM
 Ph
@@ -60,10 +63,12 @@ decorrelating
 dplyr
 edu
 et
+finiteness
 https
 importances
 intercorrelated
 intercorrelations
+invertible
 interpretability
 interpretable
 labelled
@@ -83,6 +88,7 @@ optimised
 orthogonalization
 overinterpreting
 pkgdown
+positivity
 predictors’
 priori
 relaimpo
@@ -93,6 +99,7 @@ reﬂect
 rsquare
 scotttonidandel
 se
+setosa
 techiques
 tibble
 tidyverse

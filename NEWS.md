@@ -1,8 +1,34 @@
 # rwa (development version)
 
-- Added `rwa_logit()` and `rwa_multiregress()` to support logistic regression and multiple regression. 
-- Added new vignette to cover the new regression methods. 
-- Improved test coverage and minor bugfixes.
+## New Features
+
+- Added `rwa_logit()` and `rwa_multiregress()` to support logistic regression and multiple regression.
+- Added new vignette to cover the new regression methods.
+- Added `use` parameter to `rwa()` function to control how missing data is handled when computing correlations. Options include "pairwise.complete.obs" (default, pairwise deletion), "complete.obs" (listwise deletion), and other standard options from `cor()`. (#12)
+- Added `weight` parameter to `rwa()` function to perform observation-weighted Relative Weights Analysis (#12), using a weighted complete-case correlation matrix. Bootstrap inference uses iid individual-row resampling, carrying each row's weight; clusters, strata, and replicate-weight survey designs are not supported.
+- Weighted results from both `rwa()` and `rwa_multiregress()` now include `n_weighted` (sum of retained original weights) and `n_effective` (Kish's unequal-weighting effective sample size). Existing unweighted return fields are unchanged.
+- Added a weighted/missing-data vignette explaining filtering, weight scaling, diagnostic counts, and bootstrap limitations.
+- Updated the introductory and regression-methods vignettes to cover the `use` and `weight` arguments, the weighted sample-size diagnostics, and the multiple-regression-only scope. Corrected the introductory vignette's incorrect statement that missing data is handled by listwise deletion; the default has been pairwise deletion.
+
+## Improvements
+
+- Updated all bootstrap functions to support the new `use` and `weight` parameters
+- Shared numeric, finite, strictly positive weight validation across point estimates and bootstrap calculations; missing-weight filtering remains mode-dependent.
+- Validate the full joint correlation matrix and predictor invertibility with documented numerical tolerances and actionable errors for missing-data-induced indefinite matrices, constant variables, singularity, and insufficient data (#24). Exact fits remain valid when predictors are not collinear.
+- Preserve legacy missing-data preprocessing, including outcome removal before every correlation mode and weighted predictor-completeness filtering even for `all.obs`; corrected `na.or.complete` documentation.
+- `plot_rwa()` now reports the sum of weights and the effective sample size in the caption for weighted analyses, so weighted charts are distinguishable from unweighted ones.
+- Weighted results return `n_weighted` and `n_effective` immediately after `n`, making them easier to find. Field names and unweighted output are unchanged.
+- Datasets with fewer usable observations than predictors now name the sample-size problem in the singular-matrix error, instead of reporting only an eigenvalue (relevant to the rank-deficient data discussed in #10). Models that were previously estimable, including pairwise-deletion models with few complete cases, are unaffected.
+- Added a plain-English summary of the weighting and missing-data behavior to `?rwa`, including guidance on when to use survey weights.
+- Improved test coverage and minor bug fixes
+
+## Bug Fixes
+
+- Fixed weighted single-predictor calculations and random-comparison name collisions, including weight columns named `rand`.
+- Bootstrap samples now preserve predictor identity, order, and statistic length. Invalid or degenerate samples error instead of dropping variables or recycling estimates; no samples are skipped or retried.
+- Comprehensive bootstrap now computes random comparisons without a focal predictor and correctly labels and maps random/focal intervals to the requested predictors.
+
+---
 
 # rwa 0.1.1
 
@@ -71,4 +97,3 @@ First submission to CRAN (required to re-submit)
 - `plot_rwa()`
 - `remove_all_na_cols()`
 - `%>%` operator is exported
-

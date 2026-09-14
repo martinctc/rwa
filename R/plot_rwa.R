@@ -64,6 +64,23 @@ plot_rwa <- function(rwa){
          y = "Rescaled Relative Weights (with sign)",
          caption = paste0("Note: Absolute Rescaled Relative Weights sum to 100%. n = ",
                           rwa$n, ". ",
+                          if (!is.null(rwa$n_weighted) || !is.null(rwa$n_effective)) {
+                            paste0("Weighted analysis",
+                                   if (!is.null(rwa$n_weighted)) {
+                                     paste0(": sum of weights = ", round(rwa$n_weighted, 1))
+                                   } else {
+                                     ""
+                                   },
+                                   if (!is.null(rwa$n_effective)) {
+                                     paste0(if (is.null(rwa$n_weighted)) ": " else ", ",
+                                            "effective n = ", round(rwa$n_effective, 1))
+                                   } else {
+                                     ""
+                                   },
+                                   ". ")
+                          } else {
+                            ""
+                          },
                           if (!is.null(rwa$rsquare)) {
                             paste0("R-squared: ", round(rwa$rsquare, 2), ".")
                           } else {
