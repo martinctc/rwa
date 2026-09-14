@@ -101,6 +101,13 @@ c(n = missing_fit$n, retained_rows = sum(retained),
 Both exported paths, `rwa()` and `rwa_multiregress()`, return these weighted-only
 diagnostics. Unweighted result names and structure are unchanged.
 
+`plot_rwa()` reports both diagnostics in the caption for weighted results, so a
+weighted chart is not mistaken for an unweighted one:
+
+```{r weighted-plot, fig.width=7, fig.height=4}
+plot_rwa(fit)
+```
+
 ## Bootstrap scope and failure policy
 
 `bootstrap = TRUE` performs independent, identically distributed (iid)

@@ -8,6 +8,7 @@
 - Added `weight` parameter to `rwa()` function to perform observation-weighted Relative Weights Analysis (#12), using a weighted complete-case correlation matrix. Bootstrap inference uses iid individual-row resampling, carrying each row's weight; clusters, strata, and replicate-weight survey designs are not supported.
 - Weighted results from both `rwa()` and `rwa_multiregress()` now include `n_weighted` (sum of retained original weights) and `n_effective` (Kish's unequal-weighting effective sample size). Existing unweighted return fields are unchanged.
 - Added a weighted/missing-data vignette explaining filtering, weight scaling, diagnostic counts, and bootstrap limitations.
+- Updated the introductory and regression-methods vignettes to cover the `use` and `weight` arguments, the weighted sample-size diagnostics, and the multiple-regression-only scope. Corrected the introductory vignette's incorrect statement that missing data is handled by listwise deletion; the default has been pairwise deletion.
 
 ## Improvements
 

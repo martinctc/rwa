@@ -240,6 +240,22 @@ result_sorted$result
 plot_rwa(result_sorted)
 ```
 
+The `use` and `weight` arguments apply to **multiple regression only**. Neither
+affects a logistic fit. `rwa()` warns when you supply a weight column or a
+non-default `use` value alongside logistic RWA, and ignores them, because
+`rwa_logit()` does not fit a weighted or correlation-based model:
+
+```{r rwa-multiple-only, eval=FALSE}
+# Weighted RWA: multiple regression only
+rwa(df, "satisfaction", c("x1", "x2"), weight = "survey_weight")
+
+# Warns, and the weight is not applied
+rwa(df, "binary_outcome", c("x1", "x2"), weight = "survey_weight")
+```
+
+See `vignette("weighted-missing-data", package = "rwa")` for weighted
+estimation and the missing-data contract.
+
 ## Real-World Example: Iris Dataset
 
 Let's apply these methods to the classic `iris` dataset.
