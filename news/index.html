@@ -41,10 +41,36 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="development version" id="rwa-development-version">rwa (development version)<a class="anchor" aria-label="anchor" href="#rwa-development-version"></a></h2>
+<div class="section level3">
+<h3 id="new-features-development-version">New Features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
 <ul><li>Added <code><a href="../reference/rwa_logit.html">rwa_logit()</a></code> and <code><a href="../reference/rwa_multiregress.html">rwa_multiregress()</a></code> to support logistic regression and multiple regression.</li>
 <li>Added new vignette to cover the new regression methods.</li>
-<li>Improved test coverage and minor bugfixes.</li>
+<li>Added <code>use</code> parameter to <code><a href="../reference/rwa.html">rwa()</a></code> function to control how missing data is handled when computing correlations. Options include “pairwise.complete.obs” (default, pairwise deletion), “complete.obs” (listwise deletion), and other standard options from <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor()</a></code>. (<a href="https://github.com/martinctc/rwa/issues/12" class="external-link">#12</a>)</li>
+<li>Added <code>weight</code> parameter to <code><a href="../reference/rwa.html">rwa()</a></code> function to perform observation-weighted Relative Weights Analysis (<a href="https://github.com/martinctc/rwa/issues/12" class="external-link">#12</a>), using a weighted complete-case correlation matrix. Bootstrap inference uses iid individual-row resampling, carrying each row’s weight; clusters, strata, and replicate-weight survey designs are not supported.</li>
+<li>Weighted results from both <code><a href="../reference/rwa.html">rwa()</a></code> and <code><a href="../reference/rwa_multiregress.html">rwa_multiregress()</a></code> now include <code>n_weighted</code> (sum of retained original weights) and <code>n_effective</code> (Kish’s unequal-weighting effective sample size). Existing unweighted return fields are unchanged.</li>
+<li>Added a weighted/missing-data vignette explaining filtering, weight scaling, diagnostic counts, and bootstrap limitations.</li>
+<li>Updated the introductory and regression-methods vignettes to cover the <code>use</code> and <code>weight</code> arguments, the weighted sample-size diagnostics, and the multiple-regression-only scope. Corrected the introductory vignette’s incorrect statement that missing data is handled by listwise deletion; the default has been pairwise deletion.</li>
 </ul></div>
+<div class="section level3">
+<h3 id="improvements-development-version">Improvements<a class="anchor" aria-label="anchor" href="#improvements-development-version"></a></h3>
+<ul><li>Updated all bootstrap functions to support the new <code>use</code> and <code>weight</code> parameters</li>
+<li>Shared numeric, finite, strictly positive weight validation across point estimates and bootstrap calculations; missing-weight filtering remains mode-dependent.</li>
+<li>Validate the full joint correlation matrix and predictor invertibility with documented numerical tolerances and actionable errors for missing-data-induced indefinite matrices, constant variables, singularity, and insufficient data (<a href="https://github.com/martinctc/rwa/issues/24" class="external-link">#24</a>). Exact fits remain valid when predictors are not collinear.</li>
+<li>Preserve legacy missing-data preprocessing, including outcome removal before every correlation mode and weighted predictor-completeness filtering even for <code>all.obs</code>; corrected <code>na.or.complete</code> documentation.</li>
+<li>
+<code><a href="../reference/plot_rwa.html">plot_rwa()</a></code> now reports the sum of weights and the effective sample size in the caption for weighted analyses, so weighted charts are distinguishable from unweighted ones.</li>
+<li>Weighted results return <code>n_weighted</code> and <code>n_effective</code> immediately after <code>n</code>, making them easier to find. Field names and unweighted output are unchanged.</li>
+<li>Datasets with fewer usable observations than predictors now name the sample-size problem in the singular-matrix error, instead of reporting only an eigenvalue (relevant to the rank-deficient data discussed in <a href="https://github.com/martinctc/rwa/issues/10" class="external-link">#10</a>). Models that were previously estimable, including pairwise-deletion models with few complete cases, are unaffected.</li>
+<li>Added a plain-English summary of the weighting and missing-data behavior to <code><a href="../reference/rwa.html">?rwa</a></code>, including guidance on when to use survey weights.</li>
+<li>Improved test coverage and minor bug fixes</li>
+</ul></div>
+<div class="section level3">
+<h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<ul><li>Fixed weighted single-predictor calculations and random-comparison name collisions, including weight columns named <code>rand</code>.</li>
+<li>Bootstrap samples now preserve predictor identity, order, and statistic length. Invalid or degenerate samples error instead of dropping variables or recycling estimates; no samples are skipped or retried.</li>
+<li>Comprehensive bootstrap now computes random comparisons without a focal predictor and correctly labels and maps random/focal intervals to the requested predictors.</li>
+</ul><hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.1" id="rwa-011">rwa 0.1.1<a class="anchor" aria-label="anchor" href="#rwa-011"></a></h2><p class="text-muted">CRAN release: 2026-01-20</p>
 <div class="section level3">

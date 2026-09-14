@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2026-08-03</h4>
+            <h4 data-toc-skip class="date">2026-09-14</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/regression-methods.Rmd" class="external-link"><code>vignettes/regression-methods.Rmd</code></a></small>
       <div class="d-none name"><code>regression-methods.Rmd</code></div>
@@ -388,6 +388,20 @@ options:</p>
 <span><span class="co"># Visualize with plot_rwa()</span></span>
 <span><span class="fu"><a href="../reference/plot_rwa.html">plot_rwa</a></span><span class="op">(</span><span class="va">result_sorted</span><span class="op">)</span></span></code></pre></div>
 <p><img src="regression-methods_files/figure-html/rwa-features-1.png" class="r-plt" alt="" width="100%"></p>
+<p>The <code>use</code> and <code>weight</code> arguments apply to
+<strong>multiple regression only</strong>. Neither affects a logistic
+fit. <code><a href="../reference/rwa.html">rwa()</a></code> warns when you supply a weight column or a
+non-default <code>use</code> value alongside logistic RWA, and ignores
+them, because <code><a href="../reference/rwa_logit.html">rwa_logit()</a></code> does not fit a weighted or
+correlation-based model:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Weighted RWA: multiple regression only</span></span>
+<span><span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"satisfaction"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"survey_weight"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Warns, and the weight is not applied</span></span>
+<span><span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"binary_outcome"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"survey_weight"</span><span class="op">)</span></span></code></pre></div>
+<p>See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-missing-data", package = "rwa")</a></code>
+for weighted estimation and the missing-data contract.</p>
 </div>
 </div>
 <div class="section level2">
@@ -398,7 +412,7 @@ dataset.</p>
 <div class="section level3">
 <h3 id="multiple-regression-predicting-petal-length">Multiple Regression: Predicting Petal Length<a class="anchor" aria-label="anchor" href="#multiple-regression-predicting-petal-length"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Predict petal length from other measurements</span></span>
 <span><span class="va">iris_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_multiregress.html">rwa_multiregress</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">iris</span>,</span>
@@ -424,7 +438,7 @@ dataset.</p>
 </h3>
 <p>For logistic regression, we need a binary outcome. Let’s predict
 whether a flower is <em>Iris setosa</em> or not:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create binary outcome for setosa classification</span></span>
 <span><span class="va">iris_binary</span> <span class="op">&lt;-</span> <span class="va">iris</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>is_setosa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">==</span> <span class="st">"setosa"</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -454,7 +468,7 @@ distinguishing <em>Iris setosa</em> from the other species.</p>
 </h2>
 <p>Let’s demonstrate how the same predictors can yield different
 importance rankings depending on the outcome type:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create comparison dataset</span></span>
 <span><span class="va">comparison_data</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>high_mpg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -513,7 +527,7 @@ boundary.</li>
 <div class="section level3">
 <h3 id="check-your-data">2. Check Your Data<a class="anchor" aria-label="anchor" href="#check-your-data"></a>
 </h3>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Always check outcome distribution for binary variables</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mtcars_binary</span><span class="op">$</span><span class="va">high_mpg</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -535,7 +549,7 @@ predictor.</p>
 </h3>
 <p>For statistical significance testing, combine with bootstrap methods
 (note: currently only available for multiple regression):</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Bootstrap with multiple regression</span></span>
 <span><span class="va">result_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars</span>,</span>

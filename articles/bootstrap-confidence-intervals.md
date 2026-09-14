@@ -40,6 +40,18 @@ include zero
 
 ## Basic Bootstrap Analysis
 
+### Sampling scope
+
+The implementation uses independent, identically distributed (iid)
+individual-row resampling. For observation-weighted RWA, each sampled
+row carries its original weight; clusters, strata, and replicate-weight
+survey designs are not supported. Outcome-missing rows are removed
+before resampling, while other missing-data filters are applied within
+each sample. Invalid samples stop with an error rather than dropping
+predictors or retrying. See
+[`vignette("weighted-missing-data")`](https://martinctc.github.io/rwa/articles/weighted-missing-data.md)
+for the filtering contract and examples.
+
 ### Simple Bootstrap Example
 
 ``` r

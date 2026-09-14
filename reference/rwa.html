@@ -76,7 +76,9 @@ positive / negative signs for weights.</p>
 <span>  conf_level <span class="op">=</span> <span class="fl">0.95</span>,</span>
 <span>  focal <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  comprehensive <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  include_rescaled_ci <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  include_rescaled_ci <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  use <span class="op">=</span> <span class="st">"pairwise.complete.obs"</span>,</span>
+<span>  weight <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -138,13 +140,41 @@ Defaults to 1000.</p></dd>
 
 <dt id="arg-comprehensive">comprehensive<a class="anchor" aria-label="anchor" href="#arg-comprehensive"></a></dt>
 <dd><p>Whether to run comprehensive bootstrap analysis
-including random variable and focal comparisons.</p></dd>
+including random variable comparisons and, when <code>focal</code> is supplied,
+comparisons against that predictor.</p></dd>
 
 
 <dt id="arg-include-rescaled-ci">include_rescaled_ci<a class="anchor" aria-label="anchor" href="#arg-include-rescaled-ci"></a></dt>
 <dd><p>Logical value specifying whether to include
 confidence intervals for rescaled weights. Defaults to <code>FALSE</code> due to
 compositional data constraints. Use with caution.</p></dd>
+
+
+<dt id="arg-use">use<a class="anchor" aria-label="anchor" href="#arg-use"></a></dt>
+<dd><p>Method for handling missing data when computing correlations. Options are:
+"everything" (remaining missing values propagate, causing a non-finite
+correlation matrix error if correlations cannot be estimated),
+"all.obs" (error for remaining missing predictors in unweighted analysis),
+"complete.obs" (listwise deletion),
+"na.or.complete" (listwise deletion; no complete cases produces an
+insufficient-data error rather than an unusable matrix of NAs),
+"pairwise.complete.obs" (pairwise deletion, default).
+See <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></code> for more details. Only applicable for multiple regression.
+Rows with missing outcomes are always removed first, including for
+"all.obs". When <code>weight</code> is specified, remaining missing weights
+cause an error for "all.obs" and are removed otherwise. Missing predictors
+are then removed by listwise deletion for every weighted mode, including
+"all.obs". Thus weighted correlations always use complete cases, regardless
+of <code>use</code>; weighted pairwise correlation is not implemented.</p></dd>
+
+
+<dt id="arg-weight">weight<a class="anchor" aria-label="anchor" href="#arg-weight"></a></dt>
+<dd><p>Optional name of a weight variable in the data frame. If provided,
+a weighted correlation matrix will be computed using the specified weights.
+Non-missing weights must be numeric, finite, and strictly positive (zero
+weights are not supported). Missing weights follow the <code>use</code> rules.
+Defaults to <code>NULL</code>
+(unweighted analysis). Only applicable for multiple regression.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -159,7 +189,17 @@ negatively correlated with the outcome.</p></li>
 <li><p>Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 recommended for inference.</p></li>
 </ul></li>
-<li><p><code>n</code>: indicates the number of observations used in the analysis.</p></li>
+<li><p><code>n</code>: complete-case observation count for the selected analysis variables
+(and weight, if supplied). Unweighted pairwise correlations may use more
+observations than this conservative count.</p></li>
+<li><p><code>n_weighted</code>: weighted results only; sum of original weights after all
+analysis filters. This is a population-size estimate only for appropriately
+calibrated weights and the retained population scope.</p></li>
+<li><p><code>n_effective</code>: weighted results only; Kish's unequal-weighting effective
+sample size, <code>(sum(w)^2) / sum(w^2)</code>, calculated using scaled weights for
+numerical stability. This diagnostic ignores clustering, stratification,
+and weight/outcome relationships; it is not model degrees of freedom or
+the exact precision of RWA.</p></li>
 <li><p><code>bootstrap</code>: bootstrap results (only present when bootstrap = TRUE), containing:</p><ul><li><p><code>ci_results</code>: confidence intervals for weights</p></li>
 <li><p><code>boot_object</code>: raw bootstrap object for advanced analysis</p></li>
 <li><p><code>n_bootstrap</code>: number of bootstrap samples used</p></li>
@@ -180,6 +220,38 @@ original implementation that inspired this package.</p>
 <p>This function is a wrapper around <code><a href="rwa_multiregress.html">rwa_multiregress()</a></code> and <code><a href="rwa_logit.html">rwa_logit()</a></code>,
 automatically selecting the appropriate method based on the outcome variable
 or the <code>method</code> argument.</p>
+<p>In brief, for the two missing-data and weighting arguments:</p><ul><li><p>Without <code>weight</code>, missing values are handled by <code>use</code>, which defaults to
+pairwise deletion when correlating predictors.</p></li>
+<li><p>With <code>weight</code>, the analysis always uses complete cases across the outcome,
+the predictors, and the weight. Weighted pairwise deletion is not
+implemented, so <code>use</code> does not change a weighted result.</p></li>
+<li><p>In both cases, rows with a missing outcome are dropped first.</p></li>
+</ul><p>Use weights when the analysis should represent a target population rather
+than the achieved sample. Comparing weighted with unweighted results is
+informative: a large difference indicates that sample composition matters.</p>
+<p>Multiple-regression estimates require a finite joint correlation matrix.
+Its smallest eigenvalue must be at least minus
+<code>sqrt(.Machine$double.eps) * max(1, max(abs(eigenvalues)))</code>. The predictor
+block must have strictly positive computed eigenvalues and the transformation
+must be solvable. No additional conditioning cutoff is imposed on previously
+estimable models; highly correlated predictors can still yield sensitive
+estimates. Calculated R-squared must not exceed one by
+more than <code>sqrt(.Machine$double.eps)</code>; the fit is checked separately because
+small matrix errors can be amplified by nearly collinear predictors.
+An exactly fitted outcome (a singular joint matrix) is
+allowed when the predictor block is positive definite. Invalid matrices,
+constant variables, and insufficient observations cause informative errors;
+variables are not dropped and matrices are not silently repaired.</p>
+<p>Weighted analysis is observation-weighted RWA. Bootstrap intervals use
+independent, identically distributed (iid) individual-row resampling, with
+each row's original weight carried along, not sampling proportional to weights.
+Rows with missing outcomes are removed before resampling; other missing-data
+filters are applied within each sample, preserving the outcome-complete
+sampling frame. A degenerate sample stops the bootstrap with an error:
+samples are not skipped, retried, or allowed to lose predictors.
+Clusters, strata, and replicate-weight survey designs are not supported;
+a weight column alone does not provide general complex-survey variance.
+See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-missing-data")</a></code> for examples and limitations.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -268,6 +340,80 @@ or the <code>method</code> argument.</p>
 <span class="r-in"><span><span class="co"># For faster examples, use a subset of data for bootstrap</span></span></span>
 <span class="r-in"><span><span class="va">diamonds_small</span> <span class="op">&lt;-</span> <span class="va">diamonds</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">diamonds</span><span class="op">)</span>, <span class="fl">1000</span><span class="op">)</span>, <span class="op">]</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># RWA with different missing data handling</span></span></span>
+<span class="r-in"><span><span class="co"># Use complete.obs for listwise deletion</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span>, use <span class="op">=</span> <span class="st">"complete.obs"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "depth" "carat"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $rsquare</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.8506213</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.9999021 0.0139908</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.0139908 0.9999021</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            depth      carat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> depth 1.00000000 0.02797885</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> carat 0.02797885 1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       depth       carat </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.01517396  0.92138091 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># RWA with weights</span></span></span>
+<span class="r-in"><span><span class="va">diamonds_small</span><span class="op">$</span><span class="va">sample_weight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">diamonds_small</span><span class="op">)</span>, <span class="fl">0.5</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"sample_weight"</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Parsing `price` as a non-binary variable.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Applying multiple regression to calculate relative weights...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "depth" "carat"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $rsquare</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.8538196</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8530214942        99.90652809    +</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0007980815         0.09347191    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n_weighted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1258.593</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n_effective</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 895.036</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            [,1]       [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.99987652 0.01571459</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.01571459 0.99987652</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            depth      carat</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> depth 1.00000000 0.03142531</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> carat 0.03142531 1.00000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        depth        carat </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.009720205  0.923210645 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># RWA with bootstrap confidence intervals (raw weights only)</span></span></span>
 <span class="r-in"><span><span class="fu">rwa</span><span class="op">(</span><span class="va">diamonds_small</span>, <span class="st">"price"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"depth"</span>, <span class="st">"carat"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>    bootstrap <span class="op">=</span> <span class="cn">TRUE</span>, n_bootstrap <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
@@ -282,11 +428,11 @@ or the <code>method</code> argument.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.824022309</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.001540754</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.826509375</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.001820289</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.RelWeight.CI.Upper Raw.Significant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.881784349            TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.001733768           FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.881280894            TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.001745769           FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
@@ -313,21 +459,22 @@ or the <code>method</code> argument.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> boot::boot(data = bootstrap_data, statistic = rwa_boot_statistic, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     use = use, weight_var = weight)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         original        bias     std. error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612  0.0003949415 0.0007799469</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 -0.0004819075 0.0143948740</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612  0.0003926974 0.0007904312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 -0.0005076164 0.0144265478</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$raw_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">54</span>  0.001<span style="text-decoration: underline;">73</span> basic     raw    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.824    0.882   basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">82</span>  0.001<span style="text-decoration: underline;">75</span> basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.827    0.881   basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$n_bootstrap</span>
@@ -359,14 +506,14 @@ or the <code>method</code> argument.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.825024090</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.002254679</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.824592868</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.002354544</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.877405690            TRUE                  99.8011875</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.001630586           FALSE                  -0.3064536</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1             0.87721269            TRUE                  99.8008650</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2             0.00166271           FALSE                  -0.2929746</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Rescaled.RelWeight.CI.Upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                 100.3064536</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                   0.1988125</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                  100.292975</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                    0.199135</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
@@ -393,13 +540,14 @@ or the <code>method</code> argument.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> boot::boot(data = bootstrap_data, statistic = rwa_boot_statistic, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     use = use, weight_var = weight)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         original       bias    std. error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612 0.0004856361 0.000959869</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 0.0029880917 0.013125677</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         original       bias     std. error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612 0.0004787235 0.0009718158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 0.0028261567 0.0131505789</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$boot_object_rescaled</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -408,27 +556,28 @@ or the <code>method</code> argument.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> boot::boot(data = bootstrap_data, statistic = rwa_boot_statistic_rescaled, </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     use = use, weight_var = weight)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       original      bias    std. error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t1*  0.1121958  0.05019607   0.1224042</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 99.8878042 -0.05019607   0.1224042</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1*  0.1121958  0.04956108   0.1188947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 99.8878042 -0.04956108   0.1188947</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$raw_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">25</span>  0.001<span style="text-decoration: underline;">63</span> basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">35</span>  0.001<span style="text-decoration: underline;">66</span> basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.825    0.877   basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$rescaled_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.306</span>    0.199 basic     rescaled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.293</span>    0.199 basic     rescaled</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2   99.8    100.    basic     rescaled</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -459,24 +608,24 @@ or the <code>method</code> argument.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index  ci_lower ci_upper ci_method ci_type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">41</span>   0.001<span style="text-decoration: underline;">80</span> basic     raw    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.822     0.871   basic     raw    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3 -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">124</span>  0.014<span style="text-decoration: underline;">5</span>  basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">53</span>   0.001<span style="text-decoration: underline;">74</span> basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.822     0.867   basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3  0.000<span style="text-decoration: underline;">157</span>  0.014<span style="text-decoration: underline;">6</span>  basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $random_comparison</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index  ci_lower ci_upper ci_method ci_type  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> Var4                1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">38</span>   0.002<span style="text-decoration: underline;">88</span> basic     rand_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> Var5                2  0.818     0.879   basic     rand_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> Var6                3 -<span style="color: #BB0000;">0.000</span><span style="color: #BB0000; text-decoration: underline;">360</span>  0.016<span style="text-decoration: underline;">1</span>  basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">52</span>  0.002<span style="text-decoration: underline;">76</span> basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.818    0.877   basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">33</span>  0.015<span style="text-decoration: underline;">9</span>  basic     rand_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $focal_comparison</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> Var7                1   -<span style="color: #BB0000;">0.877</span>   -<span style="color: #BB0000;">0.818</span> basic     focal_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> Var8                2   -<span style="color: #BB0000;">0.872</span>   -<span style="color: #BB0000;">0.806</span> basic     focal_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.876</span>   -<span style="color: #BB0000;">0.818</span> basic     focal_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> table               2   -<span style="color: #BB0000;">0.873</span>   -<span style="color: #BB0000;">0.806</span> basic     focal_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>

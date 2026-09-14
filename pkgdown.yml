@@ -6,7 +6,8 @@ articles:
   evaluating-rwa-method-reference: evaluating-rwa-method-reference.html
   introduction-to-rwa: introduction-to-rwa.html
   regression-methods: regression-methods.html
-last_built: 2026-08-03T16:49Z
+  weighted-missing-data: weighted-missing-data.html
+last_built: 2026-09-14T17:56Z
 urls:
   reference: https://martinctc.github.io/rwa/reference
   article: https://martinctc.github.io/rwa/articles

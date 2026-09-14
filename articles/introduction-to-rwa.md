@@ -339,6 +339,59 @@ rwa_result$result
 #> 5      gear    0.07345304           8.630361    +
 ```
 
+## Survey and Observation Weights
+
+If your data comes from a survey with design, raking, or
+post-stratification weights, pass the name of the weight column to
+`weight`. RWA then uses a weighted correlation matrix, decomposing the
+same R-squared that weighted least squares would report.
+
+``` r
+
+survey_like <- mtcars
+survey_like$respondent_weight <- rep(c(0.8, 1.2, 1.5, 0.6), 8)
+
+weighted_result <- survey_like %>%
+  rwa(outcome = "mpg",
+      predictors = c("cyl", "disp", "hp"),
+      weight = "respondent_weight")
+
+weighted_result$result
+#>   Variables Raw.RelWeight Rescaled.RelWeight Sign
+#> 1       cyl     0.2907136           36.86978    -
+#> 2      disp     0.2889098           36.64101    -
+#> 3        hp     0.2088641           26.48921    -
+
+# Weighted results carry two extra sample-size diagnostics
+c(n = weighted_result$n,
+  n_weighted = weighted_result$n_weighted,
+  n_effective = weighted_result$n_effective)
+#>           n  n_weighted n_effective 
+#>    32.00000    32.80000    28.67377
+```
+
+`n_weighted` is the sum of the retained weights, and `n_effective` is
+Kish’s effective sample size, which falls below `n` as the weights
+become more unequal.
+[`plot_rwa()`](https://martinctc.github.io/rwa/reference/plot_rwa.md)
+reports both in the caption, so a weighted chart is distinguishable from
+an unweighted one.
+
+Comparing weighted with unweighted results is informative in its own
+right: a large difference indicates that sample composition is driving
+your conclusions.
+
+Two limitations are worth knowing up front. Weighting applies to
+multiple regression only, not to logistic RWA, and weighted analysis
+uses complete cases across the outcome, predictors, and weight.
+Bootstrap intervals resample individual rows independently, so they do
+not implement complex-survey variance estimation for clustered or
+stratified designs.
+
+See
+[`vignette("weighted-missing-data", package = "rwa")`](https://martinctc.github.io/rwa/articles/weighted-missing-data.md)
+for the full treatment.
+
 ## Bootstrap Confidence Intervals
 
 The `rwa` package includes powerful bootstrap functionality for
@@ -515,7 +568,7 @@ start_time <- Sys.time()
 rwa_speed_test <- mtcars %>% rwa(outcome = "mpg", predictors = predictors)
 end_time <- Sys.time()
 cat("RWA computation time:", round(as.numeric(end_time - start_time, units = "secs"), 4), "seconds\n")
-#> RWA computation time: 0.0061 seconds
+#> RWA computation time: 0.0072 seconds
 ```
 
 ## Critical Limitations and When to Exercise Caution
@@ -668,7 +721,12 @@ if(nrow(high_cor) > 0) {
 
 ### Missing Data
 
-RWA handles missing data through listwise deletion:
+By default, [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md)
+computes correlations using **pairwise** deletion
+(`use = "pairwise.complete.obs"`), after first dropping rows with a
+missing outcome. You can change this with the `use` argument, which
+accepts the same options as
+[`stats::cor()`](https://rdrr.io/r/stats/cor.html):
 
 ``` r
 
@@ -681,6 +739,26 @@ print(missing_summary)
 #>   mpg cyl disp hp gear
 #> 1   0   0    0  0    0
 ```
+
+``` r
+
+# Default: pairwise deletion
+rwa(df, "outcome", c("x1", "x2"))
+
+# Listwise deletion instead
+rwa(df, "outcome", c("x1", "x2"), use = "complete.obs")
+```
+
+Pairwise deletion uses more of your data, but correlations computed on
+different subsets of rows can be mutually incompatible. When that
+happens, RWA reports an informative error rather than returning an
+impossible result. Consider `use = "complete.obs"` and inspect the
+missingness pattern; changing the retained sample changes the analysis
+and is not an automatic repair.
+
+For the full missing-data contract, including how weights interact with
+it, see
+[`vignette("weighted-missing-data", package = "rwa")`](https://martinctc.github.io/rwa/articles/weighted-missing-data.md).
 
 ## References
 

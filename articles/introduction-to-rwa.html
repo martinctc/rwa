@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2026-08-03</h4>
+            <h4 data-toc-skip class="date">2026-09-14</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/introduction-to-rwa.Rmd" class="external-link"><code>vignettes/introduction-to-rwa.Rmd</code></a></small>
       <div class="d-none name"><code>introduction-to-rwa.Rmd</code></div>
@@ -424,18 +424,64 @@ the results to <code><a href="../reference/plot_rwa.html">plot_rwa()</a></code>:
 </div>
 </div>
 <div class="section level2">
+<h2 id="survey-and-observation-weights">Survey and Observation Weights<a class="anchor" aria-label="anchor" href="#survey-and-observation-weights"></a>
+</h2>
+<p>If your data comes from a survey with design, raking, or
+post-stratification weights, pass the name of the weight column to
+<code>weight</code>. RWA then uses a weighted correlation matrix,
+decomposing the same R-squared that weighted least squares would
+report.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">survey_like</span> <span class="op">&lt;-</span> <span class="va">mtcars</span></span>
+<span><span class="va">survey_like</span><span class="op">$</span><span class="va">respondent_weight</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">1.2</span>, <span class="fl">1.5</span>, <span class="fl">0.6</span><span class="op">)</span>, <span class="fl">8</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">weighted_result</span> <span class="op">&lt;-</span> <span class="va">survey_like</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
+<span>      predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span><span class="op">)</span>,</span>
+<span>      weight <span class="op">=</span> <span class="st">"respondent_weight"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">weighted_result</span><span class="op">$</span><span class="va">result</span></span>
+<span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign</span></span>
+<span><span class="co">#&gt; 1       cyl     0.2907136           36.86978    -</span></span>
+<span><span class="co">#&gt; 2      disp     0.2889098           36.64101    -</span></span>
+<span><span class="co">#&gt; 3        hp     0.2088641           26.48921    -</span></span>
+<span></span>
+<span><span class="co"># Weighted results carry two extra sample-size diagnostics</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>n <span class="op">=</span> <span class="va">weighted_result</span><span class="op">$</span><span class="va">n</span>,</span>
+<span>  n_weighted <span class="op">=</span> <span class="va">weighted_result</span><span class="op">$</span><span class="va">n_weighted</span>,</span>
+<span>  n_effective <span class="op">=</span> <span class="va">weighted_result</span><span class="op">$</span><span class="va">n_effective</span><span class="op">)</span></span>
+<span><span class="co">#&gt;           n  n_weighted n_effective </span></span>
+<span><span class="co">#&gt;    32.00000    32.80000    28.67377</span></span></code></pre></div>
+<p><code>n_weighted</code> is the sum of the retained weights, and
+<code>n_effective</code> is Kish’s effective sample size, which falls
+below <code>n</code> as the weights become more unequal.
+<code><a href="../reference/plot_rwa.html">plot_rwa()</a></code> reports both in the caption, so a weighted chart
+is distinguishable from an unweighted one.</p>
+<p>Comparing weighted with unweighted results is informative in its own
+right: a large difference indicates that sample composition is driving
+your conclusions.</p>
+<p>Two limitations are worth knowing up front. Weighting applies to
+multiple regression only, not to logistic RWA, and weighted analysis
+uses complete cases across the outcome, predictors, and weight.
+Bootstrap intervals resample individual rows independently, so they do
+not implement complex-survey variance estimation for clustered or
+stratified designs.</p>
+<p>See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-missing-data", package = "rwa")</a></code>
+for the full treatment.</p>
+</div>
+<div class="section level2">
 <h2 id="bootstrap-confidence-intervals">Bootstrap Confidence Intervals<a class="anchor" aria-label="anchor" href="#bootstrap-confidence-intervals"></a>
 </h2>
 <p>The <code>rwa</code> package includes powerful bootstrap
 functionality for determining the statistical significance of relative
 weights. For detailed coverage of bootstrap methods, see the dedicated
 vignette:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="quick-bootstrap-example">Quick Bootstrap Example<a class="anchor" aria-label="anchor" href="#quick-bootstrap-example"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Basic bootstrap analysis</span></span>
 <span><span class="va">bootstrap_result</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
@@ -460,7 +506,7 @@ and best practices, consult the bootstrap vignette.</p>
 </h2>
 <p>Let’s explore a more complex example using the <code>diamonds</code>
 dataset:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Analyze diamond price drivers</span></span>
 <span><span class="va">diamonds_subset</span> <span class="op">&lt;-</span> <span class="va">diamonds</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">price</span>, <span class="va">carat</span>, <span class="va">depth</span>, <span class="va">table</span>, <span class="va">x</span>, <span class="va">y</span>, <span class="va">z</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -481,7 +527,7 @@ dataset:</p>
 <span><span class="co">#&gt; 6     depth   0.002584205          0.2950719    -              -0.2950719</span></span></code></pre></div>
 <p>For bootstrap analysis of this example with confidence intervals,
 see:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
@@ -489,7 +535,7 @@ see:</p>
 </h2>
 <p>Let’s compare RWA results with traditional multiple regression to
 highlight the differences:</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Traditional regression</span></span>
 <span><span class="va">lm_model</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">~</span> <span class="va">cyl</span> <span class="op">+</span> <span class="va">disp</span> <span class="op">+</span> <span class="va">hp</span> <span class="op">+</span> <span class="va">gear</span>, data <span class="op">=</span> <span class="va">mtcars</span><span class="op">)</span></span>
 <span><span class="va">lm_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">lm_model</span><span class="op">)</span></span>
@@ -581,7 +627,7 @@ requires 2^p models; RWA solves equations directly</li>
 <strong>Enhanced capabilities</strong>: easier to provide confidence
 intervals and significance tests</li>
 </ul>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Demonstrate computational considerations</span></span>
 <span><span class="va">predictors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span>, <span class="st">"hp"</span>, <span class="st">"gear"</span><span class="op">)</span></span>
 <span><span class="va">n_predictors</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">predictors</span><span class="op">)</span></span>
@@ -598,7 +644,7 @@ intervals and significance tests</li>
 <span><span class="va">rwa_speed_test</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>, predictors <span class="op">=</span> <span class="va">predictors</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"RWA computation time:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"seconds\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; RWA computation time: 0.0061 seconds</span></span></code></pre></div>
+<span><span class="co">#&gt; RWA computation time: 0.0072 seconds</span></span></code></pre></div>
 </div>
 </div>
 </div>
@@ -623,7 +669,7 @@ must still be guided by substantive theory.</p>
 stemming from redundant predictors.</strong> When predictors measure
 essentially the same construct, RWA will split the contribution between
 them, potentially making each appear less important individually.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Demonstrate the redundancy limitation</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">456</span><span class="op">)</span></span>
 <span><span class="va">x1_orig</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
@@ -675,7 +721,7 @@ size.”</p>
 <div class="section level3">
 <h3 id="sample-size-considerations">1. Sample Size Considerations<a class="anchor" aria-label="anchor" href="#sample-size-considerations"></a>
 </h3>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check your sample size</span></span>
 <span><span class="va">n_obs</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
@@ -733,7 +779,7 @@ goal</li>
 </ul>
 <p>For bootstrap confidence intervals and advanced statistical
 considerations, see:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -744,7 +790,7 @@ considerations, see:</p>
 <h3 id="multicollinearity-warnings">Multicollinearity Warnings<a class="anchor" aria-label="anchor" href="#multicollinearity-warnings"></a>
 </h3>
 <p>If you encounter extreme multicollinearity:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check correlation matrix</span></span>
 <span><span class="va">cor_matrix</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -760,8 +806,13 @@ considerations, see:</p>
 <div class="section level3">
 <h3 id="missing-data">Missing Data<a class="anchor" aria-label="anchor" href="#missing-data"></a>
 </h3>
-<p>RWA handles missing data through listwise deletion:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<p>By default, <code><a href="../reference/rwa.html">rwa()</a></code> computes correlations using
+<strong>pairwise</strong> deletion
+(<code>use = "pairwise.complete.obs"</code>), after first dropping rows
+with a missing outcome. You can change this with the <code>use</code>
+argument, which accepts the same options as
+<code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">stats::cor()</a></code>:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Check for missing data patterns</span></span>
 <span><span class="va">missing_summary</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">mpg</span>, <span class="va">cyl</span>, <span class="va">disp</span>, <span class="va">hp</span>, <span class="va">gear</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -770,6 +821,21 @@ considerations, see:</p>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">missing_summary</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   mpg cyl disp hp gear</span></span>
 <span><span class="co">#&gt; 1   0   0    0  0    0</span></span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Default: pairwise deletion</span></span>
+<span><span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"outcome"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Listwise deletion instead</span></span>
+<span><span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"outcome"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>, use <span class="op">=</span> <span class="st">"complete.obs"</span><span class="op">)</span></span></code></pre></div>
+<p>Pairwise deletion uses more of your data, but correlations computed
+on different subsets of rows can be mutually incompatible. When that
+happens, RWA reports an informative error rather than returning an
+impossible result. Consider <code>use = "complete.obs"</code> and
+inspect the missingness pattern; changing the retained sample changes
+the analysis and is not an automatic repair.</p>
+<p>For the full missing-data contract, including how weights interact
+with it, see
+<code><a href="../articles/weighted-missing-data.html">vignette("weighted-missing-data", package = "rwa")</a></code>.</p>
 </div>
 </div>
 <div class="section level2">
@@ -863,7 +929,7 @@ multicollinearity in academic research, RWA provides valuable insights
 that complement traditional regression approaches.</p>
 <p>For advanced bootstrap methods and statistical significance testing,
 see:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/vignette.html" class="external-link">vignette</a></span><span class="op">(</span><span class="st">"bootstrap-confidence-intervals"</span>, package <span class="op">=</span> <span class="st">"rwa"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>

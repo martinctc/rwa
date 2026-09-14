@@ -23,7 +23,9 @@ rwa(
   conf_level = 0.95,
   focal = NULL,
   comprehensive = FALSE,
-  include_rescaled_ci = FALSE
+  include_rescaled_ci = FALSE,
+  use = "pairwise.complete.obs",
+  weight = NULL
 )
 ```
 
@@ -87,13 +89,42 @@ rwa(
 - comprehensive:
 
   Whether to run comprehensive bootstrap analysis including random
-  variable and focal comparisons.
+  variable comparisons and, when `focal` is supplied, comparisons
+  against that predictor.
 
 - include_rescaled_ci:
 
   Logical value specifying whether to include confidence intervals for
   rescaled weights. Defaults to `FALSE` due to compositional data
   constraints. Use with caution.
+
+- use:
+
+  Method for handling missing data when computing correlations. Options
+  are: "everything" (remaining missing values propagate, causing a
+  non-finite correlation matrix error if correlations cannot be
+  estimated), "all.obs" (error for remaining missing predictors in
+  unweighted analysis), "complete.obs" (listwise deletion),
+  "na.or.complete" (listwise deletion; no complete cases produces an
+  insufficient-data error rather than an unusable matrix of NAs),
+  "pairwise.complete.obs" (pairwise deletion, default). See
+  [`cor`](https://rdrr.io/r/stats/cor.html) for more details. Only
+  applicable for multiple regression. Rows with missing outcomes are
+  always removed first, including for "all.obs". When `weight` is
+  specified, remaining missing weights cause an error for "all.obs" and
+  are removed otherwise. Missing predictors are then removed by listwise
+  deletion for every weighted mode, including "all.obs". Thus weighted
+  correlations always use complete cases, regardless of `use`; weighted
+  pairwise correlation is not implemented.
+
+- weight:
+
+  Optional name of a weight variable in the data frame. If provided, a
+  weighted correlation matrix will be computed using the specified
+  weights. Non-missing weights must be numeric, finite, and strictly
+  positive (zero weights are not supported). Missing weights follow the
+  `use` rules. Defaults to `NULL` (unweighted analysis). Only applicable
+  for multiple regression.
 
 ## Value
 
@@ -119,7 +150,19 @@ rwa(
   - Rescaled weight CIs are available via include_rescaled_ci = TRUE but
     not recommended for inference.
 
-- `n`: indicates the number of observations used in the analysis.
+- `n`: complete-case observation count for the selected analysis
+  variables (and weight, if supplied). Unweighted pairwise correlations
+  may use more observations than this conservative count.
+
+- `n_weighted`: weighted results only; sum of original weights after all
+  analysis filters. This is a population-size estimate only for
+  appropriately calibrated weights and the retained population scope.
+
+- `n_effective`: weighted results only; Kish's unequal-weighting
+  effective sample size, `(sum(w)^2) / sum(w^2)`, calculated using
+  scaled weights for numerical stability. This diagnostic ignores
+  clustering, stratification, and weight/outcome relationships; it is
+  not model degrees of freedom or the exact precision of RWA.
 
 - `bootstrap`: bootstrap results (only present when bootstrap = TRUE),
   containing:
@@ -153,6 +196,50 @@ and
 [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md),
 automatically selecting the appropriate method based on the outcome
 variable or the `method` argument.
+
+In brief, for the two missing-data and weighting arguments:
+
+- Without `weight`, missing values are handled by `use`, which defaults
+  to pairwise deletion when correlating predictors.
+
+- With `weight`, the analysis always uses complete cases across the
+  outcome, the predictors, and the weight. Weighted pairwise deletion is
+  not implemented, so `use` does not change a weighted result.
+
+- In both cases, rows with a missing outcome are dropped first.
+
+Use weights when the analysis should represent a target population
+rather than the achieved sample. Comparing weighted with unweighted
+results is informative: a large difference indicates that sample
+composition matters.
+
+Multiple-regression estimates require a finite joint correlation matrix.
+Its smallest eigenvalue must be at least minus
+`sqrt(.Machine$double.eps) * max(1, max(abs(eigenvalues)))`. The
+predictor block must have strictly positive computed eigenvalues and the
+transformation must be solvable. No additional conditioning cutoff is
+imposed on previously estimable models; highly correlated predictors can
+still yield sensitive estimates. Calculated R-squared must not exceed
+one by more than `sqrt(.Machine$double.eps)`; the fit is checked
+separately because small matrix errors can be amplified by nearly
+collinear predictors. An exactly fitted outcome (a singular joint
+matrix) is allowed when the predictor block is positive definite.
+Invalid matrices, constant variables, and insufficient observations
+cause informative errors; variables are not dropped and matrices are not
+silently repaired.
+
+Weighted analysis is observation-weighted RWA. Bootstrap intervals use
+independent, identically distributed (iid) individual-row resampling,
+with each row's original weight carried along, not sampling proportional
+to weights. Rows with missing outcomes are removed before resampling;
+other missing-data filters are applied within each sample, preserving
+the outcome-complete sampling frame. A degenerate sample stops the
+bootstrap with an error: samples are not skipped, retried, or allowed to
+lose predictors. Clusters, strata, and replicate-weight survey designs
+are not supported; a weight column alone does not provide general
+complex-survey variance. See
+[`vignette("weighted-missing-data")`](https://martinctc.github.io/rwa/articles/weighted-missing-data.md)
+for examples and limitations.
 
 ## See also
 
@@ -245,6 +332,80 @@ diamonds |>
 # For faster examples, use a subset of data for bootstrap
 diamonds_small <- diamonds[sample(nrow(diamonds), 1000), ]
 
+# RWA with different missing data handling
+# Use complete.obs for listwise deletion
+rwa(diamonds_small, "price", c("depth", "carat"), use = "complete.obs")
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
+#> $predictors
+#> [1] "depth" "carat"
+#> 
+#> $rsquare
+#> [1] 0.8506213
+#> 
+#> $result
+#>   Variables Raw.RelWeight Rescaled.RelWeight Sign
+#> 1     carat  0.8496668919         99.8878042    +
+#> 2     depth  0.0009543612          0.1121958    -
+#> 
+#> $n
+#> [1] 1000
+#> 
+#> $lambda
+#>           [,1]      [,2]
+#> [1,] 0.9999021 0.0139908
+#> [2,] 0.0139908 0.9999021
+#> 
+#> $RXX
+#>            depth      carat
+#> depth 1.00000000 0.02797885
+#> carat 0.02797885 1.00000000
+#> 
+#> $RXY
+#>       depth       carat 
+#> -0.01517396  0.92138091 
+#> 
+
+# RWA with weights
+diamonds_small$sample_weight <- runif(nrow(diamonds_small), 0.5, 2)
+rwa(diamonds_small, "price", c("depth", "carat"), weight = "sample_weight")
+#> Parsing `price` as a non-binary variable.
+#> Applying multiple regression to calculate relative weights...
+#> $predictors
+#> [1] "depth" "carat"
+#> 
+#> $rsquare
+#> [1] 0.8538196
+#> 
+#> $result
+#>   Variables Raw.RelWeight Rescaled.RelWeight Sign
+#> 1     carat  0.8530214942        99.90652809    +
+#> 2     depth  0.0007980815         0.09347191    -
+#> 
+#> $n
+#> [1] 1000
+#> 
+#> $n_weighted
+#> [1] 1258.593
+#> 
+#> $n_effective
+#> [1] 895.036
+#> 
+#> $lambda
+#>            [,1]       [,2]
+#> [1,] 0.99987652 0.01571459
+#> [2,] 0.01571459 0.99987652
+#> 
+#> $RXX
+#>            depth      carat
+#> depth 1.00000000 0.03142531
+#> carat 0.03142531 1.00000000
+#> 
+#> $RXY
+#>        depth        carat 
+#> -0.009720205  0.923210645 
+#> 
+
 # RWA with bootstrap confidence intervals (raw weights only)
 rwa(diamonds_small, "price", c("depth", "carat"),
     bootstrap = TRUE, n_bootstrap = 100)
@@ -259,11 +420,11 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> $result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower
-#> 1     carat  0.8496668919         99.8878042    +            0.824022309
-#> 2     depth  0.0009543612          0.1121958    -           -0.001540754
+#> 1     carat  0.8496668919         99.8878042    +            0.826509375
+#> 2     depth  0.0009543612          0.1121958    -           -0.001820289
 #>   Raw.RelWeight.CI.Upper Raw.Significant
-#> 1            0.881784349            TRUE
-#> 2            0.001733768           FALSE
+#> 1            0.881280894            TRUE
+#> 2            0.001745769           FALSE
 #> 
 #> $n
 #> [1] 1000
@@ -290,21 +451,22 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> Call:
 #> boot::boot(data = bootstrap_data, statistic = rwa_boot_statistic, 
-#>     R = n_bootstrap, outcome = outcome, predictors = predictors)
+#>     R = n_bootstrap, outcome = outcome, predictors = predictors, 
+#>     use = use, weight_var = weight)
 #> 
 #> 
 #> Bootstrap Statistics :
 #>         original        bias     std. error
-#> t1* 0.0009543612  0.0003949415 0.0007799469
-#> t2* 0.8496668919 -0.0004819075 0.0143948740
+#> t1* 0.0009543612  0.0003926974 0.0007904312
+#> t2* 0.8496668919 -0.0005076164 0.0144265478
 #> 
 #> $bootstrap$ci_results
 #> $bootstrap$ci_results$raw_weights
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>  
-#> 1 depth               1 -0.00154  0.00173 basic     raw    
-#> 2 carat               2  0.824    0.882   basic     raw    
+#> 1 depth               1 -0.00182  0.00175 basic     raw    
+#> 2 carat               2  0.827    0.881   basic     raw    
 #> 
 #> 
 #> $bootstrap$n_bootstrap
@@ -336,14 +498,14 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> $result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower
-#> 1     carat  0.8496668919         99.8878042    +            0.825024090
-#> 2     depth  0.0009543612          0.1121958    -           -0.002254679
+#> 1     carat  0.8496668919         99.8878042    +            0.824592868
+#> 2     depth  0.0009543612          0.1121958    -           -0.002354544
 #>   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower
-#> 1            0.877405690            TRUE                  99.8011875
-#> 2            0.001630586           FALSE                  -0.3064536
+#> 1             0.87721269            TRUE                  99.8008650
+#> 2             0.00166271           FALSE                  -0.2929746
 #>   Rescaled.RelWeight.CI.Upper
-#> 1                 100.3064536
-#> 2                   0.1988125
+#> 1                  100.292975
+#> 2                    0.199135
 #> 
 #> $n
 #> [1] 1000
@@ -370,13 +532,14 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> Call:
 #> boot::boot(data = bootstrap_data, statistic = rwa_boot_statistic, 
-#>     R = n_bootstrap, outcome = outcome, predictors = predictors)
+#>     R = n_bootstrap, outcome = outcome, predictors = predictors, 
+#>     use = use, weight_var = weight)
 #> 
 #> 
 #> Bootstrap Statistics :
-#>         original       bias    std. error
-#> t1* 0.0009543612 0.0004856361 0.000959869
-#> t2* 0.8496668919 0.0029880917 0.013125677
+#>         original       bias     std. error
+#> t1* 0.0009543612 0.0004787235 0.0009718158
+#> t2* 0.8496668919 0.0028261567 0.0131505789
 #> 
 #> $bootstrap$boot_object_rescaled
 #> 
@@ -385,27 +548,28 @@ rwa(diamonds_small, "price", c("depth", "carat"),
 #> 
 #> Call:
 #> boot::boot(data = bootstrap_data, statistic = rwa_boot_statistic_rescaled, 
-#>     R = n_bootstrap, outcome = outcome, predictors = predictors)
+#>     R = n_bootstrap, outcome = outcome, predictors = predictors, 
+#>     use = use, weight_var = weight)
 #> 
 #> 
 #> Bootstrap Statistics :
 #>       original      bias    std. error
-#> t1*  0.1121958  0.05019607   0.1224042
-#> t2* 99.8878042 -0.05019607   0.1224042
+#> t1*  0.1121958  0.04956108   0.1188947
+#> t2* 99.8878042 -0.04956108   0.1188947
 #> 
 #> $bootstrap$ci_results
 #> $bootstrap$ci_results$raw_weights
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>  
-#> 1 depth               1 -0.00225  0.00163 basic     raw    
+#> 1 depth               1 -0.00235  0.00166 basic     raw    
 #> 2 carat               2  0.825    0.877   basic     raw    
 #> 
 #> $bootstrap$ci_results$rescaled_weights
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type 
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>   
-#> 1 depth               1   -0.306    0.199 basic     rescaled
+#> 1 depth               1   -0.293    0.199 basic     rescaled
 #> 2 carat               2   99.8    100.    basic     rescaled
 #> 
 #> 
@@ -436,24 +600,24 @@ result$bootstrap$ci_results
 #> # A tibble: 3 × 6
 #>   variable weight_index  ci_lower ci_upper ci_method ci_type
 #>   <chr>           <int>     <dbl>    <dbl> <chr>     <chr>  
-#> 1 depth               1 -0.00141   0.00180 basic     raw    
-#> 2 carat               2  0.822     0.871   basic     raw    
-#> 3 table               3 -0.000124  0.0145  basic     raw    
+#> 1 depth               1 -0.00153   0.00174 basic     raw    
+#> 2 carat               2  0.822     0.867   basic     raw    
+#> 3 table               3  0.000157  0.0146  basic     raw    
 #> 
 #> $random_comparison
 #> # A tibble: 3 × 6
-#>   variable weight_index  ci_lower ci_upper ci_method ci_type  
-#>   <chr>           <int>     <dbl>    <dbl> <chr>     <chr>    
-#> 1 Var4                1 -0.00138   0.00288 basic     rand_diff
-#> 2 Var5                2  0.818     0.879   basic     rand_diff
-#> 3 Var6                3 -0.000360  0.0161  basic     rand_diff
+#>   variable weight_index ci_lower ci_upper ci_method ci_type  
+#>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>    
+#> 1 depth               1 -0.00152  0.00276 basic     rand_diff
+#> 2 carat               2  0.818    0.877   basic     rand_diff
+#> 3 table               3 -0.00233  0.0159  basic     rand_diff
 #> 
 #> $focal_comparison
 #> # A tibble: 2 × 6
 #>   variable weight_index ci_lower ci_upper ci_method ci_type   
 #>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>     
-#> 1 Var7                1   -0.877   -0.818 basic     focal_diff
-#> 2 Var8                2   -0.872   -0.806 basic     focal_diff
+#> 1 depth               1   -0.876   -0.818 basic     focal_diff
+#> 2 table               2   -0.873   -0.806 basic     focal_diff
 #> 
 # }
 

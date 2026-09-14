@@ -58,7 +58,14 @@ maximally related to the original set of predictors.
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rwa_multiregress</span><span class="op">(</span><span class="va">df</span>, <span class="va">outcome</span>, <span class="va">predictors</span>, applysigns <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">rwa_multiregress</span><span class="op">(</span></span>
+<span>  <span class="va">df</span>,</span>
+<span>  <span class="va">outcome</span>,</span>
+<span>  <span class="va">predictors</span>,</span>
+<span>  applysigns <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  use <span class="op">=</span> <span class="st">"pairwise.complete.obs"</span>,</span>
+<span>  weight <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -80,6 +87,33 @@ maximally related to the original set of predictors.
 <dt id="arg-applysigns">applysigns<a class="anchor" aria-label="anchor" href="#arg-applysigns"></a></dt>
 <dd><p>Logical value specifying whether to show an estimate that applies the sign. Defaults to <code>FALSE</code>.</p></dd>
 
+
+<dt id="arg-use">use<a class="anchor" aria-label="anchor" href="#arg-use"></a></dt>
+<dd><p>Method for handling missing data when computing correlations. Options are:
+"everything" (remaining missing values propagate, causing a non-finite
+correlation matrix error if correlations cannot be estimated),
+"all.obs" (error for remaining missing predictors in unweighted analysis),
+"complete.obs" (listwise deletion),
+"na.or.complete" (listwise deletion; no complete cases produces an
+insufficient-data error rather than an unusable matrix of NAs),
+"pairwise.complete.obs" (pairwise deletion, default).
+See <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></code> for more details. Only applicable for multiple regression.
+Rows with missing outcomes are always removed first, including for
+"all.obs". When <code>weight</code> is specified, remaining missing weights
+cause an error for "all.obs" and are removed otherwise. Missing predictors
+are then removed by listwise deletion for every weighted mode, including
+"all.obs". Thus weighted correlations always use complete cases, regardless
+of <code>use</code>; weighted pairwise correlation is not implemented.</p></dd>
+
+
+<dt id="arg-weight">weight<a class="anchor" aria-label="anchor" href="#arg-weight"></a></dt>
+<dd><p>Optional name of a weight variable in the data frame. If provided,
+a weighted correlation matrix will be computed using the specified weights.
+Non-missing weights must be numeric, finite, and strictly positive (zero
+weights are not supported). Missing weights follow the <code>use</code> rules.
+Defaults to <code>NULL</code>
+(unweighted analysis). Only applicable for multiple regression.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -88,7 +122,15 @@ maximally related to the original set of predictors.
 <li><p><code>result</code>: the final output of the importance metrics.</p><ul><li><p>The <code>Rescaled.RelWeight</code> column sums up to 100.</p></li>
 <li><p>The <code>Sign</code> column indicates whether a predictor is positively or negatively correlated with the outcome.</p></li>
 </ul></li>
-<li><p><code>n</code>: indicates the number of observations used in the analysis.</p></li>
+<li><p><code>n</code>: complete-case observation count for the selected variables and weight,
+if supplied. Unweighted pairwise correlations may use more observations.</p></li>
+<li><p><code>n_weighted</code>: weighted results only; sum of original weights after outcome,
+missing-weight, and predictor-completeness filters. Population-size meaning
+requires appropriately calibrated weights and retained population scope.</p></li>
+<li><p><code>n_effective</code>: weighted results only; Kish's unequal-weighting effective
+sample size, <code>(sum(w)^2) / sum(w^2)</code>, evaluated using scaled weights.
+This is not model degrees of freedom or exact RWA precision and ignores
+clustering, stratification, and weight/outcome relationships.</p></li>
 <li><p><code>lambda</code>: the transformation matrix that maps the original correlated predictors to orthogonal variables while preserving their relationship to the outcome. Used internally to compute relative weights.</p></li>
 <li><p><code>RXX</code>: Correlation matrix of all the predictor variables against each other.</p></li>
 <li><p><code>RXY</code>: Correlation values of the predictor variables against the outcome variable.</p></li>
@@ -98,7 +140,11 @@ maximally related to the original set of predictors.
     <p><code>rwa_multiregress()</code> produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 for every predictor in the model.
 Signs are added to the weights when the <code>applysigns</code> argument is set to <code>TRUE</code>.
-See https://relativeimportance.davidson.edu/multipleregression.html for the original implementation that inspired this package.</p>
+See <a href="https://www.scotttonidandel.com/rwa-web" class="external-link">https://www.scotttonidandel.com/rwa-web</a> for the original implementation that inspired this package.</p>
+<p>This is observation-weighted RWA when <code>weight</code> is provided, not a
+complex-survey variance estimator. See <code><a href="rwa.html">rwa()</a></code> for joint-matrix and predictor
+positive-definiteness tolerances, bootstrap sampling assumptions, and
+diagnostics. See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-missing-data")</a></code> for worked examples.</p>
     </div>
 
     <div class="section level2">
@@ -131,6 +177,86 @@ See https://relativeimportance.davidson.edu/multipleregression.html for the orig
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2      disp     0.1883043           22.18908    -               -22.18908</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3        hp     0.1799590           21.20570    -               -21.20570</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4        wt     0.2706812           31.89607    -               -31.89607</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Using listwise deletion for missing data</span></span></span>
+<span class="r-in"><span><span class="fu">rwa_multiregress</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  df <span class="op">=</span> <span class="va">mtcars</span>,</span></span>
+<span class="r-in"><span>  outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span></span>
+<span class="r-in"><span>  predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  use <span class="op">=</span> <span class="st">"complete.obs"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "cyl"  "disp"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $rsquare</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.7595658</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       cyl     0.3837012           50.51586    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      disp     0.3758646           49.48414    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.8460695 0.5330725</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.5330725 0.8460695</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            cyl      disp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl  1.0000000 0.9020329</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> disp 0.9020329 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        cyl       disp </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.8521620 -0.8475514 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># With observation weights</span></span></span>
+<span class="r-in"><span><span class="va">mtcars_weighted</span> <span class="op">&lt;-</span> <span class="va">mtcars</span></span></span>
+<span class="r-in"><span><span class="va">mtcars_weighted</span><span class="op">$</span><span class="va">w</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">mtcars</span><span class="op">)</span>, <span class="fl">0.5</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">rwa_multiregress</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  df <span class="op">=</span> <span class="va">mtcars_weighted</span>,</span></span>
+<span class="r-in"><span>  outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span></span>
+<span class="r-in"><span>  predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cyl"</span>, <span class="st">"disp"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  weight <span class="op">=</span> <span class="st">"w"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $predictors</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "cyl"  "disp"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $rsquare</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.7722937</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       cyl     0.3974757           51.46692    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2      disp     0.3748179           48.53308    -</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 32</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n_weighted</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 39.93325</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $n_effective</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 28.45581</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $lambda</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           [,1]      [,2]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1,] 0.8455087 0.5339616</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [2,] 0.5339616 0.8455087</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXX</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            cyl      disp</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cyl  1.0000000 0.9029384</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> disp 0.9029384 1.0000000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $RXY</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        cyl       disp </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.8633245 -0.8501008 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

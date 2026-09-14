@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2026-08-03</h4>
+            <h4 data-toc-skip class="date">2026-09-14</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/bootstrap-confidence-intervals.Rmd" class="external-link"><code>vignettes/bootstrap-confidence-intervals.Rmd</code></a></small>
       <div class="d-none name"><code>bootstrap-confidence-intervals.Rmd</code></div>
@@ -114,6 +114,19 @@ examining whether CIs include zero</p>
 <div class="section level2">
 <h2 id="basic-bootstrap-analysis">Basic Bootstrap Analysis<a class="anchor" aria-label="anchor" href="#basic-bootstrap-analysis"></a>
 </h2>
+<div class="section level3">
+<h3 id="sampling-scope">Sampling scope<a class="anchor" aria-label="anchor" href="#sampling-scope"></a>
+</h3>
+<p>The implementation uses independent, identically distributed (iid)
+individual-row resampling. For observation-weighted RWA, each sampled
+row carries its original weight; clusters, strata, and replicate-weight
+survey designs are not supported. Outcome-missing rows are removed
+before resampling, while other missing-data filters are applied within
+each sample. Invalid samples stop with an error rather than dropping
+predictors or retrying. See
+<code><a href="../articles/weighted-missing-data.html">vignette("weighted-missing-data")</a></code> for the filtering
+contract and examples.</p>
+</div>
 <div class="section level3">
 <h3 id="simple-bootstrap-example">Simple Bootstrap Example<a class="anchor" aria-label="anchor" href="#simple-bootstrap-example"></a>
 </h3>
