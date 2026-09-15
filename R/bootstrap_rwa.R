@@ -93,6 +93,33 @@ rwa_boot_statistic_rescaled <- function(data, indices, outcome, predictors, use 
   })
 }
 
+#' Bootstrap statistic function for random-variable comparison
+#'
+#' Computes the difference between each predictor's raw relative weight and the
+#' raw relative weight of a randomly generated variable added to the model.
+#' This is the comparison used to assess statistical significance, following
+#' Tonidandel, LeBreton and Johnson (2009). A relative weight cannot be tested
+#' against zero directly, because relative weights are non-negative and a
+#' predictor with no true relationship still receives a small positive weight.
+#'
+#' @param data Data frame for bootstrap sampling
+#' @param indices Bootstrap sample indices (provided by boot::boot)
+#' @param outcome Outcome variable name
+#' @param predictors Vector of predictor variable names
+#' @param use Method for handling missing data in correlations
+#' @param weight_var Optional name of weight variable
+#'
+#' @return Numeric vector of weight differences, one per predictor
+#' @keywords internal
+#' @noRd
+rwa_boot_rand_statistic <- function(data, indices, outcome, predictors,
+                                    use = "pairwise.complete.obs", weight_var = NULL) {
+  with_rwa_bootstrap_errors({
+    rwa_rand_internal(data[indices, , drop = FALSE], outcome, predictors,
+                      use = use, weight = weight_var)
+  })
+}
+
 #' Bootstrap statistic function for comprehensive RWA analysis
 #'
 #' Computes raw weights, random variable comparison, and focal variable comparison
@@ -395,6 +422,30 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
     }
 
     return_objects$boot_object_comprehensive <- boot_result_comp
+  } else {
+    # The significance test compares each weight against a random variable's
+    # weight (Tonidandel, LeBreton & Johnson, 2009), so this comparison is
+    # required whenever bootstrap results are produced. Comprehensive analysis
+    # already computes it above, so it is only run separately here.
+    boot_result_rand <- boot::boot(
+      data = bootstrap_data,
+      statistic = rwa_boot_rand_statistic,
+      R = n_bootstrap,
+      outcome = outcome,
+      predictors = predictors,
+      use = use,
+      weight_var = weight
+    )
+
+    if (length(boot_result_rand$t0) != length(predictors) ||
+        ncol(boot_result_rand$t) != length(predictors)) {
+      stop("Random-comparison bootstrap statistic length does not match the requested predictors.")
+    }
+
+    ci_results$random_comparison <- extract_ci(
+      boot_result_rand, conf_level, predictors, "rand_diff"
+    )
+    return_objects$boot_object_random <- boot_result_rand
   }
 
   c(return_objects, list(

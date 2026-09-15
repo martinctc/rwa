@@ -47,7 +47,36 @@ Bootstrap resampling:
 1. **Creates multiple samples** from your original data
 2. **Calculates RWA** for each bootstrap sample  
 3. **Estimates confidence intervals** from the distribution of bootstrap results
-4. **Enables significance testing** by examining whether CIs include zero
+4. **Enables significance testing** by comparing each predictor against a randomly generated variable
+
+### How significance is assessed
+
+A relative weight **cannot be tested against zero**. Raw relative weights are
+non-negative, so a predictor with no real relationship to the outcome still
+receives a small positive weight, and an interval around that weight will
+almost always exclude zero.
+
+Following Tonidandel, LeBreton and Johnson (2009) — who suggest comparing a
+weight against that of a randomly generated variable to judge whether it
+exceeds what chance alone would produce (see also the discussion in
+`vignette("evaluating-rwa-method-reference")`) — significance is instead
+assessed by adding a **randomly generated variable** to the model and
+bootstrapping the *difference* between each predictor's weight and the random
+variable's weight.
+
+The directional cutoff applied by this package is: a predictor is flagged
+significant only when the **lower bound** of that difference interval is
+above zero, meaning it explains meaningfully more variance than noise would.
+An interval lying entirely *below* zero means the predictor performed worse
+than the random variable, which is equally not evidence of importance, so it
+is not flagged significant either.
+
+This means the package reports two distinct intervals:
+
+| Columns | Purpose |
+|---|---|
+| `Raw.RelWeight.CI.Lower` / `.Upper` | Descriptive interval around the weight itself. **Not** a significance test. |
+| `Random.Diff.CI.Lower` / `.Upper` | Difference from a random variable's weight. `Raw.Significant` is `TRUE` when `Random.Diff.CI.Lower > 0`. |
 
 ## Basic Bootstrap Analysis
 
@@ -80,8 +109,9 @@ result_bootstrap$result
 
 The bootstrap analysis enhances the standard RWA output with:
 
-- **Raw.RelWeight.CI.Lower/Upper**: 95% confidence intervals for raw weights
-- **Raw.Significant**: Automatic significance flagging (CI doesn't include zero)
+- **Raw.RelWeight.CI.Lower/Upper**: confidence intervals around each raw weight, for description rather than testing
+- **Random.Diff.CI.Lower/Upper**: confidence intervals for the difference from a randomly generated variable's weight
+- **Raw.Significant**: significance flag, `TRUE` when the random-comparison interval excludes zero
 
 ```{r bootstrap-interpretation}
 # Bootstrap-specific information
@@ -217,6 +247,10 @@ cat("\nRecommended bootstrap samples:", min(2000, n_obs * 10))
 
 ### 2. Confidence Interval Interpretation
 
+The intervals around the raw weights describe **precision**, not significance.
+Use them to judge how tightly each weight is estimated; use `Raw.Significant`
+(from the random-variable comparison) to judge importance.
+
 ```{r ci-interpretation}
 # Examine CI characteristics
 ci_data <- result_bootstrap$bootstrap$ci_results$raw_weights
@@ -225,7 +259,6 @@ print(head(ci_data))
 # Assess precision
 ci_analysis <- ci_data %>%
   mutate(
-    significant = ci_lower > 0 | ci_upper < 0,
     ci_width = ci_upper - ci_lower,
     precision = case_when(
       ci_width < 0.05 ~ "High precision",
