@@ -1,5 +1,10 @@
 # rwa (development version)
 
+## Breaking Changes
+
+- `Raw.Significant` is now derived from the random-variable comparison described by Tonidandel, LeBreton and Johnson (2009), rather than from the confidence interval around the raw weight itself (#26). Raw relative weights are non-negative, so an interval around a weight almost always excludes zero and previously flagged even unrelated predictors as significant. The test is directional: a predictor is significant only when the lower bound of the difference interval is above zero, so a predictor that performed worse than the random variable is not reported as significant. **Predictors previously reported as significant may now correctly be reported as not significant.** `rwa()` also returns `Random.Diff.CI.Lower` and `Random.Diff.CI.Upper` for the comparison the flag is based on, and the descriptive `Raw.RelWeight.CI.*` columns are unchanged.
+- Because significance requires this comparison, `bootstrap = TRUE` now runs an additional bootstrap when `comprehensive = FALSE`, which roughly doubles bootstrap time. `comprehensive = TRUE` already computed the comparison and is unaffected.
+
 ## New Features
 
 - Added `rwa_logit()` and `rwa_multiregress()` to support logistic regression and multiple regression.
