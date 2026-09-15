@@ -56,14 +56,20 @@ non-negative, so a predictor with no real relationship to the outcome still
 receives a small positive weight, and an interval around that weight will
 almost always exclude zero.
 
-Following Tonidandel, LeBreton and Johnson (2009), significance is instead
+Following Tonidandel, LeBreton and Johnson (2009) — who suggest comparing a
+weight against that of a randomly generated variable to judge whether it
+exceeds what chance alone would produce (see also the discussion in
+`vignette("evaluating-rwa-method-reference")`) — significance is instead
 assessed by adding a **randomly generated variable** to the model and
 bootstrapping the *difference* between each predictor's weight and the random
-variable's weight. A predictor is flagged significant when the **lower bound**
-of that difference interval is above zero, meaning it explains meaningfully
-more variance than noise would. The test is directional: an interval lying
-entirely *below* zero means the predictor performed worse than the random
-variable, which is not evidence of importance.
+variable's weight.
+
+The directional cutoff applied by this package is: a predictor is flagged
+significant only when the **lower bound** of that difference interval is
+above zero, meaning it explains meaningfully more variance than noise would.
+An interval lying entirely *below* zero means the predictor performed worse
+than the random variable, which is equally not evidence of importance, so it
+is not flagged significant either.
 
 This means the package reports two distinct intervals:
 

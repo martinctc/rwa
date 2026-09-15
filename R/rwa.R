@@ -122,10 +122,15 @@
 #'     way, and not from the interval around the weight itself, because raw
 #'     relative weights are non-negative: an unrelated predictor still receives
 #'     a small positive weight, so an interval around it would almost always
-#'     exclude zero. The test is directional, so an interval lying entirely
-#'     below zero indicates a predictor that performed worse than the random
-#'     variable and is not significant. See Tonidandel, LeBreton and Johnson
-#'     (2009).
+#'     exclude zero. Comparing each weight to that of a randomly generated
+#'     variable is the approach suggested by Tonidandel, LeBreton and Johnson
+#'     (2009; \doi{10.1037/a0017735}) as a way to judge whether a weight
+#'     exceeds what chance alone would produce. The `Raw.Significant` cutoff
+#'     applied here is directional: a predictor is significant only when it
+#'     exceeds the random variable (`Random.Diff.CI.Lower > 0`), because an
+#'     interval lying entirely below zero indicates the predictor performed
+#'     worse than noise, which is not evidence of importance in either
+#'     direction.
 #'   - Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 #'     recommended for inference.
 #' - `n`: complete-case observation count for the selected analysis variables
@@ -365,14 +370,18 @@ rwa <- function(df,
     }
 
     # Significance is assessed by comparing each weight against the weight of a
-    # randomly generated variable (Tonidandel, LeBreton & Johnson, 2009). This
+    # randomly generated variable, the approach suggested by Tonidandel,
+    # LeBreton & Johnson (2009, <https://doi.org/10.1037/a0017735>) for
+    # judging whether a weight exceeds what chance alone would produce. This
     # interval is deliberately not the interval around the weight itself: raw
     # relative weights are non-negative, so an interval around a weight nearly
     # always excludes zero and would flag even unrelated predictors.
-    # The test is directional. The statistic is the predictor's weight minus the
-    # random variable's weight, so only an interval lying entirely above zero
-    # shows the predictor explains more than noise. An interval entirely below
-    # zero means the opposite and must not be reported as significant.
+    # The cutoff applied here is directional: the statistic is the predictor's
+    # weight minus the random variable's weight, and only an interval lying
+    # entirely above zero shows the predictor explains more than noise. An
+    # interval entirely below zero means the predictor performed worse than
+    # noise, which is equally not evidence of importance, so it must not be
+    # reported as significant either.
     if (!is.null(bootstrap_results$ci_results$random_comparison)) {
       rand_ci <- bootstrap_results$ci_results$random_comparison
       matched <- match(result_list$result$Variables, rand_ci$variable)

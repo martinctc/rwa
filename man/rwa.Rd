@@ -106,10 +106,15 @@ when \code{Random.Diff.CI.Lower} is above zero. Significance is assessed this
 way, and not from the interval around the weight itself, because raw
 relative weights are non-negative: an unrelated predictor still receives
 a small positive weight, so an interval around it would almost always
-exclude zero. The test is directional, so an interval lying entirely
-below zero indicates a predictor that performed worse than the random
-variable and is not significant. See Tonidandel, LeBreton and Johnson
-(2009).
+exclude zero. Comparing each weight to that of a randomly generated
+variable is the approach suggested by Tonidandel, LeBreton and Johnson
+(2009; \doi{10.1037/a0017735}) as a way to judge whether a weight
+exceeds what chance alone would produce. The \code{Raw.Significant} cutoff
+applied here is directional: a predictor is significant only when it
+exceeds the random variable (\code{Random.Diff.CI.Lower > 0}), because an
+interval lying entirely below zero indicates the predictor performed
+worse than noise, which is not evidence of importance in either
+direction.
 \item Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 recommended for inference.
 }
