@@ -1,4 +1,4 @@
-# rwa (development version)
+# rwa 1.0.0
 
 ## Breaking Changes
 
