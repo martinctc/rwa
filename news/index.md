@@ -1,6 +1,36 @@
 # Changelog
 
-## rwa (development version)
+## rwa 1.0.0
+
+CRAN release: 2026-09-16
+
+### Breaking Changes
+
+- `Raw.Significant` is now derived from a comparison against a randomly
+  generated variable’s weight, rather than from the confidence interval
+  around the raw weight itself
+  ([\#26](https://github.com/martinctc/rwa/issues/26)). Raw relative
+  weights are non-negative, so an interval around a weight almost always
+  excludes zero and previously flagged even unrelated predictors as
+  significant. Comparing each weight to that of a random variable is the
+  approach suggested by Tonidandel, LeBreton and Johnson (2009,
+  <https://doi.org/10.1037/a0017735>) for judging whether a weight
+  exceeds what chance alone would produce (see also the discussion in
+  [`vignette("evaluating-rwa-method-reference")`](https://martinctc.github.io/rwa/articles/evaluating-rwa-method-reference.md)).
+  This package applies a directional cutoff on that comparison: a
+  predictor is significant only when the lower bound of the difference
+  interval is above zero, so a predictor that performed worse than the
+  random variable is not reported as significant either. **Predictors
+  previously reported as significant may now correctly be reported as
+  not significant.**
+  [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md) also
+  returns `Random.Diff.CI.Lower` and `Random.Diff.CI.Upper` for the
+  comparison the flag is based on, and the descriptive
+  `Raw.RelWeight.CI.*` columns are unchanged.
+- Because significance requires this comparison, `bootstrap = TRUE` now
+  runs an additional bootstrap when `comprehensive = FALSE`, which
+  roughly doubles bootstrap time. `comprehensive = TRUE` already
+  computed the comparison and is unaffected.
 
 ### New Features
 

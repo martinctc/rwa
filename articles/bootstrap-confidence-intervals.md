@@ -35,8 +35,38 @@ weights.
 Bootstrap resampling: 1. **Creates multiple samples** from your original
 data 2. **Calculates RWA** for each bootstrap sample  
 3. **Estimates confidence intervals** from the distribution of bootstrap
-results 4. **Enables significance testing** by examining whether CIs
-include zero
+results 4. **Enables significance testing** by comparing each predictor
+against a randomly generated variable
+
+### How significance is assessed
+
+A relative weight **cannot be tested against zero**. Raw relative
+weights are non-negative, so a predictor with no real relationship to
+the outcome still receives a small positive weight, and an interval
+around that weight will almost always exclude zero.
+
+Following Tonidandel, LeBreton and Johnson (2009) — who suggest
+comparing a weight against that of a randomly generated variable to
+judge whether it exceeds what chance alone would produce (see also the
+discussion in
+[`vignette("evaluating-rwa-method-reference")`](https://martinctc.github.io/rwa/articles/evaluating-rwa-method-reference.md))
+— significance is instead assessed by adding a **randomly generated
+variable** to the model and bootstrapping the *difference* between each
+predictor’s weight and the random variable’s weight.
+
+The directional cutoff applied by this package is: a predictor is
+flagged significant only when the **lower bound** of that difference
+interval is above zero, meaning it explains meaningfully more variance
+than noise would. An interval lying entirely *below* zero means the
+predictor performed worse than the random variable, which is equally not
+evidence of importance, so it is not flagged significant either.
+
+This means the package reports two distinct intervals:
+
+| Columns | Purpose |
+|----|----|
+| `Raw.RelWeight.CI.Lower` / `.Upper` | Descriptive interval around the weight itself. **Not** a significance test. |
+| `Random.Diff.CI.Lower` / `.Upper` | Difference from a random variable’s weight. `Raw.Significant` is `TRUE` when `Random.Diff.CI.Lower > 0`. |
 
 ## Basic Bootstrap Analysis
 
@@ -71,21 +101,28 @@ result_bootstrap$result
 #> 2       cyl     0.2284797           29.32274    -             0.17336836
 #> 3      disp     0.2221469           28.50999    -             0.15772412
 #> 4      gear     0.0963886           12.37037    +             0.04155014
-#>   Raw.RelWeight.CI.Upper Raw.Significant
-#> 1              0.2811493            TRUE
-#> 2              0.2788206            TRUE
-#> 3              0.2804741            TRUE
-#> 4              0.1843592            TRUE
+#>   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper
+#> 1              0.2811493           0.18517981            0.3238297
+#> 2              0.2788206           0.17457756            0.3011385
+#> 3              0.2804741           0.15417064            0.2962516
+#> 4              0.1843592           0.03300665            0.2160141
+#>   Raw.Significant
+#> 1            TRUE
+#> 2            TRUE
+#> 3            TRUE
+#> 4            TRUE
 ```
 
 ### Understanding Bootstrap Output
 
 The bootstrap analysis enhances the standard RWA output with:
 
-- **Raw.RelWeight.CI.Lower/Upper**: 95% confidence intervals for raw
-  weights
-- **Raw.Significant**: Automatic significance flagging (CI doesn’t
-  include zero)
+- **Raw.RelWeight.CI.Lower/Upper**: confidence intervals around each raw
+  weight, for description rather than testing
+- **Random.Diff.CI.Lower/Upper**: confidence intervals for the
+  difference from a randomly generated variable’s weight
+- **Raw.Significant**: significance flag, `TRUE` when the
+  random-comparison interval excludes zero
 
 ``` r
 
@@ -155,11 +192,14 @@ custom_bootstrap <- mtcars %>%
 
 custom_bootstrap$result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower
-#> 1       cyl     0.3837012           50.51586    -              0.2565545
-#> 2      disp     0.3758646           49.48414    -              0.2433539
-#>   Raw.RelWeight.CI.Upper Raw.Significant
-#> 1              0.4564831            TRUE
-#> 2              0.4607167            TRUE
+#> 1       cyl     0.3837012           50.51586    -              0.2913949
+#> 2      disp     0.3758646           49.48414    -              0.2486923
+#>   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper
+#> 1              0.4587817            0.2486182            0.4762462
+#> 2              0.4631033            0.2231991            0.4723433
+#>   Raw.Significant
+#> 1            TRUE
+#> 2            TRUE
 ```
 
 ## Rescaled Weight Confidence Intervals
@@ -183,17 +223,17 @@ result_rescaled_ci <- mtcars %>%
 # Note the warning message about interpretation
 result_rescaled_ci$result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower
-#> 1      disp     0.2793550           36.37966    -              0.2044890
-#> 2       cyl     0.2723144           35.46279    -              0.2144884
-#> 3        hp     0.2162184           28.15755    -              0.1548984
-#>   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower
-#> 1              0.3558447            TRUE                    30.46391
-#> 2              0.3269149            TRUE                    30.26278
-#> 3              0.2700555            TRUE                    20.63832
-#>   Rescaled.RelWeight.CI.Upper
-#> 1                    42.88634
-#> 2                    42.41383
-#> 3                    35.88019
+#> 1      disp     0.2793550           36.37966    -              0.2098045
+#> 2       cyl     0.2723144           35.46279    -              0.2164417
+#> 3        hp     0.2162184           28.15755    -              0.1466585
+#>   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper
+#> 1              0.3490397            0.1909653            0.3599660
+#> 2              0.3350063            0.1923987            0.3293708
+#> 3              0.2655783            0.1287796            0.2812365
+#>   Raw.Significant Rescaled.RelWeight.CI.Lower Rescaled.RelWeight.CI.Upper
+#> 1            TRUE                    29.92571                    43.22107
+#> 2            TRUE                    30.39978                    42.52850
+#> 3            TRUE                    20.51533                    36.28601
 ```
 
 ### Why Rescaled CIs Are Problematic
@@ -225,19 +265,26 @@ diamond_rwa <- diamonds_subset %>%
 
 print(diamond_rwa$result)
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight
-#> 1     carat   0.257169175         29.1954988    +              29.1954988
-#> 2         y   0.206439319         23.4363192    +              23.4363192
-#> 3         z   0.205755304         23.3586655    +              23.3586655
-#> 4         x   0.204112040         23.1721115    +              23.1721115
-#> 5     table   0.004567369          0.5185171    +               0.5185171
-#> 6     depth   0.002808932          0.3188880    -              -0.3188880
-#>   Raw.RelWeight.CI.Lower Raw.RelWeight.CI.Upper Raw.Significant
-#> 1           0.2480932226            0.266629078            TRUE
-#> 2           0.2011322930            0.211372754            TRUE
-#> 3           0.2003312825            0.211292661            TRUE
-#> 4           0.1988540715            0.208972258            TRUE
-#> 5           0.0007763152            0.006628737            TRUE
-#> 6          -0.0006849704            0.003814884           FALSE
+#> 1     carat   0.257396293         29.0479318    +              29.0479318
+#> 2         y   0.209603461         23.6543696    +              23.6543696
+#> 3         x   0.208884201         23.5731989    +              23.5731989
+#> 4         z   0.202370232         22.8380782    +              22.8380782
+#> 5     table   0.005485581          0.6190640    +               0.6190640
+#> 6     depth   0.002369078          0.2673575    -              -0.2673575
+#>   Raw.RelWeight.CI.Lower Raw.RelWeight.CI.Upper Random.Diff.CI.Lower
+#> 1           0.2473611316            0.268517346         0.2445869343
+#> 2           0.2047811688            0.214125991         0.2025645259
+#> 3           0.2036382695            0.213592851         0.2017898804
+#> 4           0.1938388565            0.215250023         0.1921825417
+#> 5           0.0001472316            0.008141882        -0.0007519212
+#> 6          -0.0003476379            0.003278339        -0.0015851728
+#>   Random.Diff.CI.Upper Raw.Significant
+#> 1          0.265471011            TRUE
+#> 2          0.212047411            TRUE
+#> 3          0.211611735            TRUE
+#> 4          0.212098934            TRUE
+#> 5          0.007118207           FALSE
+#> 6          0.002223108           FALSE
 ```
 
 ### Interpreting Results
@@ -253,15 +300,14 @@ cat("Significant diamond price drivers (sorted by importance):\n")
 #> Significant diamond price drivers (sorted by importance):
 print(significant_drivers)
 #>   Variables Rescaled.RelWeight Sign.Rescaled.RelWeight
-#> 1     carat         29.1954988              29.1954988
-#> 2         y         23.4363192              23.4363192
-#> 3         z         23.3586655              23.3586655
-#> 4         x         23.1721115              23.1721115
-#> 5     table          0.5185171               0.5185171
+#> 1     carat           29.04793                29.04793
+#> 2         y           23.65437                23.65437
+#> 3         x           23.57320                23.57320
+#> 4         z           22.83808                22.83808
 
 cat("\nModel R-squared:", round(diamond_rwa$rsquare, 3))
 #> 
-#> Model R-squared: 0.881
+#> Model R-squared: 0.886
 ```
 
 ## Best Practices
@@ -287,6 +333,11 @@ cat("\nRecommended bootstrap samples:", min(2000, n_obs * 10))
 
 ### 2. Confidence Interval Interpretation
 
+The intervals around the raw weights describe **precision**, not
+significance. Use them to judge how tightly each weight is estimated;
+use `Raw.Significant` (from the random-variable comparison) to judge
+importance.
+
 ``` r
 
 # Examine CI characteristics
@@ -303,7 +354,6 @@ print(head(ci_data))
 # Assess precision
 ci_analysis <- ci_data %>%
   mutate(
-    significant = ci_lower > 0 | ci_upper < 0,
     ci_width = ci_upper - ci_lower,
     precision = case_when(
       ci_width < 0.05 ~ "High precision",
@@ -313,14 +363,13 @@ ci_analysis <- ci_data %>%
   )
 
 print(ci_analysis)
-#> # A tibble: 4 × 9
-#>   variable weight_index ci_lower ci_upper ci_method ci_type significant ci_width
-#>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>   <lgl>          <dbl>
-#> 1 cyl                 1   0.173     0.279 bca       raw     TRUE          0.105 
-#> 2 disp                2   0.158     0.280 bca       raw     TRUE          0.123 
-#> 3 hp                  3   0.189     0.281 bca       raw     TRUE          0.0925
-#> 4 gear                4   0.0416    0.184 bca       raw     TRUE          0.143 
-#> # ℹ 1 more variable: precision <chr>
+#> # A tibble: 4 × 8
+#>   variable weight_index ci_lower ci_upper ci_method ci_type ci_width precision  
+#>   <chr>           <int>    <dbl>    <dbl> <chr>     <chr>      <dbl> <chr>      
+#> 1 cyl                 1   0.173     0.279 bca       raw       0.105  Medium pre…
+#> 2 disp                2   0.158     0.280 bca       raw       0.123  Medium pre…
+#> 3 hp                  3   0.189     0.281 bca       raw       0.0925 Medium pre…
+#> 4 gear                4   0.0416    0.184 bca       raw       0.143  Medium pre…
 ```
 
 ### 3. Bootstrap Method Selection
@@ -373,15 +422,18 @@ quick_result <- mtcars %>%
 
 # Bootstrap objects can be large - access specific components
 str(result_bootstrap$bootstrap, max.level = 1)
-#> List of 6
-#>  $ boot_object  :List of 11
+#> List of 7
+#>  $ boot_object       :List of 11
 #>   ..- attr(*, "class")= chr "boot"
 #>   ..- attr(*, "boot_type")= chr "boot"
-#>  $ ci_results   :List of 1
-#>  $ n_bootstrap  : num 1000
-#>  $ conf_level   : num 0.95
-#>  $ comprehensive: logi FALSE
-#>  $ focal        : NULL
+#>  $ boot_object_random:List of 11
+#>   ..- attr(*, "class")= chr "boot"
+#>   ..- attr(*, "boot_type")= chr "boot"
+#>  $ ci_results        :List of 2
+#>  $ n_bootstrap       : num 1000
+#>  $ conf_level        : num 0.95
+#>  $ comprehensive     : logi FALSE
+#>  $ focal             : NULL
 
 # For memory efficiency, extract only needed results
 ci_summary <- result_bootstrap$bootstrap$ci_results$raw_weights %>%

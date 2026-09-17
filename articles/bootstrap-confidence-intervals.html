@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rwa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2026-09-14</h4>
+            <h4 data-toc-skip class="date">2026-09-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/bootstrap-confidence-intervals.Rmd" class="external-link"><code>vignettes/bootstrap-confidence-intervals.Rmd</code></a></small>
       <div class="d-none name"><code>bootstrap-confidence-intervals.Rmd</code></div>
@@ -108,7 +108,58 @@ from your original data 2. <strong>Calculates RWA</strong> for each
 bootstrap sample<br>
 3. <strong>Estimates confidence intervals</strong> from the distribution
 of bootstrap results 4. <strong>Enables significance testing</strong> by
-examining whether CIs include zero</p>
+comparing each predictor against a randomly generated variable</p>
+</div>
+<div class="section level3">
+<h3 id="how-significance-is-assessed">How significance is assessed<a class="anchor" aria-label="anchor" href="#how-significance-is-assessed"></a>
+</h3>
+<p>A relative weight <strong>cannot be tested against zero</strong>. Raw
+relative weights are non-negative, so a predictor with no real
+relationship to the outcome still receives a small positive weight, and
+an interval around that weight will almost always exclude zero.</p>
+<p>Following Tonidandel, LeBreton and Johnson (2009) — who suggest
+comparing a weight against that of a randomly generated variable to
+judge whether it exceeds what chance alone would produce (see also the
+discussion in <code><a href="../articles/evaluating-rwa-method-reference.html">vignette("evaluating-rwa-method-reference")</a></code>)
+— significance is instead assessed by adding a <strong>randomly
+generated variable</strong> to the model and bootstrapping the
+<em>difference</em> between each predictor’s weight and the random
+variable’s weight.</p>
+<p>The directional cutoff applied by this package is: a predictor is
+flagged significant only when the <strong>lower bound</strong> of that
+difference interval is above zero, meaning it explains meaningfully more
+variance than noise would. An interval lying entirely <em>below</em>
+zero means the predictor performed worse than the random variable, which
+is equally not evidence of importance, so it is not flagged significant
+either.</p>
+<p>This means the package reports two distinct intervals:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th>Columns</th>
+<th>Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>Raw.RelWeight.CI.Lower</code> / <code>.Upper</code>
+</td>
+<td>Descriptive interval around the weight itself. <strong>Not</strong>
+a significance test.</td>
+</tr>
+<tr class="even">
+<td>
+<code>Random.Diff.CI.Lower</code> / <code>.Upper</code>
+</td>
+<td>Difference from a random variable’s weight.
+<code>Raw.Significant</code> is <code>TRUE</code> when
+<code>Random.Diff.CI.Lower &gt; 0</code>.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <div class="section level2">
@@ -146,11 +197,16 @@ contract and examples.</p>
 <span><span class="co">#&gt; 2       cyl     0.2284797           29.32274    -             0.17336836</span></span>
 <span><span class="co">#&gt; 3      disp     0.2221469           28.50999    -             0.15772412</span></span>
 <span><span class="co">#&gt; 4      gear     0.0963886           12.37037    +             0.04155014</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Raw.Significant</span></span>
-<span><span class="co">#&gt; 1              0.2811493            TRUE</span></span>
-<span><span class="co">#&gt; 2              0.2788206            TRUE</span></span>
-<span><span class="co">#&gt; 3              0.2804741            TRUE</span></span>
-<span><span class="co">#&gt; 4              0.1843592            TRUE</span></span></code></pre></div>
+<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper</span></span>
+<span><span class="co">#&gt; 1              0.2811493           0.18517981            0.3238297</span></span>
+<span><span class="co">#&gt; 2              0.2788206           0.17457756            0.3011385</span></span>
+<span><span class="co">#&gt; 3              0.2804741           0.15417064            0.2962516</span></span>
+<span><span class="co">#&gt; 4              0.1843592           0.03300665            0.2160141</span></span>
+<span><span class="co">#&gt;   Raw.Significant</span></span>
+<span><span class="co">#&gt; 1            TRUE</span></span>
+<span><span class="co">#&gt; 2            TRUE</span></span>
+<span><span class="co">#&gt; 3            TRUE</span></span>
+<span><span class="co">#&gt; 4            TRUE</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="understanding-bootstrap-output">Understanding Bootstrap Output<a class="anchor" aria-label="anchor" href="#understanding-bootstrap-output"></a>
@@ -158,11 +214,14 @@ contract and examples.</p>
 <p>The bootstrap analysis enhances the standard RWA output with:</p>
 <ul>
 <li>
-<strong>Raw.RelWeight.CI.Lower/Upper</strong>: 95% confidence
-intervals for raw weights</li>
+<strong>Raw.RelWeight.CI.Lower/Upper</strong>: confidence intervals
+around each raw weight, for description rather than testing</li>
 <li>
-<strong>Raw.Significant</strong>: Automatic significance flagging
-(CI doesn’t include zero)</li>
+<strong>Random.Diff.CI.Lower/Upper</strong>: confidence intervals
+for the difference from a randomly generated variable’s weight</li>
+<li>
+<strong>Raw.Significant</strong>: significance flag,
+<code>TRUE</code> when the random-comparison interval excludes zero</li>
 </ul>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Bootstrap-specific information</span></span>
@@ -238,11 +297,14 @@ bootstrap tests</li>
 <span></span>
 <span><span class="va">custom_bootstrap</span><span class="op">$</span><span class="va">result</span></span>
 <span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span></span>
-<span><span class="co">#&gt; 1       cyl     0.3837012           50.51586    -              0.2565545</span></span>
-<span><span class="co">#&gt; 2      disp     0.3758646           49.48414    -              0.2433539</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Raw.Significant</span></span>
-<span><span class="co">#&gt; 1              0.4564831            TRUE</span></span>
-<span><span class="co">#&gt; 2              0.4607167            TRUE</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       cyl     0.3837012           50.51586    -              0.2913949</span></span>
+<span><span class="co">#&gt; 2      disp     0.3758646           49.48414    -              0.2486923</span></span>
+<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper</span></span>
+<span><span class="co">#&gt; 1              0.4587817            0.2486182            0.4762462</span></span>
+<span><span class="co">#&gt; 2              0.4631033            0.2231991            0.4723433</span></span>
+<span><span class="co">#&gt;   Raw.Significant</span></span>
+<span><span class="co">#&gt; 1            TRUE</span></span>
+<span><span class="co">#&gt; 2            TRUE</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -266,17 +328,17 @@ not recommended for formal statistical inference.</p>
 <span><span class="co"># Note the warning message about interpretation</span></span>
 <span><span class="va">result_rescaled_ci</span><span class="op">$</span><span class="va">result</span></span>
 <span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span></span>
-<span><span class="co">#&gt; 1      disp     0.2793550           36.37966    -              0.2044890</span></span>
-<span><span class="co">#&gt; 2       cyl     0.2723144           35.46279    -              0.2144884</span></span>
-<span><span class="co">#&gt; 3        hp     0.2162184           28.15755    -              0.1548984</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower</span></span>
-<span><span class="co">#&gt; 1              0.3558447            TRUE                    30.46391</span></span>
-<span><span class="co">#&gt; 2              0.3269149            TRUE                    30.26278</span></span>
-<span><span class="co">#&gt; 3              0.2700555            TRUE                    20.63832</span></span>
-<span><span class="co">#&gt;   Rescaled.RelWeight.CI.Upper</span></span>
-<span><span class="co">#&gt; 1                    42.88634</span></span>
-<span><span class="co">#&gt; 2                    42.41383</span></span>
-<span><span class="co">#&gt; 3                    35.88019</span></span></code></pre></div>
+<span><span class="co">#&gt; 1      disp     0.2793550           36.37966    -              0.2098045</span></span>
+<span><span class="co">#&gt; 2       cyl     0.2723144           35.46279    -              0.2164417</span></span>
+<span><span class="co">#&gt; 3        hp     0.2162184           28.15755    -              0.1466585</span></span>
+<span><span class="co">#&gt;   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper</span></span>
+<span><span class="co">#&gt; 1              0.3490397            0.1909653            0.3599660</span></span>
+<span><span class="co">#&gt; 2              0.3350063            0.1923987            0.3293708</span></span>
+<span><span class="co">#&gt; 3              0.2655783            0.1287796            0.2812365</span></span>
+<span><span class="co">#&gt;   Raw.Significant Rescaled.RelWeight.CI.Lower Rescaled.RelWeight.CI.Upper</span></span>
+<span><span class="co">#&gt; 1            TRUE                    29.92571                    43.22107</span></span>
+<span><span class="co">#&gt; 2            TRUE                    30.39978                    42.52850</span></span>
+<span><span class="co">#&gt; 3            TRUE                    20.51533                    36.28601</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="why-rescaled-cis-are-problematic">Why Rescaled CIs Are Problematic<a class="anchor" aria-label="anchor" href="#why-rescaled-cis-are-problematic"></a>
@@ -309,19 +371,26 @@ confidence intervals</strong> for statistical inference.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">diamond_rwa</span><span class="op">$</span><span class="va">result</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span></span>
-<span><span class="co">#&gt; 1     carat   0.257169175         29.1954988    +              29.1954988</span></span>
-<span><span class="co">#&gt; 2         y   0.206439319         23.4363192    +              23.4363192</span></span>
-<span><span class="co">#&gt; 3         z   0.205755304         23.3586655    +              23.3586655</span></span>
-<span><span class="co">#&gt; 4         x   0.204112040         23.1721115    +              23.1721115</span></span>
-<span><span class="co">#&gt; 5     table   0.004567369          0.5185171    +               0.5185171</span></span>
-<span><span class="co">#&gt; 6     depth   0.002808932          0.3188880    -              -0.3188880</span></span>
-<span><span class="co">#&gt;   Raw.RelWeight.CI.Lower Raw.RelWeight.CI.Upper Raw.Significant</span></span>
-<span><span class="co">#&gt; 1           0.2480932226            0.266629078            TRUE</span></span>
-<span><span class="co">#&gt; 2           0.2011322930            0.211372754            TRUE</span></span>
-<span><span class="co">#&gt; 3           0.2003312825            0.211292661            TRUE</span></span>
-<span><span class="co">#&gt; 4           0.1988540715            0.208972258            TRUE</span></span>
-<span><span class="co">#&gt; 5           0.0007763152            0.006628737            TRUE</span></span>
-<span><span class="co">#&gt; 6          -0.0006849704            0.003814884           FALSE</span></span></code></pre></div>
+<span><span class="co">#&gt; 1     carat   0.257396293         29.0479318    +              29.0479318</span></span>
+<span><span class="co">#&gt; 2         y   0.209603461         23.6543696    +              23.6543696</span></span>
+<span><span class="co">#&gt; 3         x   0.208884201         23.5731989    +              23.5731989</span></span>
+<span><span class="co">#&gt; 4         z   0.202370232         22.8380782    +              22.8380782</span></span>
+<span><span class="co">#&gt; 5     table   0.005485581          0.6190640    +               0.6190640</span></span>
+<span><span class="co">#&gt; 6     depth   0.002369078          0.2673575    -              -0.2673575</span></span>
+<span><span class="co">#&gt;   Raw.RelWeight.CI.Lower Raw.RelWeight.CI.Upper Random.Diff.CI.Lower</span></span>
+<span><span class="co">#&gt; 1           0.2473611316            0.268517346         0.2445869343</span></span>
+<span><span class="co">#&gt; 2           0.2047811688            0.214125991         0.2025645259</span></span>
+<span><span class="co">#&gt; 3           0.2036382695            0.213592851         0.2017898804</span></span>
+<span><span class="co">#&gt; 4           0.1938388565            0.215250023         0.1921825417</span></span>
+<span><span class="co">#&gt; 5           0.0001472316            0.008141882        -0.0007519212</span></span>
+<span><span class="co">#&gt; 6          -0.0003476379            0.003278339        -0.0015851728</span></span>
+<span><span class="co">#&gt;   Random.Diff.CI.Upper Raw.Significant</span></span>
+<span><span class="co">#&gt; 1          0.265471011            TRUE</span></span>
+<span><span class="co">#&gt; 2          0.212047411            TRUE</span></span>
+<span><span class="co">#&gt; 3          0.211611735            TRUE</span></span>
+<span><span class="co">#&gt; 4          0.212098934            TRUE</span></span>
+<span><span class="co">#&gt; 5          0.007118207           FALSE</span></span>
+<span><span class="co">#&gt; 6          0.002223108           FALSE</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="interpreting-results">Interpreting Results<a class="anchor" aria-label="anchor" href="#interpreting-results"></a>
@@ -336,15 +405,14 @@ confidence intervals</strong> for statistical inference.</p>
 <span><span class="co">#&gt; Significant diamond price drivers (sorted by importance):</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">significant_drivers</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   Variables Rescaled.RelWeight Sign.Rescaled.RelWeight</span></span>
-<span><span class="co">#&gt; 1     carat         29.1954988              29.1954988</span></span>
-<span><span class="co">#&gt; 2         y         23.4363192              23.4363192</span></span>
-<span><span class="co">#&gt; 3         z         23.3586655              23.3586655</span></span>
-<span><span class="co">#&gt; 4         x         23.1721115              23.1721115</span></span>
-<span><span class="co">#&gt; 5     table          0.5185171               0.5185171</span></span>
+<span><span class="co">#&gt; 1     carat           29.04793                29.04793</span></span>
+<span><span class="co">#&gt; 2         y           23.65437                23.65437</span></span>
+<span><span class="co">#&gt; 3         x           23.57320                23.57320</span></span>
+<span><span class="co">#&gt; 4         z           22.83808                22.83808</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"\nModel R-squared:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">diamond_rwa</span><span class="op">$</span><span class="va">rsquare</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Model R-squared: 0.881</span></span></code></pre></div>
+<span><span class="co">#&gt; Model R-squared: 0.886</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">
@@ -371,6 +439,10 @@ confidence intervals</strong> for statistical inference.</p>
 <div class="section level3">
 <h3 id="confidence-interval-interpretation">2. Confidence Interval Interpretation<a class="anchor" aria-label="anchor" href="#confidence-interval-interpretation"></a>
 </h3>
+<p>The intervals around the raw weights describe
+<strong>precision</strong>, not significance. Use them to judge how
+tightly each weight is estimated; use <code>Raw.Significant</code> (from
+the random-variable comparison) to judge importance.</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Examine CI characteristics</span></span>
 <span><span class="va">ci_data</span> <span class="op">&lt;-</span> <span class="va">result_bootstrap</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span><span class="op">$</span><span class="va">raw_weights</span></span>
@@ -386,7 +458,6 @@ confidence intervals</strong> for statistical inference.</p>
 <span><span class="co"># Assess precision</span></span>
 <span><span class="va">ci_analysis</span> <span class="op">&lt;-</span> <span class="va">ci_data</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
-<span>    significant <span class="op">=</span> <span class="va">ci_lower</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">|</span> <span class="va">ci_upper</span> <span class="op">&lt;</span> <span class="fl">0</span>,</span>
 <span>    ci_width <span class="op">=</span> <span class="va">ci_upper</span> <span class="op">-</span> <span class="va">ci_lower</span>,</span>
 <span>    precision <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/case-and-replace-when.html" class="external-link">case_when</a></span><span class="op">(</span></span>
 <span>      <span class="va">ci_width</span> <span class="op">&lt;</span> <span class="fl">0.05</span> <span class="op">~</span> <span class="st">"High precision"</span>,</span>
@@ -396,14 +467,13 @@ confidence intervals</strong> for statistical inference.</p>
 <span>  <span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ci_analysis</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 9</span></span></span>
-<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type significant ci_width</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> cyl                 1   0.173     0.279 bca       raw     TRUE          0.105 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> disp                2   0.158     0.280 bca       raw     TRUE          0.123 </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> hp                  3   0.189     0.281 bca       raw     TRUE          0.092<span style="text-decoration: underline;">5</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> gear                4   0.041<span style="text-decoration: underline;">6</span>    0.184 bca       raw     TRUE          0.143 </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: precision &lt;chr&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 4 × 8</span></span></span>
+<span><span class="co">#&gt;   variable weight_index ci_lower ci_upper ci_method ci_type ci_width precision  </span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> cyl                 1   0.173     0.279 bca       raw       0.105  Medium pre…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> disp                2   0.158     0.280 bca       raw       0.123  Medium pre…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> hp                  3   0.189     0.281 bca       raw       0.092<span style="text-decoration: underline;">5</span> Medium pre…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> gear                4   0.041<span style="text-decoration: underline;">6</span>    0.184 bca       raw       0.143  Medium pre…</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="bootstrap-method-selection">3. Bootstrap Method Selection<a class="anchor" aria-label="anchor" href="#bootstrap-method-selection"></a>
@@ -459,15 +529,18 @@ when possible</li>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Bootstrap objects can be large - access specific components</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/str.html" class="external-link">str</a></span><span class="op">(</span><span class="va">result_bootstrap</span><span class="op">$</span><span class="va">bootstrap</span>, max.level <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
-<span><span class="co">#&gt; List of 6</span></span>
-<span><span class="co">#&gt;  $ boot_object  :List of 11</span></span>
+<span><span class="co">#&gt; List of 7</span></span>
+<span><span class="co">#&gt;  $ boot_object       :List of 11</span></span>
 <span><span class="co">#&gt;   ..- attr(*, "class")= chr "boot"</span></span>
 <span><span class="co">#&gt;   ..- attr(*, "boot_type")= chr "boot"</span></span>
-<span><span class="co">#&gt;  $ ci_results   :List of 1</span></span>
-<span><span class="co">#&gt;  $ n_bootstrap  : num 1000</span></span>
-<span><span class="co">#&gt;  $ conf_level   : num 0.95</span></span>
-<span><span class="co">#&gt;  $ comprehensive: logi FALSE</span></span>
-<span><span class="co">#&gt;  $ focal        : NULL</span></span>
+<span><span class="co">#&gt;  $ boot_object_random:List of 11</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "class")= chr "boot"</span></span>
+<span><span class="co">#&gt;   ..- attr(*, "boot_type")= chr "boot"</span></span>
+<span><span class="co">#&gt;  $ ci_results        :List of 2</span></span>
+<span><span class="co">#&gt;  $ n_bootstrap       : num 1000</span></span>
+<span><span class="co">#&gt;  $ conf_level        : num 0.95</span></span>
+<span><span class="co">#&gt;  $ comprehensive     : logi FALSE</span></span>
+<span><span class="co">#&gt;  $ focal             : NULL</span></span>
 <span></span>
 <span><span class="co"># For memory efficiency, extract only needed results</span></span>
 <span><span class="va">ci_summary</span> <span class="op">&lt;-</span> <span class="va">result_bootstrap</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span><span class="op">$</span><span class="va">raw_weights</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>

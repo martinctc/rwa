@@ -445,12 +445,12 @@ diamond_rwa <- diamonds_subset %>%
 
 diamond_rwa$result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight
-#> 1     carat   0.253554640         28.9515921    +              28.9515921
-#> 2         y   0.206371378         23.5640727    +              23.5640727
-#> 3         z   0.204433608         23.3428125    +              23.3428125
-#> 4         x   0.204002285         23.2935629    +              23.2935629
-#> 5     table   0.004842128          0.5528879    +               0.5528879
-#> 6     depth   0.002584205          0.2950719    -              -0.2950719
+#> 1     carat    0.24186669         28.4523481    +              28.4523481
+#> 2         y    0.20200039         23.7626166    +              23.7626166
+#> 3         x    0.20099386         23.6442125    +              23.6442125
+#> 4         z    0.19978140         23.5015825    +              23.5015825
+#> 5     table    0.00304705          0.3584443    +               0.3584443
+#> 6     depth    0.00238698          0.2807960    -              -0.2807960
 ```
 
 For bootstrap analysis of this example with confidence intervals, see:
@@ -568,7 +568,7 @@ start_time <- Sys.time()
 rwa_speed_test <- mtcars %>% rwa(outcome = "mpg", predictors = predictors)
 end_time <- Sys.time()
 cat("RWA computation time:", round(as.numeric(end_time - start_time, units = "secs"), 4), "seconds\n")
-#> RWA computation time: 0.0072 seconds
+#> RWA computation time: 0.0057 seconds
 ```
 
 ## Critical Limitations and When to Exercise Caution

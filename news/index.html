@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rwa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,9 +40,15 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="rwa-development-version">rwa (development version)<a class="anchor" aria-label="anchor" href="#rwa-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.0.0" id="rwa-100">rwa 1.0.0<a class="anchor" aria-label="anchor" href="#rwa-100"></a></h2><p class="text-muted">CRAN release: 2026-09-16</p>
 <div class="section level3">
-<h3 id="new-features-development-version">New Features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<h3 id="breaking-changes-1-0-0">Breaking Changes<a class="anchor" aria-label="anchor" href="#breaking-changes-1-0-0"></a></h3>
+<ul><li>
+<code>Raw.Significant</code> is now derived from a comparison against a randomly generated variable’s weight, rather than from the confidence interval around the raw weight itself (<a href="https://github.com/martinctc/rwa/issues/26" class="external-link">#26</a>). Raw relative weights are non-negative, so an interval around a weight almost always excludes zero and previously flagged even unrelated predictors as significant. Comparing each weight to that of a random variable is the approach suggested by Tonidandel, LeBreton and Johnson (2009, <a href="https://doi.org/10.1037/a0017735" class="external-link uri">https://doi.org/10.1037/a0017735</a>) for judging whether a weight exceeds what chance alone would produce (see also the discussion in <code><a href="../articles/evaluating-rwa-method-reference.html">vignette("evaluating-rwa-method-reference")</a></code>). This package applies a directional cutoff on that comparison: a predictor is significant only when the lower bound of the difference interval is above zero, so a predictor that performed worse than the random variable is not reported as significant either. <strong>Predictors previously reported as significant may now correctly be reported as not significant.</strong> <code><a href="../reference/rwa.html">rwa()</a></code> also returns <code>Random.Diff.CI.Lower</code> and <code>Random.Diff.CI.Upper</code> for the comparison the flag is based on, and the descriptive <code>Raw.RelWeight.CI.*</code> columns are unchanged.</li>
+<li>Because significance requires this comparison, <code>bootstrap = TRUE</code> now runs an additional bootstrap when <code>comprehensive = FALSE</code>, which roughly doubles bootstrap time. <code>comprehensive = TRUE</code> already computed the comparison and is unaffected.</li>
+</ul></div>
+<div class="section level3">
+<h3 id="new-features-1-0-0">New Features<a class="anchor" aria-label="anchor" href="#new-features-1-0-0"></a></h3>
 <ul><li>Added <code><a href="../reference/rwa_logit.html">rwa_logit()</a></code> and <code><a href="../reference/rwa_multiregress.html">rwa_multiregress()</a></code> to support logistic regression and multiple regression.</li>
 <li>Added new vignette to cover the new regression methods.</li>
 <li>Added <code>use</code> parameter to <code><a href="../reference/rwa.html">rwa()</a></code> function to control how missing data is handled when computing correlations. Options include “pairwise.complete.obs” (default, pairwise deletion), “complete.obs” (listwise deletion), and other standard options from <code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor()</a></code>. (<a href="https://github.com/martinctc/rwa/issues/12" class="external-link">#12</a>)</li>
@@ -52,7 +58,7 @@
 <li>Updated the introductory and regression-methods vignettes to cover the <code>use</code> and <code>weight</code> arguments, the weighted sample-size diagnostics, and the multiple-regression-only scope. Corrected the introductory vignette’s incorrect statement that missing data is handled by listwise deletion; the default has been pairwise deletion.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="improvements-development-version">Improvements<a class="anchor" aria-label="anchor" href="#improvements-development-version"></a></h3>
+<h3 id="improvements-1-0-0">Improvements<a class="anchor" aria-label="anchor" href="#improvements-1-0-0"></a></h3>
 <ul><li>Updated all bootstrap functions to support the new <code>use</code> and <code>weight</code> parameters</li>
 <li>Shared numeric, finite, strictly positive weight validation across point estimates and bootstrap calculations; missing-weight filtering remains mode-dependent.</li>
 <li>Validate the full joint correlation matrix and predictor invertibility with documented numerical tolerances and actionable errors for missing-data-induced indefinite matrices, constant variables, singularity, and insufficient data (<a href="https://github.com/martinctc/rwa/issues/24" class="external-link">#24</a>). Exact fits remain valid when predictors are not collinear.</li>
@@ -65,7 +71,7 @@
 <li>Improved test coverage and minor bug fixes</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-development-version">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<h3 id="bug-fixes-1-0-0">Bug Fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-0-0"></a></h3>
 <ul><li>Fixed weighted single-predictor calculations and random-comparison name collisions, including weight columns named <code>rand</code>.</li>
 <li>Bootstrap samples now preserve predictor identity, order, and statistic length. Invalid or degenerate samples error instead of dropping variables or recycling estimates; no samples are skipped or retried.</li>
 <li>Comprehensive bootstrap now computes random comparisons without a focal predictor and correctly labels and maps random/focal intervals to the requested predictors.</li>

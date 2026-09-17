@@ -25,7 +25,7 @@ positive / negative signs for weights."><!-- Global site tag (gtag.js) - Google 
 
     <a class="navbar-brand me-2" href="../index.html">rwa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -186,6 +186,23 @@ Rescaled.RelWeight in descending order by default).</p><ul><li><p>The <code>Resc
 <li><p>The <code>Sign</code> column indicates whether a predictor is positively or
 negatively correlated with the outcome.</p></li>
 <li><p>When bootstrap = TRUE, includes confidence interval columns for raw weights.</p></li>
+<li><p>When bootstrap = TRUE, <code>Random.Diff.CI.Lower</code>/<code>Random.Diff.CI.Upper</code> give
+the interval for the difference between each predictor's weight and the
+weight of a randomly generated variable, and <code>Raw.Significant</code> is <code>TRUE</code>
+when <code>Random.Diff.CI.Lower</code> is above zero. Significance is assessed this
+way, and not from the interval around the weight itself, because raw
+relative weights are non-negative: an unrelated predictor still receives
+a small positive weight, so an interval around it would almost always
+exclude zero. Comparing each weight to that of a randomly generated
+variable is the approach suggested by Tonidandel, LeBreton and Johnson
+(2009; <a href="https://doi.org/10.1037/a0017735" class="external-link">doi:10.1037/a0017735</a>
+) as a way to judge whether a weight
+exceeds what chance alone would produce. The <code>Raw.Significant</code> cutoff
+applied here is directional: a predictor is significant only when it
+exceeds the random variable (<code>Random.Diff.CI.Lower &gt; 0</code>), because an
+interval lying entirely below zero indicates the predictor performed
+worse than noise, which is not evidence of importance in either
+direction.</p></li>
 <li><p>Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 recommended for inference.</p></li>
 </ul></li>
@@ -430,9 +447,12 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.826509375</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.001820289</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.RelWeight.CI.Upper Raw.Significant</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.881280894            TRUE</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.001745769           FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.881280894          0.824920837          0.875939730</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.001745769         -0.002465152          0.002998648</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.Significant</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2           FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
@@ -468,6 +488,22 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612  0.0003926974 0.0007904312</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 -0.0005076164 0.0144265478</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$boot_object_random</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ORDINARY NONPARAMETRIC BOOTSTRAP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> boot::boot(data = bootstrap_data, statistic = rwa_boot_rand_statistic, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     use = use, weight_var = weight)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         original       bias    std. error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0006231315 0.0002368973 0.001159848</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8490193143 0.0024693300 0.013110589</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$raw_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
@@ -475,6 +511,13 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">82</span>  0.001<span style="text-decoration: underline;">75</span> basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.827    0.881   basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$random_comparison</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">47</span>  0.003<span style="text-decoration: underline;">00</span> basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.825    0.876   basic     rand_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$n_bootstrap</span>
@@ -506,14 +549,14 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $result</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Variables Raw.RelWeight Rescaled.RelWeight Sign Raw.RelWeight.CI.Lower</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.824592868</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.002354544</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.RelWeight.CI.Upper Raw.Significant Rescaled.RelWeight.CI.Lower</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1             0.87721269            TRUE                  99.8008650</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2             0.00166271           FALSE                  -0.2929746</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Rescaled.RelWeight.CI.Upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                  100.292975</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                    0.199135</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1     carat  0.8496668919         99.8878042    +            0.826684526</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2     depth  0.0009543612          0.1121958    -           -0.002100482</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            0.882647072          0.818645103          0.879528312</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            0.001687732         -0.004742914          0.001188167</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Raw.Significant Rescaled.RelWeight.CI.Lower Rescaled.RelWeight.CI.Upper</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            TRUE                  99.7907254                 100.3545032</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2           FALSE                  -0.3545032                   0.2092746</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1000</span>
@@ -545,9 +588,9 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         original       bias     std. error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612 0.0004787235 0.0009718158</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 0.0028261567 0.0131505789</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         original        bias     std. error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1* 0.0009543612  0.0004532247 0.0009073535</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 0.8496668919 -0.0005565945 0.0135365157</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$boot_object_rescaled</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -562,23 +605,46 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>       original      bias    std. error</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t1*  0.1121958  0.04956108   0.1188947</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 99.8878042 -0.04956108   0.1188947</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1*  0.1121958  0.05395122    0.122875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2* 99.8878042 -0.05395122    0.122875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$boot_object_random</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ORDINARY NONPARAMETRIC BOOTSTRAP</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Call:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> boot::boot(data = bootstrap_data, statistic = rwa_boot_rand_statistic, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     R = n_bootstrap, outcome = outcome, predictors = predictors, </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     use = use, weight_var = weight)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Bootstrap Statistics :</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          original       bias    std. error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t1* -0.0003713048 0.0012424952 0.001138999</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> t2*  0.8470192598 0.0009944623 0.014783514</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$raw_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">35</span>  0.001<span style="text-decoration: underline;">66</span> basic     raw    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.825    0.877   basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">10</span>  0.001<span style="text-decoration: underline;">69</span> basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.827    0.883   basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$rescaled_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.293</span>    0.199 basic     rescaled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.355</span>    0.209 basic     rescaled</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2   99.8    100.    basic     rescaled</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$ci_results$random_comparison</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.004</span><span style="color: #BB0000; text-decoration: underline;">74</span>  0.001<span style="text-decoration: underline;">19</span> basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.819    0.880   basic     rand_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $bootstrap$n_bootstrap</span>
@@ -606,26 +672,26 @@ See <code><a href="../articles/weighted-missing-data.html">vignette("weighted-mi
 <span class="r-in"><span><span class="va">result</span><span class="op">$</span><span class="va">bootstrap</span><span class="op">$</span><span class="va">ci_results</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $raw_weights</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index  ci_lower ci_upper ci_method ci_type</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">53</span>   0.001<span style="text-decoration: underline;">74</span> basic     raw    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.822     0.867   basic     raw    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3  0.000<span style="text-decoration: underline;">157</span>  0.014<span style="text-decoration: underline;">6</span>  basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">02</span>  0.001<span style="text-decoration: underline;">91</span> basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.816    0.872   basic     raw    </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">64</span>  0.014<span style="text-decoration: underline;">8</span>  basic     raw    </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $random_comparison</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 3 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type  </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>    </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">52</span>  0.002<span style="text-decoration: underline;">76</span> basic     rand_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.818    0.877   basic     rand_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">33</span>  0.015<span style="text-decoration: underline;">9</span>  basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1 -<span style="color: #BB0000;">0.001</span><span style="color: #BB0000; text-decoration: underline;">93</span>  0.003<span style="text-decoration: underline;">06</span> basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> carat               2  0.814    0.879   basic     rand_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span> table               3 -<span style="color: #BB0000;">0.002</span><span style="color: #BB0000; text-decoration: underline;">52</span>  0.014<span style="text-decoration: underline;">9</span>  basic     rand_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> $focal_comparison</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 6</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   variable weight_index ci_lower ci_upper ci_method ci_type   </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.876</span>   -<span style="color: #BB0000;">0.818</span> basic     focal_diff</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> table               2   -<span style="color: #BB0000;">0.873</span>   -<span style="color: #BB0000;">0.806</span> basic     focal_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span> depth               1   -<span style="color: #BB0000;">0.880</span>   -<span style="color: #BB0000;">0.812</span> basic     focal_diff</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span> table               2   -<span style="color: #BB0000;">0.870</span>   -<span style="color: #BB0000;">0.802</span> basic     focal_diff</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>

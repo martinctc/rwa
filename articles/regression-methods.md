@@ -503,11 +503,16 @@ result_boot$result
 #> 2       cyl     0.2096904           24.70914    -              0.1649142
 #> 3      disp     0.1883043           22.18908    -              0.1407306
 #> 4        hp     0.1799590           21.20570    -              0.1318517
-#>   Raw.RelWeight.CI.Upper Raw.Significant
-#> 1              0.3326289            TRUE
-#> 2              0.2564051            TRUE
-#> 3              0.2228673            TRUE
-#> 4              0.2178405            TRUE
+#>   Raw.RelWeight.CI.Upper Random.Diff.CI.Lower Random.Diff.CI.Upper
+#> 1              0.3326289            0.2033587            0.3548219
+#> 2              0.2564051            0.1636127            0.2710729
+#> 3              0.2228673            0.1478094            0.2455695
+#> 4              0.2178405            0.1310348            0.2383743
+#>   Raw.Significant
+#> 1            TRUE
+#> 2            TRUE
+#> 3            TRUE
+#> 4            TRUE
 ```
 
 ## Summary

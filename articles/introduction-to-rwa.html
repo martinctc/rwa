@@ -27,7 +27,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rwa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2.9000</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -62,7 +62,7 @@
                         <h4 data-toc-skip class="author">Martin
 Chan</h4>
             
-            <h4 data-toc-skip class="date">2026-09-14</h4>
+            <h4 data-toc-skip class="date">2026-09-17</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/martinctc/rwa/blob/master/vignettes/introduction-to-rwa.Rmd" class="external-link"><code>vignettes/introduction-to-rwa.Rmd</code></a></small>
       <div class="d-none name"><code>introduction-to-rwa.Rmd</code></div>
@@ -519,12 +519,12 @@ dataset:</p>
 <span></span>
 <span><span class="va">diamond_rwa</span><span class="op">$</span><span class="va">result</span></span>
 <span><span class="co">#&gt;   Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight</span></span>
-<span><span class="co">#&gt; 1     carat   0.253554640         28.9515921    +              28.9515921</span></span>
-<span><span class="co">#&gt; 2         y   0.206371378         23.5640727    +              23.5640727</span></span>
-<span><span class="co">#&gt; 3         z   0.204433608         23.3428125    +              23.3428125</span></span>
-<span><span class="co">#&gt; 4         x   0.204002285         23.2935629    +              23.2935629</span></span>
-<span><span class="co">#&gt; 5     table   0.004842128          0.5528879    +               0.5528879</span></span>
-<span><span class="co">#&gt; 6     depth   0.002584205          0.2950719    -              -0.2950719</span></span></code></pre></div>
+<span><span class="co">#&gt; 1     carat    0.24186669         28.4523481    +              28.4523481</span></span>
+<span><span class="co">#&gt; 2         y    0.20200039         23.7626166    +              23.7626166</span></span>
+<span><span class="co">#&gt; 3         x    0.20099386         23.6442125    +              23.6442125</span></span>
+<span><span class="co">#&gt; 4         z    0.19978140         23.5015825    +              23.5015825</span></span>
+<span><span class="co">#&gt; 5     table    0.00304705          0.3584443    +               0.3584443</span></span>
+<span><span class="co">#&gt; 6     depth    0.00238698          0.2807960    -              -0.2807960</span></span></code></pre></div>
 <p>For bootstrap analysis of this example with confidence intervals,
 see:</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -644,7 +644,7 @@ intervals and significance tests</li>
 <span><span class="va">rwa_speed_test</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>, predictors <span class="op">=</span> <span class="va">predictors</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"RWA computation time:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"seconds\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; RWA computation time: 0.0072 seconds</span></span></code></pre></div>
+<span><span class="co">#&gt; RWA computation time: 0.0057 seconds</span></span></code></pre></div>
 </div>
 </div>
 </div>
