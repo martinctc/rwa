@@ -115,6 +115,22 @@
 #'   - The `Sign` column indicates whether a predictor is positively or
 #'     negatively correlated with the outcome.
 #'   - When bootstrap = TRUE, includes confidence interval columns for raw weights.
+#'   - When bootstrap = TRUE, `Random.Diff.CI.Lower`/`Random.Diff.CI.Upper` give
+#'     the interval for the difference between each predictor's weight and the
+#'     weight of a randomly generated variable, and `Raw.Significant` is `TRUE`
+#'     when `Random.Diff.CI.Lower` is above zero. Significance is assessed this
+#'     way, and not from the interval around the weight itself, because raw
+#'     relative weights are non-negative: an unrelated predictor still receives
+#'     a small positive weight, so an interval around it would almost always
+#'     exclude zero. Comparing each weight to that of a randomly generated
+#'     variable is the approach suggested by Tonidandel, LeBreton and Johnson
+#'     (2009; \doi{10.1037/a0017735}) as a way to judge whether a weight
+#'     exceeds what chance alone would produce. The `Raw.Significant` cutoff
+#'     applied here is directional: a predictor is significant only when it
+#'     exceeds the random variable (`Random.Diff.CI.Lower > 0`), because an
+#'     interval lying entirely below zero indicates the predictor performed
+#'     worse than noise, which is not evidence of importance in either
+#'     direction.
 #'   - Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 #'     recommended for inference.
 #' - `n`: complete-case observation count for the selected analysis variables
@@ -351,11 +367,30 @@ rwa <- function(df,
         ci_data$ci_lower[match(result_list$result$Variables, ci_data$variable)]
       result_list$result$Raw.RelWeight.CI.Upper <-
         ci_data$ci_upper[match(result_list$result$Variables, ci_data$variable)]
+    }
 
-      # Add significance indicator for raw weights (if CI doesn't include 0)
+    # Significance is assessed by comparing each weight against the weight of a
+    # randomly generated variable, the approach suggested by Tonidandel,
+    # LeBreton & Johnson (2009, <https://doi.org/10.1037/a0017735>) for
+    # judging whether a weight exceeds what chance alone would produce. This
+    # interval is deliberately not the interval around the weight itself: raw
+    # relative weights are non-negative, so an interval around a weight nearly
+    # always excludes zero and would flag even unrelated predictors.
+    # The cutoff applied here is directional: the statistic is the predictor's
+    # weight minus the random variable's weight, and only an interval lying
+    # entirely above zero shows the predictor explains more than noise. An
+    # interval entirely below zero means the predictor performed worse than
+    # noise, which is equally not evidence of importance, so it must not be
+    # reported as significant either.
+    if (!is.null(bootstrap_results$ci_results$random_comparison)) {
+      rand_ci <- bootstrap_results$ci_results$random_comparison
+      matched <- match(result_list$result$Variables, rand_ci$variable)
+
+      result_list$result$Random.Diff.CI.Lower <- rand_ci$ci_lower[matched]
+      result_list$result$Random.Diff.CI.Upper <- rand_ci$ci_upper[matched]
       result_list$result$Raw.Significant <-
-        !(result_list$result$Raw.RelWeight.CI.Lower <= 0 &
-          result_list$result$Raw.RelWeight.CI.Upper >= 0)
+        !is.na(result_list$result$Random.Diff.CI.Lower) &
+        result_list$result$Random.Diff.CI.Lower > 0
     }
 
     # Add rescaled weight CIs only if explicitly requested and warn user

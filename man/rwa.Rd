@@ -99,6 +99,22 @@ Rescaled.RelWeight in descending order by default).
 \item The \code{Sign} column indicates whether a predictor is positively or
 negatively correlated with the outcome.
 \item When bootstrap = TRUE, includes confidence interval columns for raw weights.
+\item When bootstrap = TRUE, \code{Random.Diff.CI.Lower}/\code{Random.Diff.CI.Upper} give
+the interval for the difference between each predictor's weight and the
+weight of a randomly generated variable, and \code{Raw.Significant} is \code{TRUE}
+when \code{Random.Diff.CI.Lower} is above zero. Significance is assessed this
+way, and not from the interval around the weight itself, because raw
+relative weights are non-negative: an unrelated predictor still receives
+a small positive weight, so an interval around it would almost always
+exclude zero. Comparing each weight to that of a randomly generated
+variable is the approach suggested by Tonidandel, LeBreton and Johnson
+(2009; \doi{10.1037/a0017735}) as a way to judge whether a weight
+exceeds what chance alone would produce. The \code{Raw.Significant} cutoff
+applied here is directional: a predictor is significant only when it
+exceeds the random variable (\code{Random.Diff.CI.Lower > 0}), because an
+interval lying entirely below zero indicates the predictor performed
+worse than noise, which is not evidence of importance in either
+direction.
 \item Rescaled weight CIs are available via include_rescaled_ci = TRUE but not
 recommended for inference.
 }

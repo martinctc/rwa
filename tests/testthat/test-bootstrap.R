@@ -64,10 +64,11 @@ test_that("bootstrap significance testing works", {
   expect_true("Raw.Significant" %in% names(result$result))
   expect_type(result$result$Raw.Significant, "logical")
   
-  # Check significance logic
-  ci_excludes_zero <- !(result$result$Raw.RelWeight.CI.Lower <= 0 & 
-                        result$result$Raw.RelWeight.CI.Upper >= 0)
-  expect_equal(result$result$Raw.Significant, ci_excludes_zero)
+  # Significance follows the random-variable comparison, not the interval
+  # around the weight itself (Tonidandel, LeBreton & Johnson, 2009), and is
+  # directional: only a lower bound above zero beats noise.
+  expect_equal(result$result$Raw.Significant,
+               result$result$Random.Diff.CI.Lower > 0)
 })
 
 test_that("bootstrap with include_rescaled_ci works and warns", {
