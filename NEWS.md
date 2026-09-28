@@ -2,7 +2,7 @@
 
 ## Improvements
 
-- Fixed the CRAN macOS ARM test error in "estimable highly correlated predictors retain their valid fit" (#29). The fixture paired predictors correlating at `1 - 5e-9`, giving a predictor correlation matrix with a condition number near `4e8`, so the R-squared carried a relative rounding error of around `2e-8` that varied by platform and exceeded the test's `1e-8` tolerance. The predictors now correlate at about `0.99995`, which stays highly collinear and estimable while keeping the rounding error near `1e-12`. The test also asserts that the raw weights sum to the returned R-squared and that `rwa()` and `rwa_multiregress()` agree. `calculate_rwa()` is unchanged, since the deviation was bounded floating-point error rather than a calculation defect.
+- Fixed the CRAN macOS ARM test error in the near-collinear fixture of "estimable highly correlated predictors retain their valid fit" (#29). The predictors correlated at `1 - 5e-9`, giving a condition number near `4e8` and a platform-dependent rounding error above the test's tolerance. They now correlate at about `0.99995`, which stays highly collinear and estimable with a much smaller rounding error. `calculate_rwa()` is unchanged, since the deviation was bounded floating-point error rather than a calculation defect. There are no user-facing changes.
 - The R CMD check workflow now runs on macOS arm64 with R release and old-release alongside the existing Ubuntu R release job, covering the CRAN platform that reported the error.
 
 ---

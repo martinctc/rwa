@@ -103,6 +103,7 @@ test_that("estimable highly correlated predictors retain their valid fit", {
     expect_equal(result$rsquare, expected, tolerance = 1e-8)
     expect_equal(wrapped$rsquare, expected, tolerance = 1e-8)
     expect_equal(wrapped$rsquare, result$rsquare, tolerance = 1e-12)
+    expect_equal(sum(result$result$Raw.RelWeight), expected, tolerance = 1e-8)
     expect_equal(sum(result$result$Raw.RelWeight), result$rsquare, tolerance = 1e-12)
     expect_equal(rwa_boot_statistic(d, seq_len(nrow(d)), "y", c("x1", "x2"),
                                     weight_var = weight),
