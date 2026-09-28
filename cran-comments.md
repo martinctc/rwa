@@ -3,7 +3,7 @@
 ### Test environments
 
 * Local Windows 11 (R 4.6.1)
-* GitHub Actions (Ubuntu, macOS, Windows) with R release and devel
+* GitHub Actions: Ubuntu (R release), macOS arm64 (R release and old-release)
 
 ### R CMD check results
 0 errors | 0 warnings | 0 notes
