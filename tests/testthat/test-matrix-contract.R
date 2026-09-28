@@ -116,8 +116,15 @@ test_that("additional predictors do not impose a new conditioning cutoff", {
   for (i in seq_len(6)) {
     basis <- rbind(cbind(basis, basis), cbind(basis, -basis))
   }
+  # The 1.1e-7 offset used previously drove the predictor matrix to a condition
+  # number near 3e14, giving a measured deviation of 1.3e-9 and so only about
+  # 7x headroom under the 1e-8 tolerance below. That is close enough to the
+  # limit to fail on a platform whose rounding differed. At 1e-4 the condition
+  # number is near 4e8 and the largest measured deviation is 1.1e-12, leaving
+  # four orders of magnitude of headroom. The predictors stay collinear enough
+  # to exercise the conditioning guard this test is about.
   x <- basis[, 2:21]
-  x[, 2] <- x[, 1] + 1.1e-7 * x[, 2]
+  x[, 2] <- x[, 1] + 1e-4 * x[, 2]
   d <- data.frame(y = basis[, 2] + 0.5 * basis[, 22], x)
   predictors <- paste0("x", seq_len(20))
   names(d)[-1] <- predictors
