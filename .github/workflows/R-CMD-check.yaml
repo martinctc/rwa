@@ -2,6 +2,9 @@ on: [push, pull_request]
 
 name: R-CMD-check
 
+permissions:
+  contents: read
+
 jobs:
   R-CMD-check:
     runs-on: ${{ matrix.config.os }}
