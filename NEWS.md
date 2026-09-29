@@ -1,3 +1,15 @@
+# rwa 1.0.1
+
+## Improvements
+
+- Fixed the CRAN macOS ARM test error in the near-collinear fixture of "estimable highly correlated predictors retain their valid fit" (#29). The predictors correlated at `1 - 5e-9`, giving a condition number near `4e8` and a platform-dependent rounding error above the test's tolerance. They now correlate at about `0.99995`, which stays highly collinear and estimable with a much smaller rounding error. `calculate_rwa()` is unchanged, since the deviation was bounded floating-point error rather than a calculation defect.
+- Applied the same treatment to the neighbouring test "additional predictors do not impose a new conditioning cutoff", whose `1.1e-7` offset gave a condition number near `3e14` and left only about 7x headroom under the `1e-8` tolerance. It now uses a `1e-4` offset. The assertions in both tests were strengthened, not relaxed: the predictor correlation is pinned within `(0.9999, 1)`, the raw relative weights are asserted to sum to the returned R-squared, and `rwa()` is asserted to agree with `rwa_multiregress()`. No returned value is clamped or repaired to satisfy an assertion.
+- The R CMD check workflow now runs on macOS arm64 with R release and old-release alongside the existing Ubuntu R release job, covering the CRAN platform that reported the error.
+
+There are no user-facing changes in this release.
+
+---
+
 # rwa 1.0.0
 
 ## Breaking Changes

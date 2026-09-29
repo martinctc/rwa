@@ -86,14 +86,25 @@ test_that("estimable highly correlated predictors retain their valid fit", {
   u <- c(-1, -1, 1, 1)
   v <- c(-1, 1, -1, 1)
   z <- c(-1, 1, 1, -1)
-  d <- data.frame(y = v + 0.5 * z, x1 = u, x2 = u + 1e-4 * v, w = 1)
+  # The predictors correlate at about 0.99995, so the fit stays genuinely
+  # highly collinear while the predictor matrix keeps a condition number near
+  # 4e4. The resulting relative rounding error is of the order 1e-12, which the
+  # 1e-8 tolerance below covers on every platform. A more extreme fixture, such
+  # as the earlier 1e-4 offset with a condition number near 4e8, measures the
+  # platform's floating-point noise rather than the calculation.
+  d <- data.frame(y = v + 0.5 * z, x1 = u, x2 = u + 1e-2 * v, w = 1)
   expected <- summary(lm(y ~ x1 + x2, data = d))$r.squared
+  predictor_cor <- cor(d$x1, d$x2)
+  expect_gt(predictor_cor, 0.9999)
+  expect_lt(predictor_cor, 1)
   for (weight in list(NULL, "w")) {
     result <- rwa_multiregress(d, "y", c("x1", "x2"), weight = weight)
     wrapped <- rwa(d, "y", c("x1", "x2"), method = "multiple", weight = weight)
     expect_equal(result$rsquare, expected, tolerance = 1e-8)
     expect_equal(wrapped$rsquare, expected, tolerance = 1e-8)
+    expect_equal(wrapped$rsquare, result$rsquare, tolerance = 1e-12)
     expect_equal(sum(result$result$Raw.RelWeight), expected, tolerance = 1e-8)
+    expect_equal(sum(result$result$Raw.RelWeight), result$rsquare, tolerance = 1e-12)
     expect_equal(rwa_boot_statistic(d, seq_len(nrow(d)), "y", c("x1", "x2"),
                                     weight_var = weight),
                  result$result$Raw.RelWeight, tolerance = 1e-12)
@@ -105,8 +116,15 @@ test_that("additional predictors do not impose a new conditioning cutoff", {
   for (i in seq_len(6)) {
     basis <- rbind(cbind(basis, basis), cbind(basis, -basis))
   }
+  # The 1.1e-7 offset used previously drove the predictor matrix to a condition
+  # number near 3e14, giving a measured deviation of 1.3e-9 and so only about
+  # 7x headroom under the 1e-8 tolerance below. That is close enough to the
+  # limit to fail on a platform whose rounding differed. At 1e-4 the condition
+  # number is near 4e8 and the largest measured deviation is 1.1e-12, leaving
+  # four orders of magnitude of headroom. The predictors stay collinear enough
+  # to exercise the conditioning guard this test is about.
   x <- basis[, 2:21]
-  x[, 2] <- x[, 1] + 1.1e-7 * x[, 2]
+  x[, 2] <- x[, 1] + 1e-4 * x[, 2]
   d <- data.frame(y = basis[, 2] + 0.5 * basis[, 22], x)
   predictors <- paste0("x", seq_len(20))
   names(d)[-1] <- predictors

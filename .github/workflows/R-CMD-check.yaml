@@ -2,10 +2,24 @@ on: [push, pull_request]
 
 name: R-CMD-check
 
+permissions:
+  contents: read
+
 jobs:
   R-CMD-check:
-    runs-on: ubuntu-latest
-    
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: ubuntu-latest, r: 'release'}
+          # macos-latest runners are arm64, matching the CRAN macOS ARM checks.
+          - {os: macos-latest, r: 'release'}
+          - {os: macos-latest, r: 'oldrel'}
+
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
@@ -17,7 +31,7 @@ jobs:
       
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: 'release'
+          r-version: ${{ matrix.config.r }}
           use-public-rspm: true
           
       - uses: r-lib/actions/setup-r-dependencies@v2
@@ -37,5 +51,5 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: r-cmdcheck-results
+          name: r-cmdcheck-results-${{ matrix.config.os }}-${{ matrix.config.r }}
           path: check
