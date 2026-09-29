@@ -7,7 +7,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/martinctc/rwa/blob/master/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/martinctc/rwa/blob/v1.0.1/DESCRIPTION)
 
 Chan M (2026). *rwa: Perform a Relative Weights Analysis*. R package
 version 1.0.1, <https://martinctc.github.io/rwa/>.
