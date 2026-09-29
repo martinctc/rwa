@@ -13,7 +13,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">rwa</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,6 +39,16 @@
       <small>Source: <a href="https://github.com/martinctc/rwa/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.0.1" id="rwa-101">rwa 1.0.1<a class="anchor" aria-label="anchor" href="#rwa-101"></a></h2><p class="text-muted">CRAN release: 2026-09-28</p>
+<div class="section level3">
+<h3 id="improvements-1-0-1">Improvements<a class="anchor" aria-label="anchor" href="#improvements-1-0-1"></a></h3>
+<ul><li>Fixed the CRAN macOS ARM test error in the near-collinear fixture of “estimable highly correlated predictors retain their valid fit” (<a href="https://github.com/martinctc/rwa/issues/29" class="external-link">#29</a>). The predictors correlated at <code>1 - 5e-9</code>, giving a condition number near <code>4e8</code> and a platform-dependent rounding error above the test’s tolerance. They now correlate at about <code>0.99995</code>, which stays highly collinear and estimable with a much smaller rounding error. <code>calculate_rwa()</code> is unchanged, since the deviation was bounded floating-point error rather than a calculation defect.</li>
+<li>Applied the same treatment to the neighbouring test “additional predictors do not impose a new conditioning cutoff”, whose <code>1.1e-7</code> offset gave a condition number near <code>3e14</code> and left only about 7x headroom under the <code>1e-8</code> tolerance. It now uses a <code>1e-4</code> offset. The assertions in both tests were strengthened, not relaxed: the predictor correlation is pinned within <code>(0.9999, 1)</code>, the raw relative weights are asserted to sum to the returned R-squared, and <code><a href="../reference/rwa.html">rwa()</a></code> is asserted to agree with <code><a href="../reference/rwa_multiregress.html">rwa_multiregress()</a></code>. No returned value is clamped or repaired to satisfy an assertion.</li>
+<li>The R CMD check workflow now runs on macOS arm64 with R release and old-release alongside the existing Ubuntu R release job, covering the CRAN platform that reported the error.</li>
+</ul><p>There are no user-facing changes in this release.</p>
+<hr></div>
+</div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.0.0" id="rwa-100">rwa 1.0.0<a class="anchor" aria-label="anchor" href="#rwa-100"></a></h2><p class="text-muted">CRAN release: 2026-09-16</p>
 <div class="section level3">
