@@ -445,12 +445,12 @@ diamond_rwa <- diamonds_subset %>%
 
 diamond_rwa$result
 #>   Variables Raw.RelWeight Rescaled.RelWeight Sign Sign.Rescaled.RelWeight
-#> 1     carat    0.24186669         28.4523481    +              28.4523481
-#> 2         y    0.20200039         23.7626166    +              23.7626166
-#> 3         x    0.20099386         23.6442125    +              23.6442125
-#> 4         z    0.19978140         23.5015825    +              23.5015825
-#> 5     table    0.00304705          0.3584443    +               0.3584443
-#> 6     depth    0.00238698          0.2807960    -              -0.2807960
+#> 1     carat   0.250039974         28.8097955    +              28.8097955
+#> 2         y   0.203704300         23.4709641    +              23.4709641
+#> 3         x   0.202382908         23.3187122    +              23.3187122
+#> 4         z   0.202276137         23.3064100    +              23.3064100
+#> 5     table   0.007353872          0.8473187    +               0.8473187
+#> 6     depth   0.002141971          0.2467995    -              -0.2467995
 ```
 
 For bootstrap analysis of this example with confidence intervals, see:
