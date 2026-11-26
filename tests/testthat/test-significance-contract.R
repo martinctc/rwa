@@ -3,9 +3,9 @@ test_that("unrelated predictors are not reported as significant", {
   # always excludes zero, so pure noise was flagged significant.
   set.seed(1)
   d <- data.frame(x = rnorm(100), y = rnorm(100))
-  result <- suppressMessages(
+  result <- suppressWarnings(suppressMessages(
     rwa(d, "y", "x", method = "multiple", bootstrap = TRUE, n_bootstrap = 399)
-  )
+  ))
   expect_gt(cor.test(d$x, d$y)$p.value, 0.9)
   expect_false(result$result$Raw.Significant)
   # The old rule would still flag this predictor, so the test discriminates.
@@ -48,12 +48,13 @@ test_that("significance is derived from the random comparison interval", {
 })
 
 test_that("performing worse than the random variable is not significant", {
+  skip_on_cran()  # depends on the particular random draw for this seed
   # The comparison is directional. An interval lying entirely below zero means
-  # the predictor explained less than noise, which must not be flagged. BCa
-  # intervals on this near-degenerate statistic can land entirely below zero.
+  # the predictor explained less than noise, which must not be flagged. This
+  # seed draws a random variable that happens to explain more of y than x does.
   set.seed(1)
   d <- data.frame(x = rnorm(100), y = rnorm(100))
-  set.seed(19)
+  set.seed(101)
   result <- suppressWarnings(suppressMessages(
     rwa(d, "y", "x", method = "multiple", bootstrap = TRUE, n_bootstrap = 1999)
   ))
@@ -94,5 +95,29 @@ test_that("weighted and missing-data bootstraps still produce significance", {
     expect_type(result$result$Raw.Significant, "logical")
     expect_false(anyNA(result$result$Raw.Significant))
     expect_equal(nrow(result$result), 2)
+  }
+})
+
+test_that("the random variable is added once to the data and resampled with it", {
+  # Tonidandel, LeBreton and Johnson (2009, p. 392), step 1: the random variable
+  # is part of the resampled data, not redrawn within each bootstrap sample.
+  set.seed(8)
+  for (comprehensive in c(FALSE, TRUE)) {
+    result <- suppressWarnings(run_rwa_bootstrap(mtcars, "mpg", c("hp", "wt"),
+                                                 n_bootstrap = 39,
+                                                 comprehensive = comprehensive))
+    b <- if (comprehensive) result$boot_object_comprehensive else result$boot_object_random
+    random_name <- setdiff(names(b$data), names(mtcars))
+    expect_length(random_name, 1)
+    rand_columns <- if (comprehensive) 3:4 else 1:2
+    expected <- rwa_rand_internal(b$data, "mpg", c("hp", "wt"), random_var = random_name)
+    expect_equal(b$t0[rand_columns], expected)
+    # Given the data, the statistic is deterministic.
+    indices <- sample(nrow(b$data), replace = TRUE)
+    first <- do.call(b$statistic, c(list(b$data, indices), list(outcome = "mpg",
+                     predictors = c("hp", "wt"), random_var = random_name)))
+    second <- do.call(b$statistic, c(list(b$data, indices), list(outcome = "mpg",
+                      predictors = c("hp", "wt"), random_var = random_name)))
+    expect_identical(first, second)
   }
 })

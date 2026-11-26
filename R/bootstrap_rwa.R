@@ -50,6 +50,204 @@ with_rwa_bootstrap_errors <- function(expr) {
   })
 }
 
+#' @keywords internal
+#' @noRd
+unique_column_name <- function(existing, base) {
+  name <- base
+  while (name %in% existing) {
+    name <- paste0(name, "_")
+  }
+  name
+}
+
+#' Attach jackknife influence values used for BCa acceleration
+#'
+#' When a bootstrap has fewer replicates than observations, `boot::boot.ci()`
+#' estimates the BCa acceleration from jackknife influence values. It obtains
+#' them by re-calling the statistic without the extra arguments supplied to
+#' `boot::boot()`, which fails for RWA statistics. This computes the usual
+#' jackknife influence values, `(n - 1) * (t_full - t_{-i})` as in `boot`, once
+#' for all statistic columns and stores them on the boot object for
+#' `extract_ci()`. When there are at least as many replicates as observations,
+#' `boot` estimates the influence values by regression on the replicates, so
+#' nothing is stored.
+#'
+#' Every RWA bootstrap statistic is a function of a single correlation matrix.
+#' When the analysis uses one set of complete rows (weighted analyses,
+#' listwise deletion, or no missing values), each leave-one-out matrix is
+#' obtained by removing one row's contribution from the full-data weighted
+#' sums, which avoids refitting from the data n times. Otherwise (pairwise
+#' deletion with missing values), the statistic is re-evaluated on each
+#' leave-one-out sample.
+#'
+#' @param boot_object Boot object from `boot::boot()`
+#' @param statistic_args Named list of extra arguments passed to the statistic
+#' @param matrix_statistic Optional function mapping the joint correlation
+#'   matrix of `c(outcome, predictors, random_var)` to the statistic vector
+#' @param fast Whether to use the leave-one-out matrix update when eligible
+#'
+#' @return `boot_object` with `rwa_influence` (an n x k matrix, or `NULL`) and
+#'   `rwa_jackknife_error` (a message, or `NULL`)
+#' @keywords internal
+#' @noRd
+attach_bootstrap_influence <- function(boot_object, statistic_args,
+                                       matrix_statistic = NULL, fast = TRUE) {
+  data <- boot_object$data
+  n <- NROW(data)
+  boot_object$rwa_influence <- NULL
+  boot_object$rwa_jackknife_error <- NULL
+  if (boot_object$R >= n) {
+    return(boot_object)
+  }
+  rows_used <- if (fast && !is.null(matrix_statistic)) {
+    jackknife_rows_used(data, statistic_args)
+  }
+  influence <- tryCatch({
+    if (!is.null(rows_used)) {
+      fast_jackknife_influence(data, statistic_args, rows_used, matrix_statistic)
+    } else {
+      if (n > 2000L) {
+        message(sprintf(paste0(
+          "Computing BCa jackknife influence values by refitting RWA %d times, ",
+          "because pairwise deletion with missing values uses different rows per ",
+          "correlation. This may take a while; `use = \"complete.obs\"` or ",
+          "`n_bootstrap >= %d` avoids it."), n, n))
+      }
+      statistic <- function(indices) {
+        do.call(boot_object$statistic, c(list(data, indices), statistic_args))
+      }
+      t_full <- statistic(seq_len(n))
+      jackknife <- vapply(seq_len(n), function(i) statistic(seq_len(n)[-i]),
+                          numeric(length(t_full)))
+      jackknife <- matrix(jackknife, nrow = length(t_full))
+      t((n - 1) * (t_full - jackknife))
+    }
+  }, error = function(e) {
+    boot_object$rwa_jackknife_error <<- conditionMessage(e)
+    NULL
+  })
+  boot_object$rwa_influence <- influence
+  boot_object
+}
+
+#' Rows used by the RWA correlation matrix when it is a complete-case matrix
+#'
+#' @return Logical vector over the rows of `data`, or `NULL` when the matrix
+#'   is not built from a single set of rows (pairwise deletion with missing
+#'   values), in which case the fast jackknife does not apply
+#' @keywords internal
+#' @noRd
+jackknife_rows_used <- function(data, statistic_args) {
+  variables <- c(statistic_args$outcome, statistic_args$predictors,
+                 statistic_args$random_var)
+  use <- if (is.null(statistic_args$use)) "pairwise.complete.obs" else statistic_args$use
+  complete <- stats::complete.cases(data[variables])
+  weight <- statistic_args$weight_var
+  if (!is.null(weight)) {
+    complete & !is.na(data[[weight]])
+  } else if (use %in% c("complete.obs", "na.or.complete") || all(complete)) {
+    complete
+  } else {
+    NULL
+  }
+}
+
+#' Jackknife influence values from leave-one-out correlation matrices
+#'
+#' Rows outside `rows_used` do not enter the statistic, so their influence is
+#' exactly zero. For the remaining rows, the weighted mean and cross-product
+#' sums are downdated by one row to give the leave-one-out correlation matrix,
+#' matching `stats::cor()` and `stats::cov.wt(method = "ML", cor = TRUE)`.
+#'
+#' @keywords internal
+#' @noRd
+fast_jackknife_influence <- function(data, statistic_args, rows_used, matrix_statistic) {
+  n <- NROW(data)
+  variables <- c(statistic_args$outcome, statistic_args$predictors,
+                 statistic_args$random_var)
+  x <- as.matrix(data[rows_used, variables, drop = FALSE])
+  weight <- statistic_args$weight_var
+  w <- if (is.null(weight)) rep(1, nrow(x)) else data[[weight]][rows_used]
+  w <- w / max(w)
+  total <- sum(w)
+  centered <- sweep(x, 2L, colSums(x * w) / total)
+  cross <- crossprod(centered * sqrt(w))
+  sums <- colSums(centered * w)
+  # A spread below this is treated as zero variance, matching the slow path.
+  min_sd <- sqrt(.Machine$double.eps) * sqrt(diag(cross) / total)
+
+  correlation <- function(total_k, sums_k, cross_k) {
+    mean_k <- sums_k / total_k
+    covariance <- cross_k / total_k - tcrossprod(mean_k)
+    sd <- sqrt(pmax(diag(covariance), 0))
+    if (any(!is.finite(sd)) || any(sd <= min_sd)) {
+      stop("A variable has zero variance in a jackknife sample.")
+    }
+    corr <- covariance / tcrossprod(sd)
+    corr <- (corr + t(corr)) / 2
+    diag(corr) <- 1
+    dimnames(corr) <- list(variables, variables)
+    corr
+  }
+
+  # Removing a row that dominates a variable's spread loses precision in the
+  # downdate, so such rows are recomputed directly from the remaining rows.
+  dominant <- apply(w * centered^2, 1L, function(r) any(r > 0.5 * diag(cross)))
+
+  t_full <- matrix_statistic(correlation(total, sums, cross))
+  jackknife <- vapply(seq_len(nrow(x)), function(k) {
+    if (dominant[k]) {
+      rest <- x[-k, , drop = FALSE]
+      w_rest <- w[-k]
+      rest <- sweep(rest, 2L, colSums(rest * w_rest) / sum(w_rest))
+      return(matrix_statistic(correlation(sum(w_rest), rep(0, ncol(rest)),
+                                          crossprod(rest * sqrt(w_rest)))))
+    }
+    row <- centered[k, ]
+    matrix_statistic(correlation(total - w[k], sums - w[k] * row,
+                                 cross - w[k] * tcrossprod(row)))
+  }, numeric(length(t_full)))
+  jackknife <- matrix(jackknife, nrow = length(t_full))
+
+  influence <- matrix(0, nrow = n, ncol = length(t_full))
+  influence[which(rows_used), ] <- t((n - 1) * (t_full - jackknife))
+  influence
+}
+
+#' Map a joint correlation matrix to an RWA bootstrap statistic
+#'
+#' Mirrors `rwa_boot_statistic()`, `rwa_boot_statistic_rescaled()`,
+#' `rwa_boot_rand_statistic()` and `rwa_boot_comprehensive()`, using the joint
+#' correlation matrix of `c(outcome, predictors, random_var)`.
+#'
+#' @keywords internal
+#' @noRd
+rwa_matrix_statistic <- function(type, outcome, predictors, focal = NULL,
+                                 random_var = NULL) {
+  weights_for <- function(corr, vars) {
+    rwa_from_matrix(corr[c(outcome, vars), c(outcome, vars), drop = FALSE],
+                    outcome, vars)
+  }
+  difference_from_last <- function(corr, vars) {
+    raw <- weights_for(corr, vars)$raw_weights
+    head(raw, -1) - tail(raw, 1)
+  }
+  switch(type,
+    raw = function(corr) weights_for(corr, predictors)$raw_weights,
+    rescaled = function(corr) weights_for(corr, predictors)$rescaled_weights,
+    rand = function(corr) difference_from_last(corr, c(predictors, random_var)),
+    comprehensive = function(corr) {
+      out <- c(weights_for(corr, predictors)$raw_weights,
+               difference_from_last(corr, c(predictors, random_var)))
+      if (!is.null(focal)) {
+        out <- c(out, difference_from_last(corr, c(predictors[predictors != focal], focal)))
+      }
+      out
+    },
+    stop("Unknown RWA matrix statistic type.")
+  )
+}
+
 #' Bootstrap statistic function for basic RWA weights
 #'
 #' Computes raw relative weights for a bootstrap sample.
@@ -102,21 +300,28 @@ rwa_boot_statistic_rescaled <- function(data, indices, outcome, predictors, use 
 #' against zero directly, because relative weights are non-negative and a
 #' predictor with no true relationship still receives a small positive weight.
 #'
+#' Following step 1 of Tonidandel, LeBreton and Johnson (2009, p. 392), the
+#' random variable is added once to the original data and is then resampled
+#' with the rows; `run_rwa_bootstrap()` supplies it through `random_var`.
+#'
 #' @param data Data frame for bootstrap sampling
 #' @param indices Bootstrap sample indices (provided by boot::boot)
 #' @param outcome Outcome variable name
 #' @param predictors Vector of predictor variable names
 #' @param use Method for handling missing data in correlations
 #' @param weight_var Optional name of weight variable
+#' @param random_var Name of the column in `data` holding the random variable.
+#'   If `NULL`, a new random variable is drawn for this call.
 #'
 #' @return Numeric vector of weight differences, one per predictor
 #' @keywords internal
 #' @noRd
 rwa_boot_rand_statistic <- function(data, indices, outcome, predictors,
-                                    use = "pairwise.complete.obs", weight_var = NULL) {
+                                    use = "pairwise.complete.obs", weight_var = NULL,
+                                    random_var = NULL) {
   with_rwa_bootstrap_errors({
     rwa_rand_internal(data[indices, , drop = FALSE], outcome, predictors,
-                      use = use, weight = weight_var)
+                      use = use, weight = weight_var, random_var = random_var)
   })
 }
 
@@ -131,19 +336,23 @@ rwa_boot_rand_statistic <- function(data, indices, outcome, predictors,
 #' @param predictors Vector of predictor variable names
 #' @param focal Focal variable for comparisons (optional)
 #' @param use Method for handling missing data in correlations
-#' @param weight Optional name of weight variable
+#' @param weight_var Optional name of weight variable
+#' @param random_var Name of the column in `data` holding the random variable
+#'   (see `rwa_boot_rand_statistic()`). If `NULL`, a new one is drawn per call.
 #'
 #' @return Numeric vector containing raw weights, random comparison differences,
 #'   and (if focal specified) focal comparison differences
 #' @keywords internal
 #' @noRd
-rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = NULL, use = "pairwise.complete.obs", weight_var = NULL) {
+rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = NULL, use = "pairwise.complete.obs", weight_var = NULL,
+                                   random_var = NULL) {
   with_rwa_bootstrap_errors({
     sample_data <- data[indices, , drop = FALSE]
 
     raw_weights <- rwa_core_calculation(sample_data, outcome, predictors, use = use, weight = weight_var)
 
-    rand_diff <- rwa_rand_internal(sample_data, outcome, predictors, use = use, weight = weight_var)
+    rand_diff <- rwa_rand_internal(sample_data, outcome, predictors, use = use, weight = weight_var,
+                                   random_var = random_var)
 
     if (!is.null(focal)) {
       focal_diff <- rwa_comp_internal(sample_data, outcome, predictors, focal, use = use, weight = weight_var)
@@ -165,17 +374,21 @@ rwa_boot_comprehensive <- function(data, indices, outcome, predictors, focal = N
 #' @param predictors Vector of predictor variable names
 #' @param use Method for handling missing data in correlations
 #' @param weight Optional name of weight variable
+#' @param random_var Optional name of an existing column to use as the random
+#'   predictor; if `NULL`, a new standard normal variable is drawn
 #'
 #' @return Numeric vector of weight differences (predictor weight - random weight)
 #' @keywords internal
 #' @noRd
-rwa_rand_internal <- function(df, outcome, predictors, use = "pairwise.complete.obs", weight = NULL) {
+rwa_rand_internal <- function(df, outcome, predictors, use = "pairwise.complete.obs", weight = NULL,
+                              random_var = NULL) {
   thedata <- df[!is.na(df[[outcome]]), , drop = FALSE]
-  random_name <- "rand"
-  while (random_name %in% names(thedata)) {
-    random_name <- paste0(random_name, "_")
+  if (is.null(random_var)) {
+    random_name <- unique_column_name(names(thedata), "rand")
+    thedata[[random_name]] <- stats::rnorm(nrow(thedata), 0, 1)
+  } else {
+    random_name <- random_var
   }
-  thedata[[random_name]] <- stats::rnorm(nrow(thedata), 0, 1)
 
   # Use core calculation with random variable added
   predictors_with_rand <- c(predictors, random_name)
@@ -216,8 +429,17 @@ rwa_comp_internal <- function(df, outcome, predictors, focal, use = "pairwise.co
 
 #' Extract confidence intervals from bootstrap object
 #'
-#' Extracts confidence intervals from a boot object, trying BCA method first,
-#' then falling back to percentile, then basic bootstrap if needed.
+#' Extracts confidence intervals from a boot object using BCa intervals, as
+#' recommended by Tonidandel, LeBreton and Johnson (2009, p. 392). If a BCa
+#' interval cannot be computed, falls back to the percentile interval (the
+#' method of Johnson, 2004, as described by Tonidandel et al., 2009, p. 392),
+#' then to the basic interval, which is kept only from earlier package versions,
+#' and warns which statistics fell back and why.
+#'
+#' BCa acceleration uses empirical influence values (Efron, 1987). When there
+#' are fewer replicates than observations, these are the jackknife values stored
+#' on the boot object by `attach_bootstrap_influence()`; otherwise `boot`
+#' estimates them by regression on the replicates.
 #'
 #' @param boot_object Boot object from boot::boot()
 #' @param conf_level Confidence level (default 0.95)
@@ -235,73 +457,67 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
     stop("Bootstrap statistic columns must match the supplied variable names.")
   }
 
+  influence <- boot_object$rwa_influence
+  influence_error <- boot_object$rwa_jackknife_error
+  fallback_reasons <- character()
+
   ci_results <- purrr::map_dfr(seq_along(indices), function(i) {
     statistic_index <- indices[i]
-    tryCatch({
-      # Try BCA first
-      ci <- boot::boot.ci(boot_object, type = "bca", index = statistic_index, conf = conf_level)
+    variable <- if (!is.null(variable_names)) variable_names[i] else paste0("Var", i)
 
-      if (!is.null(ci$bca) && !any(is.na(ci$bca[4:5]))) {
-        ci_lower <- ci$bca[4]
-        ci_upper <- ci$bca[5]
-        ci_method <- "bca"
-      } else {
-        # Fallback to percentile method
-        ci <- boot::boot.ci(boot_object, type = "perc", index = statistic_index, conf = conf_level)
-        ci_lower <- ci$percent[4]
-        ci_upper <- ci$percent[5]
-        ci_method <- "percentile"
-      }
-
-      dplyr::tibble(
-        variable = if (!is.null(variable_names) && i <= length(variable_names)) {
-          variable_names[i]
-        } else {
-          paste0("Var", i)
-        },
-        weight_index = i,
-        ci_lower = ci_lower,
-        ci_upper = ci_upper,
-        ci_method = ci_method,
-        ci_type = ci_type
-      )
-    }, error = function(e) {
-      # If both BCA and percentile fail, try basic bootstrap
+    bca <- if (!is.null(influence_error)) {
+      simpleError(paste("jackknife influence values could not be computed:", influence_error))
+    } else {
       tryCatch({
-        ci <- boot::boot.ci(boot_object, type = "basic", index = statistic_index, conf = conf_level)
-        ci_lower <- ci$basic[4]
-        ci_upper <- ci$basic[5]
-        ci_method <- "basic"
+        args <- list(boot_object, type = "bca", index = statistic_index, conf = conf_level)
+        if (!is.null(influence)) {
+          args$L <- influence[, statistic_index]
+        }
+        ci <- do.call(boot::boot.ci, args)
+        if (is.null(ci$bca) || any(!is.finite(ci$bca[4:5]))) {
+          stop("BCa interval endpoints are not finite")
+        }
+        ci$bca[4:5]
+      }, error = function(e) e)
+    }
 
-        dplyr::tibble(
-          variable = if (!is.null(variable_names) && i <= length(variable_names)) {
-            variable_names[i]
-          } else {
-            paste0("Var", i)
-          },
-          weight_index = i,
-          ci_lower = ci_lower,
-          ci_upper = ci_upper,
-          ci_method = ci_method,
-          ci_type = ci_type
-        )
-      }, error = function(e2) {
-        # If all methods fail, return NA values
-        dplyr::tibble(
-          variable = if (!is.null(variable_names) && i <= length(variable_names)) {
-            variable_names[i]
-          } else {
-            paste0("Var", i)
-          },
-          weight_index = i,
-          ci_lower = NA_real_,
-          ci_upper = NA_real_,
-          ci_method = "failed",
-          ci_type = ci_type
-        )
+    if (!inherits(bca, "error")) {
+      bounds <- bca
+      ci_method <- "bca"
+    } else {
+      fallback_reasons[[variable]] <<- conditionMessage(bca)
+      fallback <- tryCatch({
+        ci <- boot::boot.ci(boot_object, type = "perc", index = statistic_index, conf = conf_level)
+        list(bounds = ci$percent[4:5], method = "percentile")
+      }, error = function(e) {
+        tryCatch({
+          ci <- boot::boot.ci(boot_object, type = "basic", index = statistic_index, conf = conf_level)
+          list(bounds = ci$basic[4:5], method = "basic")
+        }, error = function(e2) list(bounds = c(NA_real_, NA_real_), method = "failed"))
       })
-    })
+      bounds <- fallback$bounds
+      ci_method <- fallback$method
+    }
+
+    dplyr::tibble(
+      variable = variable,
+      weight_index = i,
+      ci_lower = bounds[1],
+      ci_upper = bounds[2],
+      ci_method = ci_method,
+      ci_type = ci_type
+    )
   })
+
+  if (length(fallback_reasons)) {
+    by_reason <- tapply(names(fallback_reasons), unname(fallback_reasons),
+                        paste, collapse = ", ")
+    details <- paste(sprintf("%s (%s)", names(by_reason), by_reason), collapse = "; ")
+    warning(sprintf(paste0("BCa confidence intervals could not be computed for %s: %s. ",
+                           "Fell back to the method shown in `ci_method`."),
+                    ci_type, details),
+            call. = FALSE)
+  }
 
   ci_results
 }
@@ -348,6 +564,9 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
                     prepared$n))
   }
 
+  statistic_args <- list(outcome = outcome, predictors = predictors, use = use,
+                         weight_var = weight)
+
   # Always bootstrap raw weights
   # Note: using weight_var to avoid partial matching with boot::boot's "weights" parameter
   boot_result_raw <- boot::boot(
@@ -358,6 +577,10 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
     predictors = predictors,
     use = use,
     weight_var = weight
+  )
+  boot_result_raw <- attach_bootstrap_influence(
+    boot_result_raw, statistic_args,
+    rwa_matrix_statistic("raw", outcome, predictors)
   )
 
   # Extract CIs for raw weights
@@ -379,24 +602,41 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
       use = use,
       weight_var = weight
     )
+    boot_result_rescaled <- attach_bootstrap_influence(
+      boot_result_rescaled, statistic_args,
+      rwa_matrix_statistic("rescaled", outcome, predictors)
+    )
 
     rescaled_ci <- extract_ci(boot_result_rescaled, conf_level, predictors, "rescaled")
     ci_results$rescaled_weights <- rescaled_ci
     return_objects$boot_object_rescaled <- boot_result_rescaled
   }
 
+  # Tonidandel, LeBreton and Johnson (2009, p. 392), step 1: add the random
+  # variable once to the original data, then resample it with the rows.
+  random_name <- unique_column_name(names(bootstrap_data), "rand")
+  random_data <- bootstrap_data
+  random_data[[random_name]] <- stats::rnorm(nrow(random_data), 0, 1)
+  random_args <- c(statistic_args, list(random_var = random_name))
+
   # Handle comprehensive analysis if requested
   if (comprehensive) {
     # Note: using weight_var to avoid partial matching with boot::boot's "weights" parameter
     boot_result_comp <- boot::boot(
-      data = bootstrap_data,
+      data = random_data,
       statistic = rwa_boot_comprehensive,
       R = n_bootstrap,
       outcome = outcome,
       predictors = predictors,
       focal = focal,
       use = use,
-      weight_var = weight
+      weight_var = weight,
+      random_var = random_name
+    )
+    boot_result_comp <- attach_bootstrap_influence(
+      boot_result_comp, c(random_args, list(focal = focal)),
+      rwa_matrix_statistic("comprehensive", outcome, predictors, focal = focal,
+                           random_var = random_name)
     )
 
     n_vars <- length(predictors)
@@ -428,13 +668,18 @@ run_rwa_bootstrap <- function(data, outcome, predictors, n_bootstrap = 1000,
     # required whenever bootstrap results are produced. Comprehensive analysis
     # already computes it above, so it is only run separately here.
     boot_result_rand <- boot::boot(
-      data = bootstrap_data,
+      data = random_data,
       statistic = rwa_boot_rand_statistic,
       R = n_bootstrap,
       outcome = outcome,
       predictors = predictors,
       use = use,
-      weight_var = weight
+      weight_var = weight,
+      random_var = random_name
+    )
+    boot_result_rand <- attach_bootstrap_influence(
+      boot_result_rand, random_args,
+      rwa_matrix_statistic("rand", outcome, predictors, random_var = random_name)
     )
 
     if (length(boot_result_rand$t0) != length(predictors) ||
