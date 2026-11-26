@@ -117,7 +117,7 @@ test_that("BCa fallbacks are reported with a warning", {
   set.seed(5)
   boot_raw <- boot::boot(mtcars, rwa_boot_statistic, R = 99, outcome = "mpg",
                          predictors = c("cyl", "hp"), weight_var = NULL)
-  boot_raw$rwa_influence_error <- "test failure"
+  boot_raw$rwa_jackknife_error <- "test failure"
   expect_warning(
     ci <- extract_ci(boot_raw, variable_names = c("cyl", "hp")),
     "BCa confidence intervals could not be computed for raw: .*test failure \\(cyl, hp\\)"
@@ -162,4 +162,28 @@ test_that("fast leave-one-out influence values match refitting each jackknife sa
   expect_null(jackknife_rows_used(frame, args_pairwise))
   expect_false(is.null(jackknife_rows_used(frame, modifyList(args_pairwise,
                                                              list(use = "complete.obs")))))
+})
+
+test_that("fast influence values stay exact for dominant rows and detect zero variance", {
+  set.seed(21)
+  n <- 80
+  d <- data.frame(y = rnorm(n), x1 = rnorm(n), x2 = rnorm(n))
+  d$x1[5] <- 1e8  # a single row dominates the spread of x1
+  args <- list(outcome = "y", predictors = c("x1", "x2"),
+               use = "pairwise.complete.obs", weight_var = NULL)
+  b <- do.call(boot::boot, c(list(data = d, statistic = rwa_boot_statistic, R = 30), args))
+  matrix_stat <- rwa_matrix_statistic("raw", "y", c("x1", "x2"))
+  fast <- attach_bootstrap_influence(b, args, matrix_stat, fast = TRUE)
+  slow <- attach_bootstrap_influence(b, args, matrix_stat, fast = FALSE)
+  expect_equal(fast$rwa_influence, slow$rwa_influence, tolerance = 1e-8)
+
+  # A dummy with a single 1 is constant once that row is left out; both paths
+  # must fail rather than return values.
+  d$x1 <- c(1, rep(0, n - 1))
+  b$data <- d
+  fast <- attach_bootstrap_influence(b, args, matrix_stat, fast = TRUE)
+  slow <- attach_bootstrap_influence(b, args, matrix_stat, fast = FALSE)
+  expect_null(fast$rwa_influence)
+  expect_null(slow$rwa_influence)
+  expect_match(fast$rwa_jackknife_error, "zero variance")
 })

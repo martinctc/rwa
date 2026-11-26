@@ -87,7 +87,7 @@ unique_column_name <- function(existing, base) {
 #' @param fast Whether to use the leave-one-out matrix update when eligible
 #'
 #' @return `boot_object` with `rwa_influence` (an n x k matrix, or `NULL`) and
-#'   `rwa_influence_error` (a message, or `NULL`)
+#'   `rwa_jackknife_error` (a message, or `NULL`)
 #' @keywords internal
 #' @noRd
 attach_bootstrap_influence <- function(boot_object, statistic_args,
@@ -95,7 +95,7 @@ attach_bootstrap_influence <- function(boot_object, statistic_args,
   data <- boot_object$data
   n <- NROW(data)
   boot_object$rwa_influence <- NULL
-  boot_object$rwa_influence_error <- NULL
+  boot_object$rwa_jackknife_error <- NULL
   if (boot_object$R >= n) {
     return(boot_object)
   }
@@ -123,7 +123,7 @@ attach_bootstrap_influence <- function(boot_object, statistic_args,
       t((n - 1) * (t_full - jackknife))
     }
   }, error = function(e) {
-    boot_object$rwa_influence_error <<- conditionMessage(e)
+    boot_object$rwa_jackknife_error <<- conditionMessage(e)
     NULL
   })
   boot_object$rwa_influence <- influence
@@ -173,12 +173,14 @@ fast_jackknife_influence <- function(data, statistic_args, rows_used, matrix_sta
   centered <- sweep(x, 2L, colSums(x * w) / total)
   cross <- crossprod(centered * sqrt(w))
   sums <- colSums(centered * w)
+  # A spread below this is treated as zero variance, matching the slow path.
+  min_sd <- sqrt(.Machine$double.eps) * sqrt(diag(cross) / total)
 
   correlation <- function(total_k, sums_k, cross_k) {
     mean_k <- sums_k / total_k
     covariance <- cross_k / total_k - tcrossprod(mean_k)
-    sd <- sqrt(diag(covariance))
-    if (any(!is.finite(sd)) || any(sd <= 0)) {
+    sd <- sqrt(pmax(diag(covariance), 0))
+    if (any(!is.finite(sd)) || any(sd <= min_sd)) {
       stop("A variable has zero variance in a jackknife sample.")
     }
     corr <- covariance / tcrossprod(sd)
@@ -188,8 +190,19 @@ fast_jackknife_influence <- function(data, statistic_args, rows_used, matrix_sta
     corr
   }
 
+  # Removing a row that dominates a variable's spread loses precision in the
+  # downdate, so such rows are recomputed directly from the remaining rows.
+  dominant <- apply(w * centered^2, 1L, function(r) any(r > 0.5 * diag(cross)))
+
   t_full <- matrix_statistic(correlation(total, sums, cross))
   jackknife <- vapply(seq_len(nrow(x)), function(k) {
+    if (dominant[k]) {
+      rest <- x[-k, , drop = FALSE]
+      w_rest <- w[-k]
+      rest <- sweep(rest, 2L, colSums(rest * w_rest) / sum(w_rest))
+      return(matrix_statistic(correlation(sum(w_rest), rep(0, ncol(rest)),
+                                          crossprod(rest * sqrt(w_rest)))))
+    }
     row <- centered[k, ]
     matrix_statistic(correlation(total - w[k], sums - w[k] * row,
                                  cross - w[k] * tcrossprod(row)))
@@ -441,7 +454,7 @@ extract_ci <- function(boot_object, conf_level = 0.95, variable_names = NULL, ci
   }
 
   influence <- boot_object$rwa_influence
-  influence_error <- boot_object$rwa_influence_error
+  influence_error <- boot_object$rwa_jackknife_error
   fallback_reasons <- character()
 
   ci_results <- purrr::map_dfr(seq_along(indices), function(i) {
