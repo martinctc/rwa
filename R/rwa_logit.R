@@ -5,6 +5,11 @@
 #'   estimating the relative importance of predictor variables by transforming
 #'   them into orthogonal variables while preserving their relationship to the
 #'   outcome. This implementation follows Johnson (2000) for logistic regression.
+#'   The `Sign` column is the sign of the coefficient for each orthogonalized
+#'   predictor. It can differ from an original predictor's marginal association
+#'   with the outcome; it is not a causal direction. With `applysigns = TRUE`,
+#'   `Sign.Rescaled.RelWeight` is the rescaled relative weight negated when
+#'   `Sign` is `"-"`; it is not a logistic regression coefficient.
 #'
 #' @inheritParams rwa
 #'
@@ -13,7 +18,9 @@
 #' - `rsquare`: the pseudo R-squared value (sum of epsilon weights) for the logistic regression model.
 #' - `result`: the final output of the importance metrics.
 #'   - The `Rescaled.RelWeight` column sums up to 100.
-#'   - The `Sign` column indicates whether a predictor is positively or negatively associated with the outcome.
+#'   - The `Sign` column gives the sign of the coefficient for the
+#'     corresponding orthogonalized predictor, not the sign of the original
+#'     predictor's marginal association.
 #' - `n`: indicates the number of observations used in the analysis.
 #' - `lambda`: the Lambda transformation matrix from the analysis.
 #'
@@ -129,7 +136,8 @@ rwa_logit <- function(df,
   R.sq <- sum(epsilon)
   PropWeights <- (epsilon/R.sq) * 100  # Convert to percentage (0-100) for consistency with rwa_multiregress
 
-  # Get signs from coefficients
+  # The coefficients are for the orthogonalized predictors, not the originals.
+  # `beta` contains coefficients for the orthogonalized predictors.
   sign <-
     data.frame(V1 = beta) %>%
     dplyr::mutate_all(~(dplyr::case_when(.>0~"+",

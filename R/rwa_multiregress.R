@@ -4,12 +4,22 @@
 #' RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
 #' creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
 #' maximally related to the original set of predictors.
-#' `rwa_multiregress()` is optimised for dplyr pipes and shows positive / negative signs for weights.
+#' `rwa_multiregress()` is optimised for dplyr pipes and can add sign annotations
+#' based on coefficients for the orthogonalized predictors.
 #'
 #' @details
 #' `rwa_multiregress()` produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 #' for every predictor in the model.
-#' Signs are added to the weights when the `applysigns` argument is set to `TRUE`.
+#' `Sign` is taken from the coefficient for each orthogonalized predictor in
+#' the RWA calculation. Since those predictors are transformations of the
+#' original predictors, `Sign` can differ from an original predictor's
+#' marginal correlation with the outcome. It is not the coefficient sign from
+#' an ordinary regression on the original predictors. When `applysigns = TRUE`,
+#' `Sign.Rescaled.RelWeight` is the rescaled relative weight negated when
+#' `Sign` is `"-"` (and left positive otherwise). It is a signed importance
+#' score, not a regression coefficient or a causal effect. With `weight`, the
+#' same convention applies to coefficients based on the weighted correlation
+#' matrix.
 #' See <https://www.scotttonidandel.com/rwa-web> for the original implementation that inspired this package.
 #'
 #' This is observation-weighted RWA when `weight` is provided, not a
@@ -20,7 +30,9 @@
 #' @param df Data frame or tibble to be passed through.
 #' @param outcome Outcome variable, to be specified as a string or bare input. Must be a numeric variable.
 #' @param predictors Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.
-#' @param applysigns Logical value specifying whether to show an estimate that applies the sign. Defaults to `FALSE`.
+#' @param applysigns Logical value specifying whether to return
+#'   `Sign.Rescaled.RelWeight`, the rescaled relative weight negated when the
+#'   orthogonalized-coefficient sign is `"-"`. Defaults to `FALSE`.
 #' @inheritParams rwa
 #'
 #' @return `rwa_multiregress()` returns a list of outputs, as follows:
@@ -28,7 +40,13 @@
 #' - `rsquare`: the rsquare value of the regression model.
 #' - `result`: the final output of the importance metrics.
 #'   - The `Rescaled.RelWeight` column sums up to 100.
-#'   - The `Sign` column indicates whether a predictor is positively or negatively correlated with the outcome.
+#'   - The `Sign` column gives the sign of the coefficient for the
+#'     corresponding orthogonalized predictor. It is not the sign of the
+#'     original predictor's marginal correlation or original-scale regression
+#'     coefficient.
+#'   - When `applysigns = TRUE`, `Sign.Rescaled.RelWeight` is the rescaled
+#'     relative weight negated when `Sign` is `"-"`; it is a signed importance
+#'     score, not a regression coefficient or causal effect.
 #' - `n`: complete-case observation count for the selected variables and weight,
 #'   if supplied. Unweighted pairwise correlations may use more observations.
 #' - `n_weighted`: weighted results only; sum of original weights after outcome,
@@ -99,7 +117,8 @@ rwa_multiregress <- function(df,
   RawWgt <- calculation$raw_weights
   import <- calculation$rescaled_weights
 
-  sign <- beta %>% # Get signs from coefficients
+  # `beta` contains coefficients for the orthogonalized predictors.
+  sign <- beta %>%
     as.data.frame(stringsAsFactors = FALSE, row.names = NULL) %>%
     dplyr::mutate_all(~(dplyr::case_when(.>0~"+",
                                          .<0~"-",

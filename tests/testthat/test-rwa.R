@@ -40,6 +40,42 @@ test_that("rwa() computes correct weights", {
   expect_lte(result$rsquare, 1)
 })
 
+test_that("multiple-regression Sign follows orthogonalized coefficients, not marginal correlation", {
+  d <- data.frame(
+    x1 = c(-1, -1, 1, 1),
+    z = c(-1, 1, -1, 1),
+    e = c(-1, 1, 1, -1)
+  )
+  d$x2 <- 0.9 * d$x1 + sqrt(1 - 0.9^2) * d$z
+  d$y <- 0.1 * d$x1 + 0.75 * d$z + 0.65 * d$e
+
+  signed <- rwa_multiregress(d, "y", c("x1", "x2"), applysigns = TRUE)
+  x1 <- match("x1", signed$result$Variables)
+  expect_gt(cor(d$x1, d$y), 0)
+  expect_identical(as.character(signed$result$Sign[x1]), "-")
+  expect_equal(signed$result$Sign.Rescaled.RelWeight[x1],
+               -signed$result$Rescaled.RelWeight[x1])
+
+  unsigned <- rwa_multiregress(d, "y", c("x1", "x2"))
+  expect_equal(signed$result$Raw.RelWeight, unsigned$result$Raw.RelWeight)
+  expect_equal(signed$result$Rescaled.RelWeight, unsigned$result$Rescaled.RelWeight)
+
+  wrapped <- rwa(d, "y", c("x1", "x2"), method = "multiple",
+                 applysigns = TRUE, sort = FALSE)
+  expect_equal(wrapped$result$Sign, signed$result$Sign)
+  expect_equal(wrapped$result$Sign.Rescaled.RelWeight,
+               signed$result$Sign.Rescaled.RelWeight)
+
+  d$w <- c(2, 1, 2, 1)
+  weighted <- rwa_multiregress(d, "y", c("x1", "x2"),
+                               applysigns = TRUE, weight = "w")
+  x1_weighted <- match("x1", weighted$result$Variables)
+  weighted_marginal <- stats::cov.wt(d[c("x1", "y")], wt = d$w,
+                                     cor = TRUE)$cor[1, 2]
+  expect_gt(weighted_marginal, 0)
+  expect_identical(as.character(weighted$result$Sign[x1_weighted]), "-")
+})
+
 test_that("rwa() returns correct predictors and sample size", {
   result <- rwa(mtcars, outcome = "mpg", predictors = c("cyl", "hp"))
   

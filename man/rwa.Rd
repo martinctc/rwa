@@ -30,8 +30,9 @@ Must be a numeric variable.}
 \item{predictors}{Predictor variable(s), to be specified as a vector of
 string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{Logical value specifying whether to show an estimate that
-applies the sign. Defaults to \code{FALSE}.}
+\item{applysigns}{Logical value specifying whether to return
+\code{Sign.Rescaled.RelWeight}, the rescaled relative weight negated when the
+orthogonalized-coefficient sign is \code{"-"}. Defaults to \code{FALSE}.}
 
 \item{method}{String to specify the method of regression to apply. Valid
 values include:
@@ -104,8 +105,13 @@ Defaults to \code{NULL}
 Rescaled.RelWeight in descending order by default).
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
-\item The \code{Sign} column indicates whether a predictor is positively or
-negatively correlated with the outcome.
+\item The \code{Sign} column gives the sign of the coefficient for the
+corresponding orthogonalized predictor. It is not the sign of the
+original predictor's marginal association or original-scale regression
+coefficient.
+\item When \code{applysigns = TRUE}, \code{Sign.Rescaled.RelWeight} is the rescaled
+relative weight negated when \code{Sign} is \code{"-"}; it is a signed importance
+score, not a regression coefficient or causal effect.
 \item When bootstrap = TRUE, includes confidence interval columns for raw weights.
 \item When bootstrap = TRUE, \code{Random.Diff.CI.Lower}/\code{Random.Diff.CI.Upper} give
 the interval for the difference between each predictor's weight and the
@@ -156,8 +162,8 @@ returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors. \code{rwa()} is optimised for dplyr pipes and shows
-positive / negative signs for weights.
+original set of predictors. \code{rwa()} is optimised for dplyr pipes and can
+return sign annotations for weights.
 }
 \details{
 \code{rwa()} produces raw relative weight values (epsilons) as well as rescaled
@@ -165,6 +171,18 @@ weights (scaled as a percentage of predictable variance) for every predictor
 in the model. Signs are added to the weights when the \code{applysigns} argument
 is set to \code{TRUE}. See \url{https://www.scotttonidandel.com/rwa-web} for the
 original implementation that inspired this package.
+
+The \code{Sign} column uses the coefficient sign for the orthogonalized
+predictor in the RWA calculation. Because orthogonalized predictors are
+transformations of the originals, this sign can differ from an original
+predictor's marginal association with the outcome. It is not the coefficient
+sign from an ordinary regression on the original predictors.
+\code{Sign.Rescaled.RelWeight}
+(when requested with \code{applysigns = TRUE}) is the rescaled weight negated
+when \code{Sign} is \code{"-"}. It is a signed importance score, not a regression
+coefficient or a causal effect. With \code{weight}, the same convention applies
+to coefficients based on the weighted correlation matrix. See
+\code{vignette("regression-methods")} for reproducible examples.
 
 This function is a wrapper around \code{rwa_multiregress()} and \code{rwa_logit()},
 automatically selecting the appropriate method based on the outcome variable
