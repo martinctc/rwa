@@ -15,8 +15,9 @@ Must be a numeric variable.}
 \item{predictors}{Predictor variable(s), to be specified as a vector of
 string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{Logical value specifying whether to show an estimate that
-applies the sign. Defaults to \code{FALSE}.}
+\item{applysigns}{Logical value specifying whether to return
+\code{Sign.Rescaled.RelWeight}, the rescaled relative weight negated when the
+orthogonalized-coefficient sign is \code{"-"}. Defaults to \code{FALSE}.}
 }
 \value{
 \code{rwa_logit()} returns a list of outputs, as follows:
@@ -26,7 +27,9 @@ applies the sign. Defaults to \code{FALSE}.}
 \item \code{result}: the final output of the importance metrics.
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
-\item The \code{Sign} column indicates whether a predictor is positively or negatively associated with the outcome.
+\item The \code{Sign} column gives the sign of the coefficient for the
+corresponding orthogonalized predictor, not the sign of the original
+predictor's marginal association.
 }
 \item \code{n}: indicates the number of observations used in the analysis.
 \item \code{lambda}: the Lambda transformation matrix from the analysis.
@@ -38,6 +41,11 @@ outcome variables using logistic regression. RWA provides a method for
 estimating the relative importance of predictor variables by transforming
 them into orthogonal variables while preserving their relationship to the
 outcome. This implementation follows Johnson (2000) for logistic regression.
+The \code{Sign} column is the sign of the coefficient for each orthogonalized
+predictor. It can differ from an original predictor's marginal association
+with the outcome; it is not a causal direction. With \code{applysigns = TRUE},
+\code{Sign.Rescaled.RelWeight} is the rescaled relative weight negated when
+\code{Sign} is \code{"-"}; it is not a logistic regression coefficient.
 }
 \examples{
 # Create a binary outcome variable

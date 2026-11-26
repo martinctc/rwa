@@ -20,7 +20,9 @@ rwa_multiregress(
 
 \item{predictors}{Predictor variable(s), to be specified as a vector of string(s) or bare input(s). All variables must be numeric.}
 
-\item{applysigns}{Logical value specifying whether to show an estimate that applies the sign. Defaults to \code{FALSE}.}
+\item{applysigns}{Logical value specifying whether to return
+\code{Sign.Rescaled.RelWeight}, the rescaled relative weight negated when the
+orthogonalized-coefficient sign is \code{"-"}. Defaults to \code{FALSE}.}
 
 \item{use}{Method for handling missing data when computing correlations. Options are:
 "everything" (remaining missing values propagate, causing a non-finite
@@ -53,7 +55,13 @@ Defaults to \code{NULL}
 \item \code{result}: the final output of the importance metrics.
 \itemize{
 \item The \code{Rescaled.RelWeight} column sums up to 100.
-\item The \code{Sign} column indicates whether a predictor is positively or negatively correlated with the outcome.
+\item The \code{Sign} column gives the sign of the coefficient for the
+corresponding orthogonalized predictor. It is not the sign of the
+original predictor's marginal correlation or original-scale regression
+coefficient.
+\item When \code{applysigns = TRUE}, \code{Sign.Rescaled.RelWeight} is the rescaled
+relative weight negated when \code{Sign} is \code{"-"}; it is a signed importance
+score, not a regression coefficient or causal effect.
 }
 \item \code{n}: complete-case observation count for the selected variables and weight,
 if supplied. Unweighted pairwise correlations may use more observations.
@@ -74,12 +82,22 @@ This function creates a Relative Weights Analysis (RWA) and returns a list of ou
 RWA provides a heuristic method for estimating the relative weight of predictor variables in multiple regression, which involves
 creating a multiple regression with on a set of transformed predictors which are orthogonal to each other but
 maximally related to the original set of predictors.
-\code{rwa_multiregress()} is optimised for dplyr pipes and shows positive / negative signs for weights.
+\code{rwa_multiregress()} is optimised for dplyr pipes and can add sign annotations
+based on coefficients for the orthogonalized predictors.
 }
 \details{
 \code{rwa_multiregress()} produces raw relative weight values (epsilons) as well as rescaled weights (scaled as a percentage of predictable variance)
 for every predictor in the model.
-Signs are added to the weights when the \code{applysigns} argument is set to \code{TRUE}.
+\code{Sign} is taken from the coefficient for each orthogonalized predictor in
+the RWA calculation. Since those predictors are transformations of the
+original predictors, \code{Sign} can differ from an original predictor's
+marginal correlation with the outcome. It is not the coefficient sign from
+an ordinary regression on the original predictors. When \code{applysigns = TRUE},
+\code{Sign.Rescaled.RelWeight} is the rescaled relative weight negated when
+\code{Sign} is \code{"-"} (and left positive otherwise). It is a signed importance
+score, not a regression coefficient or a causal effect. With \code{weight}, the
+same convention applies to coefficients based on the weighted correlation
+matrix.
 See \url{https://www.scotttonidandel.com/rwa-web} for the original implementation that inspired this package.
 
 This is observation-weighted RWA when \code{weight} is provided, not a

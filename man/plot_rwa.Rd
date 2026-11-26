@@ -10,9 +10,11 @@ plot_rwa(rwa)
 \item{rwa}{Direct list output from \code{rwa()}.}
 }
 \description{
-Pass the output of \code{rwa()} and plot a bar chart of the rescaled importance values.
-Signs are always calculated and taken into account, which is equivalent to setting the \code{applysigns}
-argument to \code{TRUE} in \code{rwa()}.
+Pass the output of \code{rwa()} and plot a bar chart of the signed
+rescaled importance values. The sign follows the coefficient for the
+orthogonalized predictor in the RWA calculation; it can differ from the
+original predictor's marginal association with the outcome. The signed
+score is not a regression coefficient or causal effect.
 }
 \examples{
 
