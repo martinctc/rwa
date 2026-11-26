@@ -75,13 +75,15 @@
 #'   confidence intervals. Defaults to `FALSE`. Currently only supported for
 #'   multiple regression.
 #' @param n_bootstrap Number of bootstrap samples to use when bootstrap = TRUE.
-#'   Defaults to 1000. RWA-Web (Tonidandel & LeBreton, 2015) uses 10,000 by
-#'   default. Intervals are bias-corrected and accelerated (BCa); when
-#'   `n_bootstrap` is smaller than the number of rows with a non-missing
-#'   outcome, the BCa acceleration is estimated by jackknife. This is quick
-#'   unless pairwise deletion is used with missing values, in which case each
-#'   jackknife sample is refitted. Check `ci_method` in the returned
-#'   `ci_results`; any fallback from BCa is reported with a warning.
+#'   Defaults to 1000, the number used by Tonidandel, LeBreton and Johnson
+#'   (2009, p. 392); RWA-Web (Tonidandel & LeBreton, 2015) uses 10,000 by
+#'   default. Intervals are bias-corrected and accelerated (BCa), as
+#'   recommended by Tonidandel et al. (2009, p. 392). When `n_bootstrap` is
+#'   smaller than the number of rows with a non-missing outcome, the BCa
+#'   acceleration is estimated from jackknife influence values (Efron, 1987).
+#'   This is quick unless pairwise deletion is used with missing values, in
+#'   which case each jackknife sample is refitted. Check `ci_method` in the
+#'   returned `ci_results`; any fallback from BCa is reported with a warning.
 #' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
 #' @param focal Focal variable for bootstrap comparisons (optional).
 #' @param comprehensive Whether to run comprehensive bootstrap analysis
@@ -159,6 +161,23 @@
 #'   other. Not available for logistic regression.
 #' - `RXY`: Correlation values of the predictor variables against the outcome
 #'   variable. Not available for logistic regression.
+#'
+#' @references
+#' Efron, B. (1987). Better bootstrap confidence intervals. *Journal of the
+#' American Statistical Association*, 82(397), 171-185.
+#' \doi{10.1080/01621459.1987.10478410}
+#'
+#' Johnson, J. W. (2000). A heuristic method for estimating the relative weight
+#' of predictor variables in multiple regression. *Multivariate Behavioral
+#' Research*, 35(1), 1-19. \doi{10.1207/S15327906MBR3501_1}
+#'
+#' Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the
+#' statistical significance of relative weights. *Psychological Methods*,
+#' 14(4), 387-399. \doi{10.1037/a0017735}
+#'
+#' Tonidandel, S., & LeBreton, J. M. (2015). RWA Web: A free, comprehensive,
+#' web-based, and user-friendly tool for relative weight analyses. *Journal of
+#' Business and Psychology*, 30(2), 207-216. \doi{10.1007/s10869-014-9351-z}
 #'
 #' @seealso [plot_rwa()] for plotting results, [rwa_multiregress()] and
 #'   [rwa_logit()] for the underlying implementations.

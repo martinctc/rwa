@@ -62,9 +62,9 @@ exceeds what chance alone would produce (see also the discussion in
 `vignette("evaluating-rwa-method-reference")`) — significance is instead
 assessed by adding a **randomly generated variable** to the model and
 bootstrapping the *difference* between each predictor's weight and the random
-variable's weight. As in their procedure, the random variable is added once to
-the original data and resampled with the rows, so results depend on that
-single draw; use `set.seed()` to make them reproducible.
+variable's weight. As in their procedure (p. 392, step 1), the random variable
+is added once to the original data and resampled with the rows, so results
+depend on that single draw; use `set.seed()` to make them reproducible.
 
 The directional cutoff applied by this package is: a predictor is flagged
 significant only when the **lower bound** of that difference interval is
@@ -275,20 +275,32 @@ print(ci_analysis)
 ### 3. Bootstrap Method Selection
 
 The package uses bias-corrected and accelerated (BCa) intervals, as
-recommended by Tonidandel, LeBreton and Johnson (2009). When a BCa interval
-cannot be computed for a statistic, the package falls back to a simpler method
-and issues a warning that names the affected variables and the reason:
+recommended by Tonidandel, LeBreton and Johnson (2009, p. 392). In their
+simulation, BCa intervals gave more accurate coverage, Type I error and power
+than percentile intervals (p. 398). When a BCa interval cannot be computed for
+a statistic, the package falls back to a simpler method and issues a warning
+that names the affected variables and the reason:
 
 1. **BCA (Bias-Corrected and Accelerated)** - Used whenever it can be computed
-2. **Percentile** - Fallback if BCA fails
-3. **Basic bootstrap** - Final fallback if the percentile interval also fails
+2. **Percentile** - Fallback if BCA fails. This is the method Johnson (2004)
+   recommended before Tonidandel et al. (2009, p. 392) showed BCa to perform
+   better.
+3. **Basic bootstrap** - Final fallback if the percentile interval also fails.
+   It is retained from earlier versions of the package and has no basis in this
+   literature; it can extend below zero even though raw relative weights cannot
+   be negative.
 
-BCa needs an estimate of each observation's influence on the statistic. When
-`n_bootstrap` is at least the number of rows with a non-missing outcome, this
-is estimated from the bootstrap replicates. Otherwise it is computed by
-jackknife, which is quick unless pairwise deletion is used with missing values,
-in which case each jackknife sample is refitted. RWA-Web (Tonidandel &
-LeBreton, 2015) uses 10,000 bootstrap replications by default.
+BCa needs the empirical influence of each observation on the statistic to
+estimate its acceleration (Efron, 1987). When `n_bootstrap` is at least the
+number of rows with a non-missing outcome, `boot` estimates these values by
+regression on the bootstrap replicates. Otherwise they are the usual
+leave-one-out jackknife values, as in `boot::empinf(type = "jack")`. These are
+quick to compute unless pairwise deletion is used with missing values, in which
+case each jackknife sample is refitted.
+
+Tonidandel et al. (2009) used 1,000 bootstrap samples (p. 392, step 2; p. 393),
+which is the package default. RWA-Web (Tonidandel & LeBreton, 2015) uses 10,000
+by default.
 
 When `n_bootstrap` is smaller than the number of rows, the jackknife influence
 values are stored on each bootstrap object as `rwa_influence`. To recompute a
@@ -401,10 +413,13 @@ print(report_data)
 
 **Bootstrap Methods in RWA:**
 
-- Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the statistical significance of relative weights. *Psychological Methods*, 14(4), 387-399.
+- Johnson, J. W. (2004). Factors affecting relative weights: The influence of sampling and measurement error. *Organizational Research Methods*, 7(3), 283-299. <https://doi.org/10.1177/1094428104266018>
+- Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the statistical significance of relative weights. *Psychological Methods*, 14(4), 387-399. <https://doi.org/10.1037/a0017735>
+- Tonidandel, S., & LeBreton, J. M. (2015). RWA Web: A free, comprehensive, web-based, and user-friendly tool for relative weight analyses. *Journal of Business and Psychology*, 30(2), 207-216. <https://doi.org/10.1007/s10869-014-9351-z>
 
 **General Bootstrap Theory:**
 
+- Efron, B. (1987). Better bootstrap confidence intervals. *Journal of the American Statistical Association*, 82(397), 171-185. <https://doi.org/10.1080/01621459.1987.10478410>
 - Efron, B., & Tibshirani, R. J. (1993). *An introduction to the bootstrap*. Chapman & Hall/CRC.
 
 **Compositional Data Analysis:**

@@ -429,13 +429,17 @@ rwa_comp_internal <- function(df, outcome, predictors, focal, use = "pairwise.co
 
 #' Extract confidence intervals from bootstrap object
 #'
-#' Extracts confidence intervals from a boot object using BCa intervals. If a
-#' BCa interval cannot be computed, falls back to the percentile interval, then
-#' the basic interval, and warns which statistics fell back and why.
+#' Extracts confidence intervals from a boot object using BCa intervals, as
+#' recommended by Tonidandel, LeBreton and Johnson (2009, p. 392). If a BCa
+#' interval cannot be computed, falls back to the percentile interval (the
+#' method of Johnson, 2004, as described by Tonidandel et al., 2009, p. 392),
+#' then to the basic interval, which is kept only from earlier package versions,
+#' and warns which statistics fell back and why.
 #'
-#' BCa acceleration uses the jackknife influence values stored on the boot
-#' object by `attach_bootstrap_influence()` when there are fewer replicates
-#' than observations; otherwise `boot` estimates them from the replicates.
+#' BCa acceleration uses empirical influence values (Efron, 1987). When there
+#' are fewer replicates than observations, these are the jackknife values stored
+#' on the boot object by `attach_bootstrap_influence()`; otherwise `boot`
+#' estimates them by regression on the replicates.
 #'
 #' @param boot_object Boot object from boot::boot()
 #' @param conf_level Confidence level (default 0.95)

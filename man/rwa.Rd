@@ -50,13 +50,15 @@ confidence intervals. Defaults to \code{FALSE}. Currently only supported for
 multiple regression.}
 
 \item{n_bootstrap}{Number of bootstrap samples to use when bootstrap = TRUE.
-Defaults to 1000. RWA-Web (Tonidandel & LeBreton, 2015) uses 10,000 by
-default. Intervals are bias-corrected and accelerated (BCa); when
-\code{n_bootstrap} is smaller than the number of rows with a non-missing
-outcome, the BCa acceleration is estimated by jackknife. This is quick
-unless pairwise deletion is used with missing values, in which case each
-jackknife sample is refitted. Check \code{ci_method} in the returned
-\code{ci_results}; any fallback from BCa is reported with a warning.}
+Defaults to 1000, the number used by Tonidandel, LeBreton and Johnson
+(2009, p. 392); RWA-Web (Tonidandel & LeBreton, 2015) uses 10,000 by
+default. Intervals are bias-corrected and accelerated (BCa), as
+recommended by Tonidandel et al. (2009, p. 392). When \code{n_bootstrap} is
+smaller than the number of rows with a non-missing outcome, the BCa
+acceleration is estimated from jackknife influence values (Efron, 1987).
+This is quick unless pairwise deletion is used with missing values, in
+which case each jackknife sample is refitted. Check \code{ci_method} in the
+returned \code{ci_results}; any fallback from BCa is reported with a warning.}
 
 \item{conf_level}{Confidence level for bootstrap intervals. Defaults to 0.95.}
 
@@ -252,6 +254,23 @@ result$bootstrap$ci_results
 diamonds$IsIdeal <- as.numeric(diamonds$cut == "Ideal")
 rwa(diamonds, "IsIdeal", c("depth", "carat"))
 
+}
+\references{
+Efron, B. (1987). Better bootstrap confidence intervals. \emph{Journal of the
+American Statistical Association}, 82(397), 171-185.
+\doi{10.1080/01621459.1987.10478410}
+
+Johnson, J. W. (2000). A heuristic method for estimating the relative weight
+of predictor variables in multiple regression. \emph{Multivariate Behavioral
+Research}, 35(1), 1-19. \doi{10.1207/S15327906MBR3501_1}
+
+Tonidandel, S., LeBreton, J. M., & Johnson, J. W. (2009). Determining the
+statistical significance of relative weights. \emph{Psychological Methods},
+14(4), 387-399. \doi{10.1037/a0017735}
+
+Tonidandel, S., & LeBreton, J. M. (2015). RWA Web: A free, comprehensive,
+web-based, and user-friendly tool for relative weight analyses. \emph{Journal of
+Business and Psychology}, 30(2), 207-216. \doi{10.1007/s10869-014-9351-z}
 }
 \seealso{
 \code{\link[=plot_rwa]{plot_rwa()}} for plotting results, \code{\link[=rwa_multiregress]{rwa_multiregress()}} and
