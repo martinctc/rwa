@@ -120,7 +120,46 @@ test_that("BCa fallbacks are reported with a warning", {
   boot_raw$rwa_influence_error <- "test failure"
   expect_warning(
     ci <- extract_ci(boot_raw, variable_names = c("cyl", "hp")),
-    "BCa confidence intervals could not be computed for raw \\(cyl, hp\\).*test failure"
+    "BCa confidence intervals could not be computed for raw: .*test failure \\(cyl, hp\\)"
   )
   expect_true(all(ci$ci_method == "percentile"))
+})
+
+test_that("jackknife influence values are only computed when replicates are fewer than rows", {
+  set.seed(6)
+  result <- suppressWarnings(run_rwa_bootstrap(mtcars, "mpg", c("hp", "wt"), n_bootstrap = 40))
+  expect_null(result$boot_object$rwa_influence)
+  expect_null(result$boot_object_random$rwa_influence)
+})
+
+test_that("fast leave-one-out influence values match refitting each jackknife sample", {
+  set.seed(12)
+  n <- 120
+  d <- data.frame(y = rnorm(n), x1 = rnorm(n), x2 = rnorm(n), rand = rnorm(n),
+                  w = runif(n, 0.2, 3))
+  d$y <- d$y + 0.5 * d$x1 + 0.3 * d$x2
+  d$x1[c(3, 40)] <- NA
+  d$w[c(7, 90)] <- NA
+  predictors <- c("x1", "x2", "rand")
+  frame <- prepare_rwa_data(d, "y", predictors, "pairwise.complete.obs", "w")$frame
+  frame$rand_ <- rnorm(nrow(frame))
+  args <- list(outcome = "y", predictors = predictors, use = "pairwise.complete.obs",
+               weight_var = "w", random_var = "rand_", focal = "x2")
+  b <- do.call(boot::boot, c(list(data = frame, statistic = rwa_boot_comprehensive, R = 30), args))
+  matrix_stat <- rwa_matrix_statistic("comprehensive", "y", predictors, focal = "x2",
+                                      random_var = "rand_")
+  fast <- attach_bootstrap_influence(b, args, matrix_stat, fast = TRUE)
+  slow <- attach_bootstrap_influence(b, args, matrix_stat, fast = FALSE)
+  expect_equal(dim(fast$rwa_influence), c(nrow(frame), 8L))
+  expect_equal(fast$rwa_influence, slow$rwa_influence, tolerance = 1e-8)
+  # Rows dropped by the analysis have no influence.
+  dropped <- is.na(frame$w) | is.na(frame$x1)
+  expect_true(all(fast$rwa_influence[dropped, ] == 0))
+
+  # Pairwise deletion with missing values uses different rows per correlation,
+  # so it refits each jackknife sample instead.
+  args_pairwise <- modifyList(args, list(weight_var = NULL))
+  expect_null(jackknife_rows_used(frame, args_pairwise))
+  expect_false(is.null(jackknife_rows_used(frame, modifyList(args_pairwise,
+                                                             list(use = "complete.obs")))))
 })

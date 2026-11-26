@@ -284,10 +284,19 @@ and issues a warning that names the affected variables and the reason:
 3. **Basic bootstrap** - Final fallback if the percentile interval also fails
 
 BCa needs an estimate of each observation's influence on the statistic. When
-`n_bootstrap` is at least the number of observations, this is estimated from
-the bootstrap replicates; otherwise it is computed by jackknife, which takes
-longer for large datasets. Tonidandel and LeBreton (2015) recommend at least
-10,000 bootstrap replications.
+`n_bootstrap` is at least the number of rows with a non-missing outcome, this
+is estimated from the bootstrap replicates. Otherwise it is computed by
+jackknife, which is quick unless pairwise deletion is used with missing values,
+in which case each jackknife sample is refitted. RWA-Web (Tonidandel &
+LeBreton, 2015) uses 10,000 bootstrap replications by default.
+
+When `n_bootstrap` is smaller than the number of rows, the jackknife influence
+values are stored on each bootstrap object as `rwa_influence`. To recompute a
+BCa interval directly with `boot::boot.ci()` in that case, pass them as `L`,
+for example
+`boot::boot.ci(b, type = "bca", index = i, L = b$rwa_influence[, i])`, where
+`b` is one of the bootstrap objects in `result$bootstrap`. Otherwise
+`rwa_influence` is `NULL` and `boot::boot.ci()` needs no `L`.
 
 ```{r bootstrap-methods}
 # Check which methods were used

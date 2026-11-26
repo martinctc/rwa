@@ -50,12 +50,13 @@ confidence intervals. Defaults to \code{FALSE}. Currently only supported for
 multiple regression.}
 
 \item{n_bootstrap}{Number of bootstrap samples to use when bootstrap = TRUE.
-Defaults to 1000. Tonidandel and LeBreton (2015) recommend at least
-10,000. Intervals are bias-corrected and accelerated (BCa); when
-\code{n_bootstrap} is smaller than the number of observations, the BCa
-acceleration is estimated by jackknife, which adds run time for large
-datasets. Check \code{ci_method} in the returned \code{ci_results}; any fallback
-from BCa is reported with a warning.}
+Defaults to 1000. RWA-Web (Tonidandel & LeBreton, 2015) uses 10,000 by
+default. Intervals are bias-corrected and accelerated (BCa); when
+\code{n_bootstrap} is smaller than the number of rows with a non-missing
+outcome, the BCa acceleration is estimated by jackknife. This is quick
+unless pairwise deletion is used with missing values, in which case each
+jackknife sample is refitted. Check \code{ci_method} in the returned
+\code{ci_results}; any fallback from BCa is reported with a warning.}
 
 \item{conf_level}{Confidence level for bootstrap intervals. Defaults to 0.95.}
 

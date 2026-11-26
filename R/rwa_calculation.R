@@ -152,8 +152,21 @@ calculate_rwa <- function(prepared, outcome, predictors, use) {
     matrix_data <- stats::cov.wt(prepared$data, wt = normalized_weights,
                                 cor = TRUE, method = "ML")$cor
   }
+  rwa_from_matrix(matrix_data, outcome, predictors, n_obs = nrow(prepared$data))
+}
+
+#' Relative weights from a joint outcome/predictor correlation matrix
+#'
+#' @param matrix_data Correlation matrix with rows and columns named
+#'   `c(outcome, predictors)`, in that order
+#' @param outcome Outcome variable name
+#' @param predictors Predictor variable names
+#' @param n_obs Optional number of observations, used only in error messages
+#' @keywords internal
+#' @noRd
+rwa_from_matrix <- function(matrix_data, outcome, predictors, n_obs = NULL) {
   predictor_eigen <- validate_rwa_matrix(matrix_data, outcome, predictors,
-                                         n_obs = nrow(prepared$data))
+                                         n_obs = n_obs)
   delta <- diag(sqrt(predictor_eigen$values), nrow = length(predictors))
   lambda <- predictor_eigen$vectors %*% delta %*% t(predictor_eigen$vectors)
   RXY <- matrix_data[-1L, 1L]
