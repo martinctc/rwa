@@ -62,7 +62,9 @@ exceeds what chance alone would produce (see also the discussion in
 `vignette("evaluating-rwa-method-reference")`) — significance is instead
 assessed by adding a **randomly generated variable** to the model and
 bootstrapping the *difference* between each predictor's weight and the random
-variable's weight.
+variable's weight. As in their procedure, the random variable is added once to
+the original data and resampled with the rows, so results depend on that
+single draw; use `set.seed()` to make them reproducible.
 
 The directional cutoff applied by this package is: a predictor is flagged
 significant only when the **lower bound** of that difference interval is
@@ -272,11 +274,20 @@ print(ci_analysis)
 
 ### 3. Bootstrap Method Selection
 
-The package automatically selects the best available bootstrap CI method:
+The package uses bias-corrected and accelerated (BCa) intervals, as
+recommended by Tonidandel, LeBreton and Johnson (2009). When a BCa interval
+cannot be computed for a statistic, the package falls back to a simpler method
+and issues a warning that names the affected variables and the reason:
 
-1. **BCA (Bias-Corrected and Accelerated)** - Preferred when possible
+1. **BCA (Bias-Corrected and Accelerated)** - Used whenever it can be computed
 2. **Percentile** - Fallback if BCA fails
-3. **Basic bootstrap** - Final fallback option
+3. **Basic bootstrap** - Final fallback if the percentile interval also fails
+
+BCa needs an estimate of each observation's influence on the statistic. When
+`n_bootstrap` is at least the number of observations, this is estimated from
+the bootstrap replicates; otherwise it is computed by jackknife, which takes
+longer for large datasets. Tonidandel and LeBreton (2015) recommend at least
+10,000 bootstrap replications.
 
 ```{r bootstrap-methods}
 # Check which methods were used

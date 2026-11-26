@@ -75,7 +75,12 @@
 #'   confidence intervals. Defaults to `FALSE`. Currently only supported for
 #'   multiple regression.
 #' @param n_bootstrap Number of bootstrap samples to use when bootstrap = TRUE.
-#'   Defaults to 1000.
+#'   Defaults to 1000. Tonidandel and LeBreton (2015) recommend at least
+#'   10,000. Intervals are bias-corrected and accelerated (BCa); when
+#'   `n_bootstrap` is smaller than the number of observations, the BCa
+#'   acceleration is estimated by jackknife, which adds run time for large
+#'   datasets. Check `ci_method` in the returned `ci_results`; any fallback
+#'   from BCa is reported with a warning.
 #' @param conf_level Confidence level for bootstrap intervals. Defaults to 0.95.
 #' @param focal Focal variable for bootstrap comparisons (optional).
 #' @param comprehensive Whether to run comprehensive bootstrap analysis

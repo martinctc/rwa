@@ -1,3 +1,13 @@
+# rwa (development version)
+
+## Bug Fixes
+
+- Fixed BCa confidence intervals silently falling back to basic bootstrap intervals whenever `n_bootstrap` was smaller than the number of observations with a non-missing outcome (#31). With the default `n_bootstrap = 1000`, this affected every dataset with more than 1,000 such rows, weighted or unweighted, including the random-variable comparison intervals behind `Raw.Significant`. In this case `boot::boot.ci()` estimates the BCa acceleration from jackknife influence values, but it re-called the RWA statistic without its required arguments, and the resulting error was caught and replaced by a basic interval. The package now computes the jackknife influence values itself, once per bootstrap, and passes them to `boot::boot.ci()`. These match `boot`'s own jackknife influence values. **Intervals and `Raw.Significant` flags for datasets with more rows than `n_bootstrap` may change**, because they are now BCa intervals as documented. Results with `n_bootstrap` at least the number of rows are unchanged.
+- The random-variable significance test now follows the procedure of Tonidandel, LeBreton and Johnson (2009, p. 392). A single random variable is added to the original data and resampled with the rows (their step 1), instead of a new random variable being drawn within every bootstrap sample. Previously, the point estimate and each bootstrap replicate used different random draws, which is inconsistent with the published procedure and distorts the BCa bias correction for predictors with near-zero weights. **`Random.Diff.CI.*` and `Raw.Significant` may change for all datasets**, including those where `n_bootstrap` is at least the number of rows. As in the published procedure, results depend on the single random draw; use `set.seed()` for reproducibility. The raw and rescaled weight intervals are unaffected.
+- When a BCa interval cannot be computed, the fallback is now reported with a warning that names the affected variables and the reason. It now falls back to a percentile interval, as documented, before trying a basic interval. Previously, any BCa error jumped straight to a basic interval without warning; basic intervals can extend below zero even though raw relative weights cannot be negative.
+
+---
+
 # rwa 1.0.1
 
 ## Improvements

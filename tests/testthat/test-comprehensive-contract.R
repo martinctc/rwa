@@ -64,7 +64,8 @@ test_that("comprehensive mode supports no focal and labels exact CI statistic bl
       index <- i + 3
       direct <- suppressWarnings(boot::boot.ci(comp, index = index,
                                               type = switch(random$ci_method[i],
-                                                            bca = "bca", percentile = "perc", basic = "basic")))
+                                                            bca = "bca", percentile = "perc", basic = "basic"),
+                                              L = comp$rwa_influence[, index]))
       bounds <- switch(random$ci_method[i], bca = direct$bca[4:5],
                        percentile = direct$percent[4:5], basic = direct$basic[4:5])
       expect_equal(c(random$ci_lower[i], random$ci_upper[i]), bounds)
