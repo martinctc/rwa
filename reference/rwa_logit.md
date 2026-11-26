@@ -5,7 +5,12 @@ outcome variables using logistic regression. RWA provides a method for
 estimating the relative importance of predictor variables by
 transforming them into orthogonal variables while preserving their
 relationship to the outcome. This implementation follows Johnson (2000)
-for logistic regression.
+for logistic regression. The `Sign` column is the sign of the
+coefficient for each orthogonalized predictor. It can differ from an
+original predictor's marginal association with the outcome; it is not a
+causal direction. With `applysigns = TRUE`, `Sign.Rescaled.RelWeight` is
+the rescaled relative weight negated when `Sign` is `"-"`; it is not a
+logistic regression coefficient.
 
 ## Usage
 
@@ -31,8 +36,9 @@ rwa_logit(df, outcome, predictors, applysigns = FALSE)
 
 - applysigns:
 
-  Logical value specifying whether to show an estimate that applies the
-  sign. Defaults to `FALSE`.
+  Logical value specifying whether to return `Sign.Rescaled.RelWeight`,
+  the rescaled relative weight negated when the
+  orthogonalized-coefficient sign is `"-"`. Defaults to `FALSE`.
 
 ## Value
 
@@ -48,8 +54,9 @@ rwa_logit(df, outcome, predictors, applysigns = FALSE)
 
   - The `Rescaled.RelWeight` column sums up to 100.
 
-  - The `Sign` column indicates whether a predictor is positively or
-    negatively associated with the outcome.
+  - The `Sign` column gives the sign of the coefficient for the
+    corresponding orthogonalized predictor, not the sign of the original
+    predictor's marginal association.
 
 - `n`: indicates the number of observations used in the analysis.
 

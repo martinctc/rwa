@@ -320,8 +320,9 @@ R²)</li>
 <strong>Rescaled.RelWeight</strong>: Rescaled weights as percentages
 (sum to 100%)</li>
 <li>
-<strong>Sign</strong>: Direction of relationship with outcome
-(+/-)</li>
+<strong>Sign</strong>: Sign of the coefficient for the
+orthogonalized predictor used in the RWA calculation. It can differ from
+the original predictor’s marginal association with the outcome.</li>
 </ul>
 <p>By default, results are automatically sorted by rescaled relative
 weights in descending order, making it easy to identify the most
@@ -380,9 +381,14 @@ important predictors:</p>
 <div class="section level3">
 <h3 id="adding-signs-to-weights">Adding Signs to Weights<a class="anchor" aria-label="anchor" href="#adding-signs-to-weights"></a>
 </h3>
-<p>The <code>applysigns</code> parameter adds directional information to
-help interpret whether variables positively or negatively influence the
-outcome:</p>
+<p>The <code>applysigns</code> parameter returns
+<code>Sign.Rescaled.RelWeight</code>, the rescaled weight negated when
+the coefficient for the orthogonalized predictor is negative. This
+signed importance score is not an original-scale regression coefficient
+or a causal effect. The sign can differ from the original predictor’s
+marginal association with the outcome; see
+<code><a href="../articles/regression-methods.html">vignette("regression-methods")</a></code> for a reproducible
+example.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">result_signs</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>,</span>
@@ -643,7 +649,7 @@ intervals and significance tests</li>
 <span><span class="va">rwa_speed_test</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span>outcome <span class="op">=</span> <span class="st">"mpg"</span>, predictors <span class="op">=</span> <span class="va">predictors</span><span class="op">)</span></span>
 <span><span class="va">end_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.time.html" class="external-link">Sys.time</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"RWA computation time:"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">end_time</span> <span class="op">-</span> <span class="va">start_time</span>, units <span class="op">=</span> <span class="st">"secs"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"seconds\n"</span><span class="op">)</span></span>
-<span><span class="co">#&gt; RWA computation time: 0.0066 seconds</span></span></code></pre></div>
+<span><span class="co">#&gt; RWA computation time: 0.0089 seconds</span></span></code></pre></div>
 </div>
 </div>
 </div>

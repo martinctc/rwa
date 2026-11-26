@@ -95,8 +95,9 @@ followed by displacement (`disp`).
 ### Using the `applysigns` Parameter
 
 By default, relative weights are always positive (they represent
-variance contributions). Use `applysigns = TRUE` to see the direction of
-each relationship:
+variance contributions). Use `applysigns = TRUE` to add the
+orthogonalized-coefficient sign annotation to the rescaled importance
+score:
 
 ``` r
 
@@ -117,11 +118,70 @@ result_signed$result %>%
 #> 4        wt     0.2706812               -31.89607    -
 ```
 
-The `Sign` column indicates whether each predictor has a positive (+) or
-negative (-) relationship with the outcome. Negative signs for `cyl`,
-`disp`, `hp`, and `wt` make intuitive sense: more cylinders, larger
-displacement, more horsepower, and heavier weight all tend to decrease
-fuel efficiency.
+The `Sign` column is the sign of the coefficient for the corresponding
+orthogonalized predictor in the RWA calculation. Since these transformed
+predictors combine the original predictors, this sign is not necessarily
+the sign of an original predictor’s marginal association with the
+outcome. It is not the coefficient sign from an ordinary regression on
+the original predictors. `Sign.Rescaled.RelWeight` is a signed
+importance score, not a regression coefficient or a causal effect.
+
+The distinction is visible in a small suppression example:
+
+``` r
+
+sign_example <- data.frame(
+  x1 = c(-1, -1, 1, 1),
+  z = c(-1, 1, -1, 1),
+  e = c(-1, 1, 1, -1),
+  w = c(2, 1, 2, 1)
+)
+sign_example$x2 <- 0.9 * sign_example$x1 + sqrt(1 - 0.9^2) * sign_example$z
+sign_example$y <- 0.1 * sign_example$x1 + 0.75 * sign_example$z +
+  0.65 * sign_example$e
+
+sign_fit <- rwa_multiregress(
+  sign_example, outcome = "y", predictors = c("x1", "x2"),
+  applysigns = TRUE
+)
+
+data.frame(
+  analysis = "unweighted",
+  marginal_association = cor(sign_example$x1, sign_example$y),
+  rwa_sign = sign_fit$result$Sign[match("x1", sign_fit$result$Variables)]
+)
+#>     analysis marginal_association rwa_sign
+#> 1 unweighted            0.1002509        -
+```
+
+Here `x1` has a positive marginal correlation with `y` (about 0.10),
+while its RWA orthogonalized-coefficient sign is negative. The
+relative-weight decomposition is unchanged; the sign is an annotation
+for the transformed predictor contribution. The same distinction applies
+to weighted RWA:
+
+``` r
+
+weighted_sign_fit <- rwa_multiregress(
+  sign_example, outcome = "y", predictors = c("x1", "x2"),
+  weight = "w", applysigns = TRUE
+)
+
+data.frame(
+  analysis = "weighted",
+  marginal_association = stats::cov.wt(
+    sign_example[c("x1", "y")], wt = sign_example$w, cor = TRUE
+  )$cor[1, 2],
+  rwa_sign = weighted_sign_fit$result$Sign[
+    match("x1", weighted_sign_fit$result$Variables)
+  ]
+)
+#>   analysis marginal_association rwa_sign
+#> 1 weighted            0.3205638        -
+```
+
+With these weights, `x1`’s weighted marginal correlation is about
+`+0.32`, while its RWA sign remains negative.
 
 ### Examining Correlation Structures
 

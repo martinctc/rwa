@@ -6,7 +6,7 @@ relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to
 the original set of predictors. `rwa()` is optimised for dplyr pipes and
-shows positive / negative signs for weights.
+can return sign annotations for weights.
 
 ## Usage
 
@@ -47,8 +47,9 @@ rwa(
 
 - applysigns:
 
-  Logical value specifying whether to show an estimate that applies the
-  sign. Defaults to `FALSE`.
+  Logical value specifying whether to return `Sign.Rescaled.RelWeight`,
+  the rescaled relative weight negated when the
+  orthogonalized-coefficient sign is `"-"`. Defaults to `FALSE`.
 
 - method:
 
@@ -149,8 +150,14 @@ rwa(
 
   - The `Rescaled.RelWeight` column sums up to 100.
 
-  - The `Sign` column indicates whether a predictor is positively or
-    negatively correlated with the outcome.
+  - The `Sign` column gives the sign of the coefficient for the
+    corresponding orthogonalized predictor. It is not the sign of the
+    original predictor's marginal association or original-scale
+    regression coefficient.
+
+  - When `applysigns = TRUE`, `Sign.Rescaled.RelWeight` is the rescaled
+    relative weight negated when `Sign` is `"-"`; it is a signed
+    importance score, not a regression coefficient or causal effect.
 
   - When bootstrap = TRUE, includes confidence interval columns for raw
     weights.
@@ -215,6 +222,19 @@ every predictor in the model. Signs are added to the weights when the
 `applysigns` argument is set to `TRUE`. See
 <https://www.scotttonidandel.com/rwa-web> for the original
 implementation that inspired this package.
+
+The `Sign` column uses the coefficient sign for the orthogonalized
+predictor in the RWA calculation. Because orthogonalized predictors are
+transformations of the originals, this sign can differ from an original
+predictor's marginal association with the outcome. It is not the
+coefficient sign from an ordinary regression on the original predictors.
+`Sign.Rescaled.RelWeight` (when requested with `applysigns = TRUE`) is
+the rescaled weight negated when `Sign` is `"-"`. It is a signed
+importance score, not a regression coefficient or a causal effect. With
+`weight`, the same convention applies to coefficients based on the
+weighted correlation matrix. See
+[`vignette("regression-methods")`](https://martinctc.github.io/rwa/articles/regression-methods.md)
+for reproducible examples.
 
 This function is a wrapper around
 [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md)

@@ -2,6 +2,20 @@
 
 ## rwa (development version)
 
+### Documentation
+
+- Clarified the existing `Sign` convention in
+  [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md),
+  [`rwa_multiregress()`](https://martinctc.github.io/rwa/reference/rwa_multiregress.md),
+  [`rwa_logit()`](https://martinctc.github.io/rwa/reference/rwa_logit.md),
+  plotting documentation, README, and vignettes
+  ([\#27](https://github.com/martinctc/rwa/issues/27)). `Sign` comes
+  from the coefficient for an orthogonalized predictor and can differ
+  from an original predictor’s marginal association.
+  `Sign.Rescaled.RelWeight` is a signed importance score, not a
+  regression coefficient or causal effect. **No returned values or
+  behavior changed.**
+
 ### Bug Fixes
 
 Each change below cites the source it is based on. The investigation,

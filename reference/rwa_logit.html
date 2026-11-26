@@ -3,11 +3,21 @@
 outcome variables using logistic regression. RWA provides a method for
 estimating the relative importance of predictor variables by transforming
 them into orthogonal variables while preserving their relationship to the
-outcome. This implementation follows Johnson (2000) for logistic regression."><meta property="og:description" content="This function performs Relative Weights Analysis (RWA) for binary
+outcome. This implementation follows Johnson (2000) for logistic regression.
+The Sign column is the sign of the coefficient for each orthogonalized
+predictor. It can differ from an original predictor's marginal association
+with the outcome; it is not a causal direction. With applysigns = TRUE,
+Sign.Rescaled.RelWeight is the rescaled relative weight negated when
+Sign is &quot;-&quot;; it is not a logistic regression coefficient."><meta property="og:description" content="This function performs Relative Weights Analysis (RWA) for binary
 outcome variables using logistic regression. RWA provides a method for
 estimating the relative importance of predictor variables by transforming
 them into orthogonal variables while preserving their relationship to the
-outcome. This implementation follows Johnson (2000) for logistic regression."><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
+outcome. This implementation follows Johnson (2000) for logistic regression.
+The Sign column is the sign of the coefficient for each orthogonalized
+predictor. It can differ from an original predictor's marginal association
+with the outcome; it is not a causal direction. With applysigns = TRUE,
+Sign.Rescaled.RelWeight is the rescaled relative weight negated when
+Sign is &quot;-&quot;; it is not a logistic regression coefficient."><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
@@ -53,7 +63,12 @@ outcome. This implementation follows Johnson (2000) for logistic regression."><!
 outcome variables using logistic regression. RWA provides a method for
 estimating the relative importance of predictor variables by transforming
 them into orthogonal variables while preserving their relationship to the
-outcome. This implementation follows Johnson (2000) for logistic regression.</p>
+outcome. This implementation follows Johnson (2000) for logistic regression.
+The <code>Sign</code> column is the sign of the coefficient for each orthogonalized
+predictor. It can differ from an original predictor's marginal association
+with the outcome; it is not a causal direction. With <code>applysigns = TRUE</code>,
+<code>Sign.Rescaled.RelWeight</code> is the rescaled relative weight negated when
+<code>Sign</code> is <code>"-"</code>; it is not a logistic regression coefficient.</p>
     </div>
 
     <div class="section level2">
@@ -80,8 +95,9 @@ string(s) or bare input(s). All variables must be numeric.</p></dd>
 
 
 <dt id="arg-applysigns">applysigns<a class="anchor" aria-label="anchor" href="#arg-applysigns"></a></dt>
-<dd><p>Logical value specifying whether to show an estimate that
-applies the sign. Defaults to <code>FALSE</code>.</p></dd>
+<dd><p>Logical value specifying whether to return
+<code>Sign.Rescaled.RelWeight</code>, the rescaled relative weight negated when the
+orthogonalized-coefficient sign is <code>"-"</code>. Defaults to <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -89,7 +105,9 @@ applies the sign. Defaults to <code>FALSE</code>.</p></dd>
     <p><code>rwa_logit()</code> returns a list of outputs, as follows:</p><ul><li><p><code>predictors</code>: character vector of names of the predictor variables used.</p></li>
 <li><p><code>rsquare</code>: the pseudo R-squared value (sum of epsilon weights) for the logistic regression model.</p></li>
 <li><p><code>result</code>: the final output of the importance metrics.</p><ul><li><p>The <code>Rescaled.RelWeight</code> column sums up to 100.</p></li>
-<li><p>The <code>Sign</code> column indicates whether a predictor is positively or negatively associated with the outcome.</p></li>
+<li><p>The <code>Sign</code> column gives the sign of the coefficient for the
+corresponding orthogonalized predictor, not the sign of the original
+predictor's marginal association.</p></li>
 </ul></li>
 <li><p><code>n</code>: indicates the number of observations used in the analysis.</p></li>
 <li><p><code>lambda</code>: the Lambda transformation matrix from the analysis.</p></li>

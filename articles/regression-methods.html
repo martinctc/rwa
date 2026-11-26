@@ -182,8 +182,9 @@ of fuel efficiency, followed by displacement (<code>disp</code>).</p>
 <h3 id="using-the-applysigns-parameter">Using the <code>applysigns</code> Parameter<a class="anchor" aria-label="anchor" href="#using-the-applysigns-parameter"></a>
 </h3>
 <p>By default, relative weights are always positive (they represent
-variance contributions). Use <code>applysigns = TRUE</code> to see the
-direction of each relationship:</p>
+variance contributions). Use <code>applysigns = TRUE</code> to add the
+orthogonalized-coefficient sign annotation to the rescaled importance
+score:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># With sign information</span></span>
 <span><span class="va">result_signed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_multiregress.html">rwa_multiregress</a></span><span class="op">(</span></span>
@@ -200,19 +201,69 @@ direction of each relationship:</p>
 <span><span class="co">#&gt; 2      disp     0.1883043               -22.18908    -</span></span>
 <span><span class="co">#&gt; 3        hp     0.1799590               -21.20570    -</span></span>
 <span><span class="co">#&gt; 4        wt     0.2706812               -31.89607    -</span></span></code></pre></div>
-<p>The <code>Sign</code> column indicates whether each predictor has a
-positive (+) or negative (-) relationship with the outcome. Negative
-signs for <code>cyl</code>, <code>disp</code>, <code>hp</code>, and
-<code>wt</code> make intuitive sense: more cylinders, larger
-displacement, more horsepower, and heavier weight all tend to decrease
-fuel efficiency.</p>
+<p>The <code>Sign</code> column is the sign of the coefficient for the
+corresponding orthogonalized predictor in the RWA calculation. Since
+these transformed predictors combine the original predictors, this sign
+is not necessarily the sign of an original predictor’s marginal
+association with the outcome. It is not the coefficient sign from an
+ordinary regression on the original predictors.
+<code>Sign.Rescaled.RelWeight</code> is a signed importance score, not a
+regression coefficient or a causal effect.</p>
+<p>The distinction is visible in a small suppression example:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">sign_example</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  x1 <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  z <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>  e <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>,</span>
+<span>  w <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">sign_example</span><span class="op">$</span><span class="va">x2</span> <span class="op">&lt;-</span> <span class="fl">0.9</span> <span class="op">*</span> <span class="va">sign_example</span><span class="op">$</span><span class="va">x1</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fl">1</span> <span class="op">-</span> <span class="fl">0.9</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">*</span> <span class="va">sign_example</span><span class="op">$</span><span class="va">z</span></span>
+<span><span class="va">sign_example</span><span class="op">$</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">sign_example</span><span class="op">$</span><span class="va">x1</span> <span class="op">+</span> <span class="fl">0.75</span> <span class="op">*</span> <span class="va">sign_example</span><span class="op">$</span><span class="va">z</span> <span class="op">+</span></span>
+<span>  <span class="fl">0.65</span> <span class="op">*</span> <span class="va">sign_example</span><span class="op">$</span><span class="va">e</span></span>
+<span></span>
+<span><span class="va">sign_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_multiregress.html">rwa_multiregress</a></span><span class="op">(</span></span>
+<span>  <span class="va">sign_example</span>, outcome <span class="op">=</span> <span class="st">"y"</span>, predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>,</span>
+<span>  applysigns <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  analysis <span class="op">=</span> <span class="st">"unweighted"</span>,</span>
+<span>  marginal_association <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/cor.html" class="external-link">cor</a></span><span class="op">(</span><span class="va">sign_example</span><span class="op">$</span><span class="va">x1</span>, <span class="va">sign_example</span><span class="op">$</span><span class="va">y</span><span class="op">)</span>,</span>
+<span>  rwa_sign <span class="op">=</span> <span class="va">sign_fit</span><span class="op">$</span><span class="va">result</span><span class="op">$</span><span class="va">Sign</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">sign_fit</span><span class="op">$</span><span class="va">result</span><span class="op">$</span><span class="va">Variables</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;     analysis marginal_association rwa_sign</span></span>
+<span><span class="co">#&gt; 1 unweighted            0.1002509        -</span></span></code></pre></div>
+<p>Here <code>x1</code> has a positive marginal correlation with
+<code>y</code> (about 0.10), while its RWA orthogonalized-coefficient
+sign is negative. The relative-weight decomposition is unchanged; the
+sign is an annotation for the transformed predictor contribution. The
+same distinction applies to weighted RWA:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">weighted_sign_fit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_multiregress.html">rwa_multiregress</a></span><span class="op">(</span></span>
+<span>  <span class="va">sign_example</span>, outcome <span class="op">=</span> <span class="st">"y"</span>, predictors <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>,</span>
+<span>  weight <span class="op">=</span> <span class="st">"w"</span>, applysigns <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  analysis <span class="op">=</span> <span class="st">"weighted"</span>,</span>
+<span>  marginal_association <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/cov.wt.html" class="external-link">cov.wt</a></span><span class="op">(</span></span>
+<span>    <span class="va">sign_example</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">]</span>, wt <span class="op">=</span> <span class="va">sign_example</span><span class="op">$</span><span class="va">w</span>, cor <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span><span class="op">$</span><span class="va">cor</span><span class="op">[</span><span class="fl">1</span>, <span class="fl">2</span><span class="op">]</span>,</span>
+<span>  rwa_sign <span class="op">=</span> <span class="va">weighted_sign_fit</span><span class="op">$</span><span class="va">result</span><span class="op">$</span><span class="va">Sign</span><span class="op">[</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="va">weighted_sign_fit</span><span class="op">$</span><span class="va">result</span><span class="op">$</span><span class="va">Variables</span><span class="op">)</span></span>
+<span>  <span class="op">]</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt;   analysis marginal_association rwa_sign</span></span>
+<span><span class="co">#&gt; 1 weighted            0.3205638        -</span></span></code></pre></div>
+<p>With these weights, <code>x1</code>’s weighted marginal correlation
+is about <code>+0.32</code>, while its RWA sign remains negative.</p>
 </div>
 <div class="section level3">
 <h3 id="examining-correlation-structures">Examining Correlation Structures<a class="anchor" aria-label="anchor" href="#examining-correlation-structures"></a>
 </h3>
 <p>The function also returns the correlation matrices, which can help
 understand relationships between predictors:</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Correlation between predictors</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Predictor Correlation Matrix (RXX):\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Predictor Correlation Matrix (RXX):</span></span>
@@ -240,7 +291,7 @@ understand relationships between predictors:</p>
 </h3>
 <p>For logistic regression, we need a binary outcome variable. Let’s
 create one from the <code>mtcars</code> dataset:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create binary outcome: high efficiency (1) vs low efficiency (0)</span></span>
 <span><span class="va">mtcars_binary</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>high_mpg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -254,7 +305,7 @@ create one from the <code>mtcars</code> dataset:</p>
 <div class="section level3">
 <h3 id="basic-logistic-rwa">Basic Logistic RWA<a class="anchor" aria-label="anchor" href="#basic-logistic-rwa"></a>
 </h3>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Logistic regression RWA</span></span>
 <span><span class="va">result_logit</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_logit.html">rwa_logit</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars_binary</span>,</span>
@@ -274,7 +325,7 @@ create one from the <code>mtcars</code> dataset:</p>
 <h3 id="interpreting-logistic-rwa-results">Interpreting Logistic RWA Results<a class="anchor" aria-label="anchor" href="#interpreting-logistic-rwa-results"></a>
 </h3>
 <p>The interpretation differs slightly from multiple regression:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Lambda (analogous to R-squared for logistic regression)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="st">"Lambda (pseudo R-squared):"</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">result_logit</span><span class="op">$</span><span class="va">lambda</span>, <span class="fl">4</span><span class="op">)</span>, <span class="st">"\n"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Lambda (pseudo R-squared): 0.7481 0.4305 0.3884 0.3227 0.4305 0.7102 0.3386 0.4423 0.3884 0.3386 0.8239 0.2358 0.3227 0.4423 0.2358 0.8029</span></span>
@@ -299,7 +350,7 @@ attributed to each predictor.</p>
 <div class="section level3">
 <h3 id="logistic-rwa-with-signs">Logistic RWA with Signs<a class="anchor" aria-label="anchor" href="#logistic-rwa-with-signs"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># With direction information</span></span>
 <span><span class="va">result_logit_signed</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_logit.html">rwa_logit</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars_binary</span>,</span>
@@ -326,7 +377,7 @@ regression based on your outcome variable.</p>
 <div class="section level3">
 <h3 id="auto-detection-of-binary-outcomes">Auto-Detection of Binary Outcomes<a class="anchor" aria-label="anchor" href="#auto-detection-of-binary-outcomes"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># For continuous outcome - automatically uses multiple regression</span></span>
 <span><span class="va">result_auto_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars</span>,</span>
@@ -346,7 +397,7 @@ regression based on your outcome variable.</p>
 </h3>
 <p>You can also explicitly specify the method using the
 <code>method</code> parameter:</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Force multiple regression</span></span>
 <span><span class="va">result_explicit_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars</span>,</span>
@@ -368,7 +419,7 @@ regression based on your outcome variable.</p>
 </h3>
 <p>The wrapper function also provides sorting and visualization
 options:</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Sort results by importance</span></span>
 <span><span class="va">result_sorted</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars</span>,</span>
@@ -393,7 +444,7 @@ fit. <code><a href="../reference/rwa.html">rwa()</a></code> warns when you suppl
 non-default <code>use</code> value alongside logistic RWA, and ignores
 them, because <code><a href="../reference/rwa_logit.html">rwa_logit()</a></code> does not fit a weighted or
 correlation-based model:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Weighted RWA: multiple regression only</span></span>
 <span><span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span><span class="va">df</span>, <span class="st">"satisfaction"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x1"</span>, <span class="st">"x2"</span><span class="op">)</span>, weight <span class="op">=</span> <span class="st">"survey_weight"</span><span class="op">)</span></span>
 <span></span>
@@ -411,7 +462,7 @@ dataset.</p>
 <div class="section level3">
 <h3 id="multiple-regression-predicting-petal-length">Multiple Regression: Predicting Petal Length<a class="anchor" aria-label="anchor" href="#multiple-regression-predicting-petal-length"></a>
 </h3>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Predict petal length from other measurements</span></span>
 <span><span class="va">iris_result</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa_multiregress.html">rwa_multiregress</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">iris</span>,</span>
@@ -437,7 +488,7 @@ dataset.</p>
 </h3>
 <p>For logistic regression, we need a binary outcome. Let’s predict
 whether a flower is <em>Iris setosa</em> or not:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create binary outcome for setosa classification</span></span>
 <span><span class="va">iris_binary</span> <span class="op">&lt;-</span> <span class="va">iris</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>is_setosa <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">Species</span> <span class="op">==</span> <span class="st">"setosa"</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -467,7 +518,7 @@ distinguishing <em>Iris setosa</em> from the other species.</p>
 </h2>
 <p>Let’s demonstrate how the same predictors can yield different
 importance rankings depending on the outcome type:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Create comparison dataset</span></span>
 <span><span class="va">comparison_data</span> <span class="op">&lt;-</span> <span class="va">mtcars</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>high_mpg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">mpg</span> <span class="op">&gt;</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">mpg</span><span class="op">)</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span>
@@ -526,7 +577,7 @@ boundary.</li>
 <div class="section level3">
 <h3 id="check-your-data">2. Check Your Data<a class="anchor" aria-label="anchor" href="#check-your-data"></a>
 </h3>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Always check outcome distribution for binary variables</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">mtcars_binary</span><span class="op">$</span><span class="va">high_mpg</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -548,7 +599,7 @@ predictor.</p>
 </h3>
 <p>For statistical significance testing, combine with bootstrap methods
 (note: currently only available for multiple regression):</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Bootstrap with multiple regression</span></span>
 <span><span class="va">result_boot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rwa.html">rwa</a></span><span class="op">(</span></span>
 <span>  df <span class="op">=</span> <span class="va">mtcars</span>,</span>

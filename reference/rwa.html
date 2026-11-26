@@ -4,14 +4,14 @@ returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors. rwa() is optimised for dplyr pipes and shows
-positive / negative signs for weights."><meta property="og:description" content="This function creates a Relative Weights Analysis (RWA) and
+original set of predictors. rwa() is optimised for dplyr pipes and can
+return sign annotations for weights."><meta property="og:description" content="This function creates a Relative Weights Analysis (RWA) and
 returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors. rwa() is optimised for dplyr pipes and shows
-positive / negative signs for weights."><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
+original set of predictors. rwa() is optimised for dplyr pipes and can
+return sign annotations for weights."><!-- Global site tag (gtag.js) - Google Analytics --><script async src="https://www.googletagmanager.com/gtag/js?id=UA-138721086-1"></script><script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
@@ -58,8 +58,8 @@ returns a list of outputs. RWA provides a heuristic method for estimating
 the relative weight of predictor variables in multiple regression, which
 involves creating a multiple regression with on a set of transformed
 predictors which are orthogonal to each other but maximally related to the
-original set of predictors. <code>rwa()</code> is optimised for dplyr pipes and shows
-positive / negative signs for weights.</p>
+original set of predictors. <code>rwa()</code> is optimised for dplyr pipes and can
+return sign annotations for weights.</p>
     </div>
 
     <div class="section level2">
@@ -101,8 +101,9 @@ string(s) or bare input(s). All variables must be numeric.</p></dd>
 
 
 <dt id="arg-applysigns">applysigns<a class="anchor" aria-label="anchor" href="#arg-applysigns"></a></dt>
-<dd><p>Logical value specifying whether to show an estimate that
-applies the sign. Defaults to <code>FALSE</code>.</p></dd>
+<dd><p>Logical value specifying whether to return
+<code>Sign.Rescaled.RelWeight</code>, the rescaled relative weight negated when the
+orthogonalized-coefficient sign is <code>"-"</code>. Defaults to <code>FALSE</code>.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
@@ -191,8 +192,13 @@ Defaults to <code>NULL</code>
 <li><p><code>rsquare</code>: the rsquare value of the regression model (multiple regression only).</p></li>
 <li><p><code>result</code>: the final output of the importance metrics (sorted by
 Rescaled.RelWeight in descending order by default).</p><ul><li><p>The <code>Rescaled.RelWeight</code> column sums up to 100.</p></li>
-<li><p>The <code>Sign</code> column indicates whether a predictor is positively or
-negatively correlated with the outcome.</p></li>
+<li><p>The <code>Sign</code> column gives the sign of the coefficient for the
+corresponding orthogonalized predictor. It is not the sign of the
+original predictor's marginal association or original-scale regression
+coefficient.</p></li>
+<li><p>When <code>applysigns = TRUE</code>, <code>Sign.Rescaled.RelWeight</code> is the rescaled
+relative weight negated when <code>Sign</code> is <code>"-"</code>; it is a signed importance
+score, not a regression coefficient or causal effect.</p></li>
 <li><p>When bootstrap = TRUE, includes confidence interval columns for raw weights.</p></li>
 <li><p>When bootstrap = TRUE, <code>Random.Diff.CI.Lower</code>/<code>Random.Diff.CI.Upper</code> give
 the interval for the difference between each predictor's weight and the
@@ -242,6 +248,17 @@ weights (scaled as a percentage of predictable variance) for every predictor
 in the model. Signs are added to the weights when the <code>applysigns</code> argument
 is set to <code>TRUE</code>. See <a href="https://www.scotttonidandel.com/rwa-web" class="external-link">https://www.scotttonidandel.com/rwa-web</a> for the
 original implementation that inspired this package.</p>
+<p>The <code>Sign</code> column uses the coefficient sign for the orthogonalized
+predictor in the RWA calculation. Because orthogonalized predictors are
+transformations of the originals, this sign can differ from an original
+predictor's marginal association with the outcome. It is not the coefficient
+sign from an ordinary regression on the original predictors.
+<code>Sign.Rescaled.RelWeight</code>
+(when requested with <code>applysigns = TRUE</code>) is the rescaled weight negated
+when <code>Sign</code> is <code>"-"</code>. It is a signed importance score, not a regression
+coefficient or a causal effect. With <code>weight</code>, the same convention applies
+to coefficients based on the weighted correlation matrix. See
+<code><a href="../articles/regression-methods.html">vignette("regression-methods")</a></code> for reproducible examples.</p>
 <p>This function is a wrapper around <code><a href="rwa_multiregress.html">rwa_multiregress()</a></code> and <code><a href="rwa_logit.html">rwa_logit()</a></code>,
 automatically selecting the appropriate method based on the outcome variable
 or the <code>method</code> argument.</p>

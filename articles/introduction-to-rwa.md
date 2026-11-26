@@ -228,7 +228,9 @@ The main results table contains:
 - **Variables**: Names of predictor variables
 - **Raw.RelWeight**: Raw relative weights (sum to R²)
 - **Rescaled.RelWeight**: Rescaled weights as percentages (sum to 100%)
-- **Sign**: Direction of relationship with outcome (+/-)
+- **Sign**: Sign of the coefficient for the orthogonalized predictor
+  used in the RWA calculation. It can differ from the original
+  predictor’s marginal association with the outcome.
 
 By default, results are automatically sorted by rescaled relative
 weights in descending order, making it easy to identify the most
@@ -288,9 +290,14 @@ result_unsorted$result
 
 ### Adding Signs to Weights
 
-The `applysigns` parameter adds directional information to help
-interpret whether variables positively or negatively influence the
-outcome:
+The `applysigns` parameter returns `Sign.Rescaled.RelWeight`, the
+rescaled weight negated when the coefficient for the orthogonalized
+predictor is negative. This signed importance score is not an
+original-scale regression coefficient or a causal effect. The sign can
+differ from the original predictor’s marginal association with the
+outcome; see
+[`vignette("regression-methods")`](https://martinctc.github.io/rwa/articles/regression-methods.md)
+for a reproducible example.
 
 ``` r
 
@@ -568,7 +575,7 @@ start_time <- Sys.time()
 rwa_speed_test <- mtcars %>% rwa(outcome = "mpg", predictors = predictors)
 end_time <- Sys.time()
 cat("RWA computation time:", round(as.numeric(end_time - start_time, units = "secs"), 4), "seconds\n")
-#> RWA computation time: 0.0066 seconds
+#> RWA computation time: 0.0089 seconds
 ```
 
 ## Critical Limitations and When to Exercise Caution

@@ -2,10 +2,11 @@
 
 Pass the output of
 [`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md) and plot a
-bar chart of the rescaled importance values. Signs are always calculated
-and taken into account, which is equivalent to setting the `applysigns`
-argument to `TRUE` in
-[`rwa()`](https://martinctc.github.io/rwa/reference/rwa.md).
+bar chart of the signed rescaled importance values. The sign follows the
+coefficient for the orthogonalized predictor in the RWA calculation; it
+can differ from the original predictor's marginal association with the
+outcome. The signed score is not a regression coefficient or causal
+effect.
 
 ## Usage
 
